@@ -1,8 +1,10 @@
 #include "raylib.h"
+#include "raymath.h"
 #include "play.h"
+#include "tower.h"
+#include "wave.h"
 #include <vector>
 #include <iostream>
-#include "tower.h"
 #include <unordered_map>
 
 static std::vector<Vector2> trackPoints;
@@ -14,12 +16,19 @@ static int playerHealth = 100;
 static int income = 500;
 static bool waveInProgress = false;
 static float waveDuration = 30.0f;
-static float waveCooldown = 10.0f;
+static float waveCooldown = 3.0f;
 static float waveCooldownTimer = 0.0f;
 static int selectedTowerIndex = -1;
 
 static bool isPlacingTower = false;
 static Vector2 previewPosition;
+
+bool GameOver = false;
+
+static float spawnTimer = 0.0f;
+static int spawnIndex = 0;
+
+static bool spawning = false;
 
 std::unordered_map<int, int> costs = {
     {1, 200},
@@ -48,27 +57,41 @@ void InitPlaying() {
     trackPoints.push_back({ 1280, 300 });
 }
 
+void ResetGame() {
+    waveNumber = 0;
+    playerMoney = 500;
+    playerHealth = 100;
+    income = 500;
+    waveInProgress = false;
+    waveDuration = 30.0f;
+    waveCooldown = 3.0f;
+    waveCooldownTimer = 0.0f;
+    selectedTowerIndex = -1;
+
+    spawning = false;
+    spawnIndex = 0;
+    spawnTimer = 0.0f;
+
+    towers.clear();
+    enemies.clear();
+}
+
+void SpawnEnemies() {
+
+}
+
 // Logic to start the next wave
 void StartNextWave() {
     waveNumber++;
     waveInProgress = true;
     waveCooldownTimer = 0.0f;
-    enemies.clear();
 
     if (waveNumber > 1) {
         playerMoney += income;
         income += 50;
     }
 
-    for (int i = 0; i < waveNumber * 3; ++i) {
-        auto slime = std::make_unique<Slime>();
-        slime->setPosition(trackPoints[0]); 
-        enemies.push_back(std::move(slime));
-
-        if (waveNumber > 2) {
-            enemies.push_back(std::make_unique<Armored_Knight>());
-        }
-    }
+    spawning = true;
 
     std::cout << "Wave " << waveNumber << " started!\n";
 }
@@ -78,11 +101,30 @@ void UpdatePlaying() {
 
     bool allDefeated = true;
     float deltaTime = GetFrameTime();
-    for (const auto& enemy : enemies) {
-        enemy->update(deltaTime, trackPoints);
-        if (enemy->isAlive()) {
+
+    Vector2 goal = trackPoints.back();
+
+    for (int i = enemies.size() - 1; i >= 0; --i) {
+        Vector2 pos = enemies[i]->getPosition();
+        float distanceToGoal = Vector2Distance(pos, goal);
+
+        if (distanceToGoal < 5.0f) {
+            std::cout << "Went in" << '\n';
+            playerHealth -= enemies[i]->getHealth();
+
+            if (playerHealth <= 0) {
+                GameOver = true;
+            }
+
+            enemies.erase(enemies.begin() + i);
+            continue;
+        }
+
+        if (enemies[i]->isAlive()) {
             allDefeated = false;
         }
+
+        enemies[i]->update(deltaTime, trackPoints); // Move enemy along path
     }
 
     if (waveInProgress && allDefeated) {
@@ -99,6 +141,42 @@ void UpdatePlaying() {
     } else {
         if (waveCooldownTimer >= waveDuration) {
             StartNextWave();
+        }
+    }
+
+    if (spawning) {
+        const GameWave& currentWave = waveDefinitions[waveNumber - 1];
+
+        if (spawnIndex < currentWave.enemies.size()) {
+            spawnTimer += GetFrameTime();
+
+            if (spawnTimer >= currentWave.enemies[spawnIndex].delay) {
+
+                std::string type = currentWave.enemies[spawnIndex].type;
+
+                std::unique_ptr<Enemy> enemy;
+                if (type == "Slime") {
+                    enemy = std::make_unique<Slime>();
+                } else if (type == "Armored_Knight") {
+                    enemy = std::make_unique<Armored_Knight>();
+                } // Add more types here
+
+                if (enemy) {
+                    enemy->setPosition(trackPoints[0]);
+                    enemies.push_back(std::move(enemy));
+                    std::cout << "Enemy detected" << '\n';
+                    std::cout << currentWave.enemies.size() << '\n';
+                }
+
+                spawnTimer = 0.0f;
+                spawnIndex++;
+            }
+        } else {
+            std::cout << "Empty" << '\n';
+            spawning = false;
+            spawnIndex = 0;
+            spawnTimer = 0.0f;
+            waveCooldownTimer = 0.0f;
         }
     }
 
@@ -140,12 +218,6 @@ void UpdatePlaying() {
 void DrawPlaying() {
     ClearBackground(RAYWHITE);
 
-    DrawRectangle(0, 0, GetScreenWidth(), 40, LIGHTGRAY); 
-
-    DrawText(TextFormat("Health: %d", playerHealth), 20, 10, 20, RED);
-    DrawText(TextFormat("$ %d", playerMoney), 200, 10, 20, GREEN);
-    DrawText(TextFormat("Wave: %d", waveNumber), 600, 10, 20, DARKGRAY);
-
     if (isPlacingTower) {
         int range = 0;
         previewPosition = GetMousePosition();
@@ -162,6 +234,12 @@ void DrawPlaying() {
         
     }
 
+    DrawRectangle(0, 0, GetScreenWidth(), 40, LIGHTGRAY); 
+
+    DrawText(TextFormat("Health: %d", playerHealth), 20, 10, 20, RED);
+    DrawText(TextFormat("$ %d", playerMoney), 200, 10, 20, GREEN);
+    DrawText(TextFormat("Wave: %d", waveNumber), 600, 10, 20, DARKGRAY);
+
     for (size_t i = 0; i < trackPoints.size() - 1; i++) {
         DrawLineV(trackPoints[i], trackPoints[i + 1], DARKGRAY);
     }
@@ -176,7 +254,12 @@ void DrawPlaying() {
     }
 
     for (const auto& enemy : enemies) {
-        DrawCircleV(enemy->getPosition(), 10, GREEN);
+        std::string name = enemy->getName();
+        if (name == "Slime") {
+            DrawCircleV(enemy->getPosition(), 10, GREEN);
+        } else if (name == "Armored_Knight") {
+            DrawCircleV(enemy->getPosition(), 10, GRAY);
+        }
     }
 
     DrawRectangle(0, 560, GetScreenWidth(), 160, LIGHTGRAY);

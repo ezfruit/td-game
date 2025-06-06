@@ -16,6 +16,7 @@ add_executable(TowerDefense
     src/tower.cpp
     src/enemy.cpp
     src/play.cpp
+    src/wave.cpp
 )
 
 target_link_libraries(TowerDefense PRIVATE raylib)

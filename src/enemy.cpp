@@ -1,6 +1,5 @@
 #include "raylib.h"
 #include "raymath.h"
-#include <iostream>
 #include "enemy.h"
 
 Enemy::Enemy(int health, float speed) : health(health), speed(speed), baseSpeed(speed) {}
@@ -35,12 +34,20 @@ void Enemy::update(float deltaTime, const std::vector<Vector2>& track) {
 Vector2 Enemy::getPosition() const {
     return position;
 }
+
+int Enemy::getHealth() const {
+    return health;
+}
         
 bool Enemy::isAlive() const { 
     return alive; 
 }
 
-Slime::Slime() : Enemy(4, 30.0f) {}
+Slime::Slime() : Enemy(4, 50.0f) {} // 50 for normal
+
+std::string Slime::getName() const {
+    return "Slime";
+}
 
 void Slime::takeDamage(int amount, const std::string& type) {
     health -= amount;
@@ -49,7 +56,11 @@ void Slime::takeDamage(int amount, const std::string& type) {
     }
 }
 
-Armored_Knight::Armored_Knight() : Enemy(10, 25.0f) {}
+Armored_Knight::Armored_Knight() : Enemy(10, 40.0f) {} // 40 for normal
+
+std::string Armored_Knight::getName() const {
+    return "Armored_Knight";
+}
 
 void Armored_Knight::takeDamage(int amount, const std::string& type) {
     if (type == "magic") {

@@ -5,6 +5,7 @@
 class Enemy {
     protected:
         Vector2 position;
+        std::string name;
         int health;
         float speed;
         float baseSpeed;
@@ -12,6 +13,8 @@ class Enemy {
         bool alive = true;
     public:
         virtual void takeDamage(int amount, const std::string& type) = 0;
+
+        virtual std::string getName() const = 0;
 
         void reduceSpeed(float spd);
 
@@ -22,6 +25,8 @@ class Enemy {
         void update(float deltaTime, const std::vector<Vector2>& track);
 
         Vector2 getPosition() const;
+
+        int getHealth() const;
         
         bool isAlive() const;
 
@@ -32,6 +37,8 @@ class Enemy {
 
 class Slime : public Enemy {
     public:
+        std::string getName() const override;
+
         void takeDamage(int amount, const std::string& type) override;
 
         Slime();
@@ -39,6 +46,8 @@ class Slime : public Enemy {
 
 class Armored_Knight : public Enemy {
     public:
+        std::string getName() const override;
+
         void takeDamage(int amount, const std::string& type) override;
 
         Armored_Knight();

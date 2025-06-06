@@ -1,4 +1,8 @@
+extern bool GameOver;
+
 void InitPlaying();
+
+void ResetGame();
 
 void StartNextWave();
 

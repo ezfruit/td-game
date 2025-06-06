@@ -1,7 +1,5 @@
 #pragma once
 #include "raylib.h"
-#include <iostream>
-#include <vector>
 #include "enemy.h"
 
 class Tower {

@@ -1,5 +1,3 @@
-#include <iostream>
-#include <vector>
 #include "tower.h"
 
 Tower::Tower(int range, int damage, double attack_speed, std::string targeting, int cost, Vector2 position) :
