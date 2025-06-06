@@ -1,0 +1,3 @@
+void UpdateOptions();
+
+void DrawOptions();

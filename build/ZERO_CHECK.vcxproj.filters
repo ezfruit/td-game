@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\saint\Downloads\td-game\build\CMakeFiles\7878d53bd8e09b4352c188314516a495\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{4B996EC6-6180-3FAA-9246-9AEB519F52C0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
