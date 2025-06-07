@@ -1,7 +1,7 @@
 #include "tower.h"
 
-Tower::Tower(int range, int damage, double attack_speed, std::string targeting, int cost, Vector2 position) :
-            range(range), damage(damage), attack_speed(attack_speed), targeting(targeting), cost(cost), position(position) {}
+Tower::Tower(int range, int damage, float attackSpeed, std::string targeting, int cost, Vector2 position) :
+            range(range), damage(damage), attackSpeed(attackSpeed), targeting(targeting), cost(cost), position(position) {}
 
 Vector2 Tower::getPosition() const {
     return position;
@@ -39,13 +39,31 @@ int Tower::getLevel() const {
     return level;
 }
 
-Archer::Archer(Vector2 pos) : Tower(150, 2, 1.0, "single", 200, pos) {
+Archer::Archer(Vector2 pos) : Tower(150, 2, 0.8f, "single", 200, pos) {
     name = "Archer";
+    type = "Physical";
     value = 100;
 }
 
-void Archer::attack(std::vector<Enemy*>& enemies) {
+void Archer::attack(float deltaTime, std::vector<std::unique_ptr<Enemy>>& enemies) {
+    attackCooldown -= deltaTime;
+    if (attackCooldown > 0) return;
 
+    for (auto& enemy : enemies) {
+        if (!enemy->isAlive()) continue;
+
+        float distance = Vector2Distance(getPosition(), enemy->getPosition());
+        if (distance <= range) {
+            int prevHealth = enemy->getHealth();
+            enemy->takeDamage(damage, type);
+            int curHealth = enemy->getHealth();
+            int damageDealt = prevHealth - curHealth;
+            setTotalDamageDealt(damageDealt);
+            playerMoney += damageDealt;
+            attackCooldown = 1.0f / attackSpeed;
+            break; // only attack one enemy
+        }
+    }
 }
 
 void Archer::upgrade(int upgCost) {
@@ -59,10 +77,11 @@ void Archer::upgrade(int upgCost) {
 
 Mage::Mage(Vector2 pos) : Tower(100, 3, 0.8, "AoE", 300, pos) {
     name = "Mage";
+    type = "Magic";
     value = 150;
 }
 
-void Mage::attack(std::vector<Enemy*>& enemies) {
+void Mage::attack(float deltaTime, std::vector<std::unique_ptr<Enemy>>& enemies) {
 
 }
 

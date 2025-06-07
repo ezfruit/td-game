@@ -7,6 +7,7 @@ class Enemy {
         Vector2 position;
         std::string name;
         int health;
+        int maxHealth;
         float speed;
         float baseSpeed;
         int currentTarget = 0;
@@ -27,6 +28,8 @@ class Enemy {
         Vector2 getPosition() const;
 
         int getHealth() const;
+
+        int getMaxHealth() const;
         
         bool isAlive() const;
 
@@ -44,11 +47,11 @@ class Slime : public Enemy {
         Slime();
 };
 
-class Armored_Knight : public Enemy {
+class Knight : public Enemy {
     public:
         std::string getName() const override;
 
         void takeDamage(int amount, const std::string& type) override;
 
-        Armored_Knight();
+        Knight();
 };

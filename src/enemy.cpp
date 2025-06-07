@@ -40,12 +40,18 @@ Vector2 Enemy::getPosition() const {
 int Enemy::getHealth() const {
     return health;
 }
+
+int Enemy::getMaxHealth() const {
+    return maxHealth;
+}
         
 bool Enemy::isAlive() const { 
     return alive; 
 }
 
-Slime::Slime() : Enemy(4, 50.0f) {} // 50 for normal
+Slime::Slime() : Enemy(4, 50.0f) { // 50 speed for normal
+    maxHealth = health;
+} 
 
 std::string Slime::getName() const {
     return "Slime";
@@ -58,17 +64,19 @@ void Slime::takeDamage(int amount, const std::string& type) {
     }
 }
 
-Armored_Knight::Armored_Knight() : Enemy(10, 40.0f) {} // 40 for normal
-
-std::string Armored_Knight::getName() const {
-    return "Armored_Knight";
+Knight::Knight() : Enemy(10, 40.0f) { // 40 speed for normal
+    maxHealth = health;
 }
 
-void Armored_Knight::takeDamage(int amount, const std::string& type) {
-    if (type == "magic") {
+std::string Knight::getName() const {
+    return "Knight";
+}
+
+void Knight::takeDamage(int amount, const std::string& type) {
+    if (type == "Magic") {
         health -= static_cast<int> (amount * 1.5);
-    } else {
-        health -= amount;
+    } else if (type == "Physical") {
+        health -= static_cast<int> (amount * 0.5);
     }
     if (health <= 0) {
         alive = false;

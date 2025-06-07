@@ -5,13 +5,16 @@
 #include "wave.h"
 #include <vector>
 #include <iostream>
+#include <string>
 #include <unordered_map>
 
 static std::vector<Vector2> trackPoints;
 static std::vector<std::unique_ptr<Tower>> towers;
 static std::vector<std::unique_ptr<Enemy>> enemies;
 static int waveNumber = 0;
-static int playerMoney = 500;
+
+int playerMoney = 500;
+
 static int playerHealth = 100;
 static int income = 500;
 static bool waveInProgress = false;
@@ -153,6 +156,19 @@ void UpdatePlaying() {
 
     Vector2 goal = trackPoints.back();
 
+    for (auto& tower : towers) {
+        tower->attack(deltaTime, enemies);
+    }
+
+    // for (auto it = enemies.begin(); it != enemies.end();) {
+    //     (*it)->update(deltaTime, trackPoints);
+    //     if (!(*it)->isAlive()) {
+    //         it = enemies.erase(it);
+    //     } else {
+    //         ++it;
+    //     }
+    // }
+
     for (int i = enemies.size() - 1; i >= 0; --i) {
         Vector2 pos = enemies[i]->getPosition();
         float distanceToGoal = Vector2Distance(pos, goal);
@@ -170,6 +186,9 @@ void UpdatePlaying() {
 
         if (enemies[i]->isAlive()) {
             allDefeated = false;
+        } else {
+            enemies.erase(enemies.begin() + i);
+            continue;
         }
 
         enemies[i]->update(deltaTime, trackPoints); // Move enemy along path
@@ -205,8 +224,8 @@ void UpdatePlaying() {
                 std::unique_ptr<Enemy> enemy;
                 if (type == "Slime") {
                     enemy = std::make_unique<Slime>();
-                } else if (type == "Armored_Knight") {
-                    enemy = std::make_unique<Armored_Knight>();
+                } else if (type == "Knight") {
+                    enemy = std::make_unique<Knight>();
                 }
 
                 if (enemy) {
@@ -229,6 +248,7 @@ void UpdatePlaying() {
         if (IsKeyPressed(KEY_ONE + (i - 1)) && costs[i] <= playerMoney) {
             selectedTowerIndex = i;
             isPlacingTower = true;
+            selectedTower = false;
         }
     }
 
@@ -241,6 +261,12 @@ void UpdatePlaying() {
                 break;
             }
         }
+    }
+
+    if (selectedTowerIndex != -1 && IsKeyPressed(KEY_X)) {
+        selectedTowerIndex = -1;
+        isPlacingTower = false;
+        ShowCursor();
     }
 
     if (selectedTowerIndex != -1 && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
@@ -274,6 +300,7 @@ void UpdatePlaying() {
 void DrawPlaying() {
     ClearBackground(RAYWHITE);
 
+    // When a tower is currently being placed
     if (isPlacingTower) {
         int range = 0;
         previewPosition = GetMousePosition();
@@ -302,12 +329,17 @@ void DrawPlaying() {
         DrawRectangleV({ pos.x - 20, pos.y - 20 }, { 40, 40 }, DARKGRAY);
     }
 
+    if (isPlacingTower) {
+        DrawText("Press X to cancel", GetScreenWidth() / 2 - 100, GetScreenHeight() - 190, 20, RED);
+    }
+
     if (selectedTower) {
         DrawCircleV(selectedTower->getPosition(), selectedTower->getRange(), Fade(BLUE, 0.3f));
     }
 
     DrawRectangle(0, 560, GetScreenWidth(), 160, LIGHTGRAY); // Bottom Gray Rectangle UI
 
+    // When a tower is selected (clicked on in the field)
     if (selectedTower) {
         int infoX = GetScreenWidth() / 2 + 25;
         int infoY = GetScreenHeight() - 160;
@@ -316,25 +348,25 @@ void DrawPlaying() {
         DrawText(TextFormat("Level: %d", selectedTower->getLevel()), infoX + 10, infoY + 45, 20, DARKGRAY);
         DrawText(TextFormat("Damage Dealt: %d", selectedTower->getTotalDamageDealt()), infoX + 10, infoY + 75, 20, DARKGRAY);
 
-        Rectangle upgradeBtn = { (float)(infoX + 10), (float)(infoY + 110), 80, 30 };
-        Rectangle sellBtn = { (float)(infoX + 110), (float)(infoY + 110), 80, 30 };
+        Rectangle upgradeBtn = { (float)(infoX + 10), (float)(infoY + 110), 110, 30 };
+        Rectangle sellBtn = { (float)(infoX + 130), (float)(infoY + 110), 110, 30 };
 
         DrawRectangleRec(upgradeBtn, GREEN);
         DrawRectangleRec(sellBtn, RED);
 
-        DrawText("Upgrade", upgradeBtn.x + 8, upgradeBtn.y + 7, 16, WHITE);
-        DrawText("Sell", sellBtn.x + 27, sellBtn.y + 7, 16, WHITE);
+        DrawText("Upgrade (E)", upgradeBtn.x + 10, upgradeBtn.y + 8, 16, WHITE);
+        DrawText("Sell (X)", sellBtn.x + 29, sellBtn.y + 8, 16, WHITE);
 
         DrawText(TextFormat("Sell Value: %d", selectedTower->getValue()), GetScreenWidth() - 175, GetScreenHeight() - 30, 20, WHITE);
 
         Vector2 mouse = GetMousePosition();
-        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) || IsKeyPressed(KEY_X) || IsKeyPressed(KEY_E)) {
             int upgradeCost = upgradeCosts[selectedTower->getName()][selectedTower->getLevel()-1];
-            if (CheckCollisionPointRec(mouse, upgradeBtn) && upgradeCost <= playerMoney) {
+            if ((IsKeyPressed(KEY_E) || CheckCollisionPointRec(mouse, upgradeBtn)) && upgradeCost <= playerMoney) {
                 selectedTower->upgrade(upgradeCost);
                 playerMoney -= upgradeCost;
             }
-            else if (CheckCollisionPointRec(mouse, sellBtn)) {
+            else if (CheckCollisionPointRec(mouse, sellBtn) || IsKeyPressed(KEY_X)) {
                 playerMoney += selectedTower->getValue();
                 towers.erase(std::remove_if(towers.begin(), towers.end(),
                     [&](const std::unique_ptr<Tower>& t) { return t.get() == selectedTower; }),
@@ -358,12 +390,36 @@ void DrawPlaying() {
         DrawCircleV(point, 6, LIGHTGRAY);
     }
 
+    Vector2 mousePos = GetMousePosition();
+
     for (const auto& enemy : enemies) {
+
+        Vector2 enemyPos = enemy->getPosition();
+
+        float hoverDistance = 15.0f;
+
         std::string name = enemy->getName();
+
         if (name == "Slime") {
-            DrawCircleV(enemy->getPosition(), 10, GREEN);
-        } else if (name == "Armored_Knight") {
-            DrawCircleV(enemy->getPosition(), 10, GRAY);
+            DrawCircleV(enemyPos, 10, GREEN);
+        } else if (name == "Knight") {
+            DrawCircleV(enemyPos, 10, GRAY);
+        }
+
+        if (Vector2Distance(mousePos, enemyPos) <= hoverDistance) {
+            // Draw enemy health bar
+            float healthBarWidth = 40.0f;
+            float healthBarHeight = 6.0f;
+            float healthPercent = static_cast<float>(enemy->getHealth()) / enemy->getMaxHealth();
+
+            Vector2 barPos = { enemyPos.x - healthBarWidth / 2, enemyPos.y - 25 };
+            DrawRectangle(barPos.x, barPos.y, healthBarWidth, healthBarHeight, LIGHTGRAY); // background
+            DrawRectangle(barPos.x, barPos.y, healthBarWidth * healthPercent, healthBarHeight, LIME); // health
+
+            // Draw enemy name and health as text
+            std::string info = enemy->getName() + ": " + std::to_string(enemy->getHealth());
+            DrawText(info.c_str(), barPos.x, barPos.y - 18, 14, DARKGRAY);
+
         }
     }
 
@@ -372,8 +428,6 @@ void DrawPlaying() {
     int spacing = 20;
     int startX = 20;
     int y = 600;
-
-    Vector2 mousePos = GetMousePosition();
 
     for (int i = 0; i < numSlots; i++) {
         int x = startX + i * (slotSize + spacing);
@@ -388,6 +442,7 @@ void DrawPlaying() {
             if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && costs[i+1] <= playerMoney) {
                 selectedTowerIndex = i + 1;
                 isPlacingTower = true;
+                selectedTower = false;
                 HideCursor();
             }
         }
