@@ -22,11 +22,13 @@ void Enemy::setPosition(Vector2 pos) {
 void Enemy::update(float deltaTime, const std::vector<Vector2>& track) {
     if (currentTarget >= track.size()) return; // Already reached end
 
+    if (deltaTime > 0.05f) deltaTime = 0.05f;
+
     Vector2 target = track[currentTarget];
     Vector2 direction = Vector2Normalize(Vector2Subtract(target, position));
     position = Vector2Add(position, Vector2Scale(direction, speed * deltaTime));
 
-    if (Vector2Distance(position, target) < 5.0f) {
+    if (Vector2Distance(position, target) < 1.0f) {
         currentTarget++;
     }
 }

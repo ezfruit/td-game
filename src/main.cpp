@@ -14,6 +14,8 @@ int main() {
     InitWindow(screenWidth, screenHeight, "Rampart Defenders");
     InitPlaying();
 
+    SetExitKey(0); // Prevents ESC key from closing the window
+
     SetTargetFPS(60);
 
     enum gameState {MENU, PLAYING, GAMEOVER, OPTIONS, EXIT};
@@ -56,14 +58,23 @@ int main() {
                 DrawText("Exit", screenWidthMid - 30, 500, 24, DARKGRAY);
                 break;
             }
-            case PLAYING:
+            case PLAYING: {
+
+                if (Paused) {
+                    DrawPlaying();
+                    break;
+                }
+
                 UpdatePlaying();
                 DrawPlaying();
 
                 if (GameOver) {
                     state = GAMEOVER;
+                } else if (IsWindowMinimized()) {
+                    Paused = true;
                 }
                 break;
+            }
             case GAMEOVER: {
 
                 Rectangle menuBtn = { screenWidthMid - 110, 340, 210, 40 };
@@ -90,7 +101,6 @@ int main() {
                 DrawText("Exit", screenWidthMid - 30, 450, 24, DARKGRAY);
                 break;
             }
-
             case OPTIONS:
                 UpdateOptions();
                 DrawOptions();

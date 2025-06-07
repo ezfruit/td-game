@@ -1,5 +1,6 @@
 #include "raylib.h"
 #include "options.h"
+#include "play.h"
 
 void UpdateOptions() {
 }

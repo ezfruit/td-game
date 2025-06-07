@@ -24,11 +24,14 @@ static bool isPlacingTower = false;
 static Vector2 previewPosition;
 
 bool GameOver = false;
+bool Paused = false;
 
 static float spawnTimer = 0.0f;
 static int spawnIndex = 0;
 
 static bool spawning = false;
+
+static Tower* selectedTower = nullptr;
 
 std::unordered_map<int, int> costs = {
     {1, 200},
@@ -37,6 +40,11 @@ std::unordered_map<int, int> costs = {
     {4, 20},
     {5, 20},
     {6, 20}
+};
+
+std::unordered_map<std::string, std::vector<int>> upgradeCosts = {
+    {"Archer", {400, 1000, 2500, 4000}},
+    {"Mage", {300, 800, 3000, 6000}}
 };
 
 // Creates the track
@@ -68,17 +76,58 @@ void ResetGame() {
     waveCooldownTimer = 0.0f;
     selectedTowerIndex = -1;
 
+    Paused = false;
+
     spawning = false;
     spawnIndex = 0;
     spawnTimer = 0.0f;
+
+    selectedTower = nullptr;
 
     towers.clear();
     enemies.clear();
 }
 
-void SpawnEnemies() {
+// This function checks if the mouse is currently on the track (returns true if so)
+bool IsOnTrack(Vector2 pos, const std::vector<Vector2>& trackPoints) {
+    const float buffer = 40.0f;  // minimum distance from track line
 
+    for (size_t i = 0; i < trackPoints.size() - 1; ++i) {
+        Vector2 a = trackPoints[i];
+        Vector2 b = trackPoints[i + 1];
+
+        Vector2 ab = Vector2Subtract(b, a);
+        Vector2 ap = Vector2Subtract(pos, a);
+        float t = Vector2DotProduct(ap, ab) / Vector2LengthSqr(ab);
+        t = fmax(0.0f, fmin(1.0f, t)); 
+        Vector2 closest = Vector2Add(a, Vector2Scale(ab, t));
+
+        if (Vector2Distance(pos, closest) < buffer)
+            return true;
+    }
+    return false;
 }
+
+// This functions checks if the mouse is currently on a placed tower (returns true if so)
+bool IsOnTower(Vector2 pos, const std::vector<std::unique_ptr<Tower>>& towers) {
+    const float towerSize = 40.0f; // size of each tower's square
+
+    for (const auto& tower : towers) {
+        if (Vector2Distance(pos, tower->getPosition()) < towerSize)
+            return true;
+    }
+    return false;
+}
+
+// This function checks if the mouse is currently within the placeable field bounds (returns true if so)
+bool IsWithinBounds(Vector2 pos) {
+    
+    if (pos.y > 40 && pos.y < 560) {
+        return true;
+    }
+    return false;
+}
+
 
 // Logic to start the next wave
 void StartNextWave() {
@@ -109,7 +158,6 @@ void UpdatePlaying() {
         float distanceToGoal = Vector2Distance(pos, goal);
 
         if (distanceToGoal < 5.0f) {
-            std::cout << "Went in" << '\n';
             playerHealth -= enemies[i]->getHealth();
 
             if (playerHealth <= 0) {
@@ -159,20 +207,17 @@ void UpdatePlaying() {
                     enemy = std::make_unique<Slime>();
                 } else if (type == "Armored_Knight") {
                     enemy = std::make_unique<Armored_Knight>();
-                } // Add more types here
+                }
 
                 if (enemy) {
                     enemy->setPosition(trackPoints[0]);
                     enemies.push_back(std::move(enemy));
-                    std::cout << "Enemy detected" << '\n';
-                    std::cout << currentWave.enemies.size() << '\n';
                 }
 
                 spawnTimer = 0.0f;
                 spawnIndex++;
             }
         } else {
-            std::cout << "Empty" << '\n';
             spawning = false;
             spawnIndex = 0;
             spawnTimer = 0.0f;
@@ -187,10 +232,21 @@ void UpdatePlaying() {
         }
     }
 
+    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && GetMousePosition().y > 40 && GetMousePosition().y < 560 ) {
+        Vector2 mouse = GetMousePosition();
+        selectedTower = nullptr;
+        for (auto& tower : towers) {
+            if (CheckCollisionPointRec(mouse, { tower->getPosition().x - 20, tower->getPosition().y - 20, 40, 40 })) {
+                selectedTower = tower.get();
+                break;
+            }
+        }
+    }
+
     if (selectedTowerIndex != -1 && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         Vector2 mousePos = GetMousePosition();
 
-        if (mousePos.y > 40 && mousePos.y < 560) {
+        if (mousePos.y > 40 && mousePos.y < 560 && !IsOnTrack(mousePos, trackPoints) && !IsOnTower(mousePos, towers)) {
             
             switch (selectedTowerIndex) {
                 case 1:
@@ -229,12 +285,66 @@ void DrawPlaying() {
             case 2: range = 100; break; // Mage
         }
 
-        DrawCircle(previewPosition.x, previewPosition.y, range, BLUE);
+        Vector2 mousePos = GetMousePosition();
+
+        bool invalidPlacement = IsOnTrack(mousePos, trackPoints) || IsOnTower(mousePos, towers) || !IsWithinBounds(mousePos);
+
+        Color color;
+        invalidPlacement ? color = Fade(RED, 0.3f) : color = Fade(BLUE, 0.3f);
+        
+        DrawCircle(previewPosition.x, previewPosition.y, range, color);
         DrawRectangleV({ previewPosition.x - 20, previewPosition.y - 20 }, { 40, 40 }, DARKGRAY);
         
     }
 
-    DrawRectangle(0, 0, GetScreenWidth(), 40, LIGHTGRAY); 
+    for (const auto& tower : towers) {
+        Vector2 pos = tower->getPosition();
+        DrawRectangleV({ pos.x - 20, pos.y - 20 }, { 40, 40 }, DARKGRAY);
+    }
+
+    if (selectedTower) {
+        DrawCircleV(selectedTower->getPosition(), selectedTower->getRange(), Fade(BLUE, 0.3f));
+    }
+
+    DrawRectangle(0, 560, GetScreenWidth(), 160, LIGHTGRAY); // Bottom Gray Rectangle UI
+
+    if (selectedTower) {
+        int infoX = GetScreenWidth() / 2 + 25;
+        int infoY = GetScreenHeight() - 160;
+        DrawRectangle(infoX, infoY, 200, 160, LIGHTGRAY);
+        DrawText(selectedTower->getName().c_str(), infoX + 10, infoY + 10, 24, DARKGRAY);
+        DrawText(TextFormat("Level: %d", selectedTower->getLevel()), infoX + 10, infoY + 45, 20, DARKGRAY);
+        DrawText(TextFormat("Damage Dealt: %d", selectedTower->getTotalDamageDealt()), infoX + 10, infoY + 75, 20, DARKGRAY);
+
+        Rectangle upgradeBtn = { (float)(infoX + 10), (float)(infoY + 110), 80, 30 };
+        Rectangle sellBtn = { (float)(infoX + 110), (float)(infoY + 110), 80, 30 };
+
+        DrawRectangleRec(upgradeBtn, GREEN);
+        DrawRectangleRec(sellBtn, RED);
+
+        DrawText("Upgrade", upgradeBtn.x + 8, upgradeBtn.y + 7, 16, WHITE);
+        DrawText("Sell", sellBtn.x + 27, sellBtn.y + 7, 16, WHITE);
+
+        DrawText(TextFormat("Sell Value: %d", selectedTower->getValue()), GetScreenWidth() - 175, GetScreenHeight() - 30, 20, WHITE);
+
+        Vector2 mouse = GetMousePosition();
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+            int upgradeCost = upgradeCosts[selectedTower->getName()][selectedTower->getLevel()-1];
+            if (CheckCollisionPointRec(mouse, upgradeBtn) && upgradeCost <= playerMoney) {
+                selectedTower->upgrade(upgradeCost);
+                playerMoney -= upgradeCost;
+            }
+            else if (CheckCollisionPointRec(mouse, sellBtn)) {
+                playerMoney += selectedTower->getValue();
+                towers.erase(std::remove_if(towers.begin(), towers.end(),
+                    [&](const std::unique_ptr<Tower>& t) { return t.get() == selectedTower; }),
+                    towers.end());
+                selectedTower = nullptr;
+            }
+        }
+    }
+
+    DrawRectangle(0, 0, GetScreenWidth(), 40, LIGHTGRAY); // Top Gray Rectangle UI
 
     DrawText(TextFormat("Health: %d", playerHealth), 20, 10, 20, RED);
     DrawText(TextFormat("$ %d", playerMoney), 200, 10, 20, GREEN);
@@ -248,11 +358,6 @@ void DrawPlaying() {
         DrawCircleV(point, 6, LIGHTGRAY);
     }
 
-    for (const auto& tower : towers) {
-        Vector2 pos = tower->getPosition();
-        DrawRectangleV({ pos.x - 20, pos.y - 20 }, { 40, 40 }, DARKGRAY);
-    }
-
     for (const auto& enemy : enemies) {
         std::string name = enemy->getName();
         if (name == "Slime") {
@@ -261,8 +366,6 @@ void DrawPlaying() {
             DrawCircleV(enemy->getPosition(), 10, GRAY);
         }
     }
-
-    DrawRectangle(0, 560, GetScreenWidth(), 160, LIGHTGRAY);
 
     int numSlots = 6;
     int slotSize = 80; 
@@ -289,6 +392,22 @@ void DrawPlaying() {
             }
         }
     }
+
+    Rectangle pauseButton = {GetScreenWidth() - 100.0f, 0.0f, 40.0f, 40.0f};
+
+    // Detect button click
+    if ((IsKeyPressed(KEY_ESCAPE)) || (CheckCollisionPointRec(GetMousePosition(), pauseButton) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))) {
+        Paused = !Paused;
+    }
+
+    DrawRectangleLinesEx(pauseButton, 2, DARKGRAY);
+
+    // Draw two vertical bars inside the button (the pause icon)
+    float barWidth = 5.0f;
+    float gap = 10.0f;
+
+    DrawRectangle(pauseButton.x + gap, pauseButton.y + 6, barWidth, pauseButton.height - 12, DARKGRAY);
+    DrawRectangle(pauseButton.x + gap + barWidth + gap, pauseButton.y + 6, barWidth, pauseButton.height - 12, DARKGRAY);
 
     DrawLineV({640, 560}, {640, 720}, DARKGRAY);
 }

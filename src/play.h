@@ -1,4 +1,5 @@
 extern bool GameOver;
+extern bool Paused;
 
 void InitPlaying();
 
