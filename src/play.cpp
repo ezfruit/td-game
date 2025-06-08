@@ -3,6 +3,7 @@
 #include "play.h"
 #include "tower.h"
 #include "wave.h"
+#include "projectile.h"
 #include <vector>
 #include <iostream>
 #include <string>
@@ -11,6 +12,8 @@
 static std::vector<Vector2> trackPoints;
 static std::vector<std::unique_ptr<Tower>> towers;
 static std::vector<std::unique_ptr<Enemy>> enemies;
+static std::vector<Projectile> projectiles;
+
 static int waveNumber = 0;
 
 int playerMoney = 500;
@@ -157,17 +160,8 @@ void UpdatePlaying() {
     Vector2 goal = trackPoints.back();
 
     for (auto& tower : towers) {
-        tower->attack(deltaTime, enemies);
+        tower->attack(deltaTime, enemies, projectiles);
     }
-
-    // for (auto it = enemies.begin(); it != enemies.end();) {
-    //     (*it)->update(deltaTime, trackPoints);
-    //     if (!(*it)->isAlive()) {
-    //         it = enemies.erase(it);
-    //     } else {
-    //         ++it;
-    //     }
-    // }
 
     for (int i = enemies.size() - 1; i >= 0; --i) {
         Vector2 pos = enemies[i]->getPosition();
@@ -194,7 +188,7 @@ void UpdatePlaying() {
         enemies[i]->update(deltaTime, trackPoints); // Move enemy along path
     }
 
-    if (waveInProgress && allDefeated) {
+    if (waveInProgress && allDefeated && !spawning) {
         waveInProgress = false;
         waveCooldownTimer = 0.0f;
     }

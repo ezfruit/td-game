@@ -3,6 +3,7 @@
 #include "raymath.h"
 #include "enemy.h"
 #include "play.h"
+#include "projectile.h"
 
 class Tower {
     protected:
@@ -19,9 +20,11 @@ class Tower {
         int value;
         int level = 1;
     public:
-        virtual void attack(float deltaTime, std::vector<std::unique_ptr<Enemy>>& enemies) = 0;
+        virtual void attack(float deltaTime, std::vector<std::unique_ptr<Enemy>>& enemies, std::vector<Projectile>& projectiles) = 0;
 
         virtual void upgrade(int upgCost) = 0;
+
+        bool canShoot() const;
 
         Vector2 getPosition() const;
 
@@ -49,7 +52,7 @@ class Tower {
 class Archer : public Tower {
     public:
 
-        void attack(float deltaTime, std::vector<std::unique_ptr<Enemy>>& enemies) override;
+        void attack(float deltaTime, std::vector<std::unique_ptr<Enemy>>& enemies, std::vector<Projectile>& projectiles) override;
 
         void upgrade(int upgCost) override;
 
@@ -58,7 +61,7 @@ class Archer : public Tower {
 
 class Mage : public Tower {
     public:
-        void attack(float deltaTime, std::vector<std::unique_ptr<Enemy>>& enemies) override;
+        void attack(float deltaTime, std::vector<std::unique_ptr<Enemy>>& enemies, std::vector<Projectile>& projectiles) override;
 
         void upgrade(int upgCost) override;
 
