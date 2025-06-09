@@ -61,6 +61,7 @@ void Slime::takeDamage(int amount, const std::string& type) {
     health -= amount;
     if (health <= 0) {
         alive = false;
+        health = 0;
     }
 }
 
@@ -80,5 +81,26 @@ void Knight::takeDamage(int amount, const std::string& type) {
     }
     if (health <= 0) {
         alive = false;
+        health = 0;
+    }
+}
+
+Fire_Imp::Fire_Imp() : Enemy(25, 100.0f) { // 100 speed for normal
+    maxHealth = health;
+}
+
+std::string Fire_Imp::getName() const {
+    return "Fire Imp";
+}
+
+void Fire_Imp::takeDamage(int amount, const std::string& type) {
+    if (type == "Fire") {
+        return;
+    } else {
+        health -= amount;
+    }
+    if (health <= 0) {
+        alive = false;
+        health = 0;
     }
 }

@@ -7,16 +7,17 @@
 #include <vector>
 #include <iostream>
 #include <string>
+#include <memory>
 #include <unordered_map>
 
 static std::vector<Vector2> trackPoints;
-static std::vector<std::unique_ptr<Tower>> towers;
-static std::vector<std::unique_ptr<Enemy>> enemies;
+static std::vector<std::shared_ptr<Tower>> towers;
+static std::vector<std::shared_ptr<Enemy>> enemies;
 static std::vector<Projectile> projectiles;
 
 static int waveNumber = 0;
 
-int playerMoney = 500;
+int playerMoney;
 
 static int playerHealth = 100;
 static int income = 500;
@@ -49,9 +50,19 @@ std::unordered_map<int, int> costs = {
 };
 
 std::unordered_map<std::string, std::vector<int>> upgradeCosts = {
-    {"Archer", {400, 1000, 2500, 4000}},
-    {"Mage", {300, 800, 3000, 6000}}
+    {"Archer", {400, 1000, 2500, 4000, 0}},
+    {"Mage", {300, 800, 3000, 6000, 0}}
 };
+
+struct Explosion {
+    Vector2 position;
+    float radius;
+    float duration = 0.4f; // in seconds
+    float timeAlive = 0.0f;
+    bool active = true;
+};
+
+static std::vector<Explosion> explosions;
 
 // Creates the track
 void InitPlaying() {
@@ -115,7 +126,7 @@ bool IsOnTrack(Vector2 pos, const std::vector<Vector2>& trackPoints) {
 }
 
 // This functions checks if the mouse is currently on a placed tower (returns true if so)
-bool IsOnTower(Vector2 pos, const std::vector<std::unique_ptr<Tower>>& towers) {
+bool IsOnTower(Vector2 pos, const std::vector<std::shared_ptr<Tower>>& towers) {
     const float towerSize = 40.0f; // size of each tower's square
 
     for (const auto& tower : towers) {
@@ -133,6 +144,26 @@ bool IsWithinBounds(Vector2 pos) {
     }
     return false;
 }
+
+void ApplyAOEDamage(Projectile& projectile, Vector2 center, float radius, int damage, std::string type) {
+    for (auto& enemy : enemies) {
+        if (!enemy->isAlive()) continue;
+
+        float dist = Vector2Distance(enemy->getPosition(), center);
+        if (dist <= radius) {
+            int prevHealth = enemy->getHealth();
+            enemy->takeDamage(damage, type);
+            projectile.markHit(enemy.get());
+            int curHealth = enemy->getHealth();
+            int damageDealt = prevHealth - curHealth;
+            if (auto shooter = projectile.getSourceTower().lock()) {
+                shooter->setTotalDamageDealt(damageDealt);
+            }
+            playerMoney += damageDealt;
+        }
+    }
+}
+
 
 
 // Logic to start the next wave
@@ -162,6 +193,51 @@ void UpdatePlaying() {
     for (auto& tower : towers) {
         tower->attack(deltaTime, enemies, projectiles);
     }
+
+    for (auto& projectile : projectiles) {
+
+        if (!projectile.isActive()) continue;
+
+        projectile.update(deltaTime, projectile.getSourceTower().lock());
+
+        for (auto& enemy : enemies) {
+            if (!enemy->isAlive()) continue;
+
+            if (projectile.hasHit(enemy.get())) continue;
+
+            float distance = Vector2Distance(projectile.getPosition(), enemy->getPosition());
+            if (distance < 10.0f) { // collision radius
+
+                if (projectile.getAOERadius() > 0.0f) {
+                    ApplyAOEDamage(projectile, projectile.getPosition(), projectile.getAOERadius(), projectile.getDamage(), projectile.getDamageType());
+                    explosions.push_back({projectile.getPosition(), projectile.getAOERadius()});
+                    projectile.deactivate();  // deactivate projectile because it exploded
+                } else {
+                    int prevHealth = enemy->getHealth();
+                    enemy->takeDamage(projectile.getDamage(), projectile.getDamageType());
+                    projectile.markHit(enemy.get());
+                    int curHealth = enemy->getHealth();
+                    int damageDealt = prevHealth - curHealth;
+                    if (auto shooter = projectile.getSourceTower().lock()) {
+                        shooter->setTotalDamageDealt(damageDealt);
+                    }
+                    playerMoney += damageDealt;
+                    break;
+                }
+            }
+        }
+    }
+
+    projectiles.erase(std::remove_if(projectiles.begin(), projectiles.end(), [](const Projectile& p) { return !p.isActive(); }), projectiles.end());
+
+    for (auto& exp : explosions) {
+        exp.timeAlive += deltaTime;
+        if (exp.timeAlive >= exp.duration) {
+            exp.active = false;
+        }
+    }
+
+    explosions.erase(std::remove_if(explosions.begin(), explosions.end(), [](const Explosion& e) { return !e.active; }), explosions.end());
 
     for (int i = enemies.size() - 1; i >= 0; --i) {
         Vector2 pos = enemies[i]->getPosition();
@@ -215,11 +291,13 @@ void UpdatePlaying() {
 
                 std::string type = currentWave.enemies[spawnIndex].type;
 
-                std::unique_ptr<Enemy> enemy;
+                std::shared_ptr<Enemy> enemy;
                 if (type == "Slime") {
-                    enemy = std::make_unique<Slime>();
+                    enemy = std::make_shared<Slime>();
                 } else if (type == "Knight") {
-                    enemy = std::make_unique<Knight>();
+                    enemy = std::make_shared<Knight>();
+                } else if (type == "Fire Imp") {
+                    enemy = std::make_shared<Fire_Imp>();
                 }
 
                 if (enemy) {
@@ -242,7 +320,7 @@ void UpdatePlaying() {
         if (IsKeyPressed(KEY_ONE + (i - 1)) && costs[i] <= playerMoney) {
             selectedTowerIndex = i;
             isPlacingTower = true;
-            selectedTower = false;
+            selectedTower = nullptr;
         }
     }
 
@@ -270,16 +348,15 @@ void UpdatePlaying() {
             
             switch (selectedTowerIndex) {
                 case 1:
-                    towers.push_back(std::make_unique<Archer>(mousePos));
+                    towers.push_back(std::make_shared<Archer>(mousePos));
                     playerMoney -= 200;
                     std::cout << "Placed Archer" << '\n';
                     break;
                 case 2:
-                    towers.push_back(std::make_unique<Mage>(mousePos));
+                    towers.push_back(std::make_shared<Mage>(mousePos));
                     playerMoney -= 400;
                     std::cout << "Placed Mage" << '\n';
                     break;
-                
             }
 
             selectedTowerIndex = -1;
@@ -331,6 +408,24 @@ void DrawPlaying() {
         DrawCircleV(selectedTower->getPosition(), selectedTower->getRange(), Fade(BLUE, 0.3f));
     }
 
+    for (size_t i = 0; i < trackPoints.size() - 1; i++) {
+        DrawLineV(trackPoints[i], trackPoints[i + 1], DARKGRAY);
+    }
+
+    for (const auto& point : trackPoints) {
+        DrawCircleV(point, 6, LIGHTGRAY);
+    }
+
+    for (auto& proj : projectiles) {
+        proj.draw();
+    }
+
+    for (auto& exp : explosions) {
+        float alpha = 1.0f - (exp.timeAlive / exp.duration); // fade out
+        Color color = Fade(ORANGE, alpha);
+        DrawCircleV(exp.position, exp.radius, color);
+    }
+
     DrawRectangle(0, 560, GetScreenWidth(), 160, LIGHTGRAY); // Bottom Gray Rectangle UI
 
     // When a tower is selected (clicked on in the field)
@@ -351,11 +446,14 @@ void DrawPlaying() {
         DrawText("Upgrade (E)", upgradeBtn.x + 10, upgradeBtn.y + 8, 16, WHITE);
         DrawText("Sell (X)", sellBtn.x + 29, sellBtn.y + 8, 16, WHITE);
 
-        DrawText(TextFormat("Sell Value: %d", selectedTower->getValue()), GetScreenWidth() - 175, GetScreenHeight() - 30, 20, WHITE);
+        DrawText(TextFormat("Sell Value: $%d", selectedTower->getValue()), GetScreenWidth() - 200, GetScreenHeight() - 30, 20, WHITE);
+
+        int upgradeCost = upgradeCosts[selectedTower->getName()][selectedTower->getLevel()-1];
+        DrawText(TextFormat("Upgrade Cost: $%d", upgradeCost), GetScreenWidth() - 225, GetScreenHeight() - 60, 20, LIME);
 
         Vector2 mouse = GetMousePosition();
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) || IsKeyPressed(KEY_X) || IsKeyPressed(KEY_E)) {
-            int upgradeCost = upgradeCosts[selectedTower->getName()][selectedTower->getLevel()-1];
+
             if ((IsKeyPressed(KEY_E) || CheckCollisionPointRec(mouse, upgradeBtn)) && upgradeCost <= playerMoney) {
                 selectedTower->upgrade(upgradeCost);
                 playerMoney -= upgradeCost;
@@ -363,7 +461,7 @@ void DrawPlaying() {
             else if (CheckCollisionPointRec(mouse, sellBtn) || IsKeyPressed(KEY_X)) {
                 playerMoney += selectedTower->getValue();
                 towers.erase(std::remove_if(towers.begin(), towers.end(),
-                    [&](const std::unique_ptr<Tower>& t) { return t.get() == selectedTower; }),
+                    [&](const std::shared_ptr<Tower>& t) { return t.get() == selectedTower; }),
                     towers.end());
                 selectedTower = nullptr;
             }
@@ -373,16 +471,8 @@ void DrawPlaying() {
     DrawRectangle(0, 0, GetScreenWidth(), 40, LIGHTGRAY); // Top Gray Rectangle UI
 
     DrawText(TextFormat("Health: %d", playerHealth), 20, 10, 20, RED);
-    DrawText(TextFormat("$ %d", playerMoney), 200, 10, 20, GREEN);
+    DrawText(TextFormat("$ %d", playerMoney), 200, 10, 20, LIME);
     DrawText(TextFormat("Wave: %d", waveNumber), 600, 10, 20, DARKGRAY);
-
-    for (size_t i = 0; i < trackPoints.size() - 1; i++) {
-        DrawLineV(trackPoints[i], trackPoints[i + 1], DARKGRAY);
-    }
-
-    for (const auto& point : trackPoints) {
-        DrawCircleV(point, 6, LIGHTGRAY);
-    }
 
     Vector2 mousePos = GetMousePosition();
 
@@ -398,6 +488,8 @@ void DrawPlaying() {
             DrawCircleV(enemyPos, 10, GREEN);
         } else if (name == "Knight") {
             DrawCircleV(enemyPos, 10, GRAY);
+        } else if (name == "Fire Imp") {
+            DrawCircleV(enemyPos, 10, ORANGE);
         }
 
         if (Vector2Distance(mousePos, enemyPos) <= hoverDistance) {
@@ -436,7 +528,7 @@ void DrawPlaying() {
             if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && costs[i+1] <= playerMoney) {
                 selectedTowerIndex = i + 1;
                 isPlacingTower = true;
-                selectedTower = false;
+                selectedTower = nullptr;
                 HideCursor();
             }
         }

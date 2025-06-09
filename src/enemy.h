@@ -55,3 +55,12 @@ class Knight : public Enemy {
 
         Knight();
 };
+
+class Fire_Imp : public Enemy {
+    public:
+        std::string getName() const override;
+
+        void takeDamage(int amount, const std::string& type) override;
+
+        Fire_Imp();
+};
