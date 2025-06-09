@@ -12,3 +12,5 @@ struct GameWave {
 };
 
 extern std::vector<GameWave> waveDefinitions;
+
+extern const size_t totalWaves;

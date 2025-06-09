@@ -1,19 +1,17 @@
 #include "raylib.h"
-#include "raymath.h"
 #include "play.h"
 #include "tower.h"
 #include "wave.h"
 #include "projectile.h"
-#include <vector>
 #include <iostream>
 #include <string>
-#include <memory>
 #include <unordered_map>
 #include "sounds.h"
 
-static std::vector<Vector2> trackPoints;
+std::vector<Vector2> trackPoints;
+
 static std::vector<std::shared_ptr<Tower>> towers;
-static std::vector<std::shared_ptr<Enemy>> enemies;
+std::vector<std::shared_ptr<Enemy>> enemies;
 static std::vector<Projectile> projectiles;
 
 static int waveNumber = 0;
@@ -29,6 +27,10 @@ static float waveCooldownTimer = 0.0f;
 static int selectedTowerIndex = -1;
 
 static bool isPlacingTower = false;
+static bool showNotEnoughMoney = false;
+static float moneyMsgTimer = 0.0f;
+static float moneyMsgDuration = 2.0f;
+
 static Vector2 previewPosition;
 
 bool GameOver = false;
@@ -51,7 +53,7 @@ std::unordered_map<int, int> costs = {
 };
 
 std::unordered_map<std::string, std::vector<int>> upgradeCosts = {
-    {"Archer", {400, 1000, 2500, 4000, 0}},
+    {"Archer", {250, 1000, 2500, 4000, 0}},
     {"Mage", {300, 800, 3000, 6000, 0}}
 };
 
@@ -277,13 +279,14 @@ void UpdatePlaying() {
         if (waveCooldownTimer >= waveCooldown) {
             StartNextWave();
         }
-    } else {
+    } else if (!spawning) {
         if (waveCooldownTimer >= waveDuration) {
             StartNextWave();
         }
     }
 
-    if (spawning) {
+    if (spawning && waveNumber <= totalWaves) {
+
         const GameWave& currentWave = waveDefinitions[waveNumber - 1];
 
         if (spawnIndex < currentWave.enemies.size()) {
@@ -300,6 +303,11 @@ void UpdatePlaying() {
                     enemy = std::make_shared<Knight>();
                 } else if (type == "Fire Imp") {
                     enemy = std::make_shared<Fire_Imp>();
+                } else if (type == "Spider Queen") {
+                    std::cout << "Spawning Spider Queen" << '\n';
+                    enemy = std::make_shared<Spider_Queen>();
+                } else if (type == "Brute") {
+                    enemy = std::make_shared<Brute>();
                 }
 
                 if (enemy) {
@@ -319,10 +327,16 @@ void UpdatePlaying() {
     }
 
     for (int i = 1; i <= 6; i++) {
-        if (IsKeyPressed(KEY_ONE + (i - 1)) && costs[i] <= playerMoney) {
-            selectedTowerIndex = i;
-            isPlacingTower = true;
-            selectedTower = nullptr;
+        if (IsKeyPressed(KEY_ONE + (i - 1))) {
+            if (costs[i] <= playerMoney) {
+                selectedTowerIndex = i;
+                isPlacingTower = true;
+                selectedTower = nullptr;
+            } else {
+                PlaySound(SoundManager::error);
+                showNotEnoughMoney = true;
+                moneyMsgTimer = 0.0f;
+            }
         }
     }
 
@@ -348,6 +362,8 @@ void UpdatePlaying() {
 
         if (mousePos.y > 40 && mousePos.y < 560 && !IsOnTrack(mousePos, trackPoints) && !IsOnTower(mousePos, towers)) {
             
+            PlaySound(SoundManager::place);
+
             switch (selectedTowerIndex) {
                 case 1:
                     towers.push_back(std::make_shared<Archer>(mousePos));
@@ -395,6 +411,25 @@ void DrawPlaying() {
         DrawCircle(previewPosition.x, previewPosition.y, range, color);
         DrawRectangleV({ previewPosition.x - 20, previewPosition.y - 20 }, { 40, 40 }, DARKGRAY);
         
+    }
+
+    if (showNotEnoughMoney) {
+        moneyMsgTimer += GetFrameTime();
+
+        // Calculate alpha for fade-out effect (starts fading after 1.5s)
+        float alpha = 1.0f;
+        if (moneyMsgTimer > 1.5f) {
+            alpha = 1.0f - ((moneyMsgTimer - 1.5f) / 0.5f);  // fade out over 0.5s
+            if (alpha < 0.0f) alpha = 0.0f;
+        }
+
+        // Set color with alpha
+        Color fadedRed = {255, 0, 0, (unsigned char)(255 * alpha)};
+        DrawText("Not enough money!", GetScreenWidth() / 2 - 100, 50, 20, fadedRed);
+
+        if (moneyMsgTimer > moneyMsgDuration) {
+            showNotEnoughMoney = false;
+        }
     }
 
     for (const auto& tower : towers) {
@@ -456,10 +491,16 @@ void DrawPlaying() {
         Vector2 mouse = GetMousePosition();
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) || IsKeyPressed(KEY_X) || IsKeyPressed(KEY_E)) {
 
-            if ((IsKeyPressed(KEY_E) || CheckCollisionPointRec(mouse, upgradeBtn)) && upgradeCost <= playerMoney) {
-                PlaySound(SoundManager::upgrade);
-                selectedTower->upgrade(upgradeCost);
-                playerMoney -= upgradeCost;
+            if (IsKeyPressed(KEY_E) || CheckCollisionPointRec(mouse, upgradeBtn)) {
+                if (upgradeCost <= playerMoney) {
+                    PlaySound(SoundManager::upgrade);
+                    selectedTower->upgrade(upgradeCost);
+                    playerMoney -= upgradeCost;
+                } else {
+                    PlaySound(SoundManager::error);
+                    showNotEnoughMoney = true;
+                    moneyMsgTimer = 0.0f;
+                }
             }
             else if (CheckCollisionPointRec(mouse, sellBtn) || IsKeyPressed(KEY_X)) {
                 PlaySound(SoundManager::sell);
@@ -494,6 +535,12 @@ void DrawPlaying() {
             DrawCircleV(enemyPos, 10, GRAY);
         } else if (name == "Fire Imp") {
             DrawCircleV(enemyPos, 10, ORANGE);
+        } else if (name == "Spider Queen") {
+            DrawCircleV(enemyPos, 20, BLACK);
+        } else if (name == "Spiderling") {
+            DrawCircleV(enemyPos, 5, BLACK);
+        } else if (name == "Brute") {
+            DrawCircleV(enemyPos, 30, BROWN);
         }
 
         if (Vector2Distance(mousePos, enemyPos) <= hoverDistance) {

@@ -23,7 +23,7 @@ class Enemy {
 
         void setPosition(Vector2 pos);
 
-        void update(float deltaTime, const std::vector<Vector2>& track);
+        virtual void update(float deltaTime, const std::vector<Vector2>& track);
 
         Vector2 getPosition() const;
 
@@ -32,6 +32,8 @@ class Enemy {
         int getMaxHealth() const;
         
         bool isAlive() const;
+
+        void setCurrentTarget(int target);
 
         virtual ~Enemy() = default;
 
@@ -63,4 +65,53 @@ class Fire_Imp : public Enemy {
         void takeDamage(int amount, const std::string& type) override;
 
         Fire_Imp();
+};
+
+class Brute : public Enemy {
+    public:
+        std::string getName() const override;
+
+        void takeDamage(int amount, const std::string& type) override;
+
+        Brute();
+};
+
+class SpawnableEnemy : public Enemy {
+    protected:
+        float spawnCooldownTimer = 0.0f;
+        float spawnDelayTimer = 0.0f;
+        float spawnDelay; // delay between each enemy spawn
+        float spawnCooldown; // seconds between spawns
+        int spawnCount;
+        int remainingSpawns;
+        bool inCooldown = false;
+    public:
+
+        void update(float deltaTime, const std::vector<Vector2>& track) override;
+
+        virtual void spawn() = 0;
+
+        SpawnableEnemy(float hp, float speed, float delay, float cooldown, int spawnCount);
+};
+
+
+class Spider_Queen : public SpawnableEnemy {
+    public:
+        std::string getName() const override;
+
+        void takeDamage(int amount, const std::string& type) override;
+
+        void spawn() override;
+
+        Spider_Queen();
+};
+
+class Spiderling : public Enemy {
+    public:
+
+        std::string getName() const override;
+
+        void takeDamage(int amount, const std::string& type) override;
+
+        Spiderling();
 };

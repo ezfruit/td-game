@@ -84,19 +84,20 @@ void Archer::upgrade(int upgCost) {
     }
     switch (level) {
         case 2:
-            damage += 2;
             range += 25;
+            attackSpeed = 1.0f;
             projectileSpeed += 100;
             break;
         case 3:
-            damage += 6;
-            attackSpeed = 1.0;
+            damage += 3;
             pierceCount = 2;
+            projectileSpeed += 100;
+            projectileRange += 250;
             break;
         case 4:
-            damage += 15;
-            attackSpeed = 1.5;
-            projectileSpeed += 100;
+            damage += 10;
+            attackSpeed = 1.5f;
+            projectileSpeed += 200;
             projectileRange += 500;
             break;
         case 5:
@@ -104,7 +105,7 @@ void Archer::upgrade(int upgCost) {
             range += 25;
             attackSpeed = 2;
             pierceCount = 4;
-            projectileSpeed += 100;
+            projectileSpeed += 200;
             projectileRange += 500;
             break;
     }
@@ -146,11 +147,11 @@ void Mage::upgrade(int upgCost) {
     }
     switch (level) {
         case 2:
-            damage += 3;
+            damage += 1;
             range += 25;
             break;
         case 3:
-            damage += 6;
+            damage += 3;
             AoERadius += 10;
             break;
         case 4:
