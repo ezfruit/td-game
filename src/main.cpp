@@ -4,6 +4,7 @@
 #include "options.h"
 #include "tower.h"
 #include "enemy.h"
+#include "sounds.h"
 
 int main() {
     const int screenWidth = 1280;
@@ -13,6 +14,10 @@ int main() {
 
     InitWindow(screenWidth, screenHeight, "Rampart Defenders");
     InitPlaying();
+
+    InitAudioDevice();
+
+    SoundManager::InitSounds();
 
     SetExitKey(0); // Prevents ESC key from closing the window
 
@@ -112,6 +117,9 @@ int main() {
         EndDrawing();
     }
 
+    SoundManager::UnloadSounds();
+
+    CloseAudioDevice();
     CloseWindow();
     return 0;
 }

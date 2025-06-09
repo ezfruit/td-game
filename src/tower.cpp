@@ -1,4 +1,5 @@
 #include "tower.h"
+#include "sounds.h"
 
 Tower::Tower(int range, int damage, float attackSpeed, std::string targeting, int cost, Vector2 position) :
             range(range), damage(damage), attackSpeed(attackSpeed), targeting(targeting), cost(cost), position(position) {}
@@ -64,6 +65,7 @@ void Archer::attack(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemie
 
         float distance = Vector2Distance(getPosition(), enemy->getPosition());
         if (distance <= range) {
+            PlaySound(SoundManager::arrow_fly);
             Vector2 dir = Vector2Subtract(enemy->getPosition(), getPosition());
             projectiles.emplace_back(getPosition(), dir, projectileSpeed, damage, type, shared_from_this(), pierceCount, AoERadius);
             attackCooldown = 1.0f / attackSpeed;

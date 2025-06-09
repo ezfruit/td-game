@@ -9,6 +9,7 @@
 #include <string>
 #include <memory>
 #include <unordered_map>
+#include "sounds.h"
 
 static std::vector<Vector2> trackPoints;
 static std::vector<std::shared_ptr<Tower>> towers;
@@ -209,6 +210,7 @@ void UpdatePlaying() {
             if (distance < 10.0f) { // collision radius
 
                 if (projectile.getAOERadius() > 0.0f) {
+                    PlaySound(SoundManager::explosion);
                     ApplyAOEDamage(projectile, projectile.getPosition(), projectile.getAOERadius(), projectile.getDamage(), projectile.getDamageType());
                     explosions.push_back({projectile.getPosition(), projectile.getAOERadius()});
                     projectile.deactivate();  // deactivate projectile because it exploded
@@ -455,10 +457,12 @@ void DrawPlaying() {
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) || IsKeyPressed(KEY_X) || IsKeyPressed(KEY_E)) {
 
             if ((IsKeyPressed(KEY_E) || CheckCollisionPointRec(mouse, upgradeBtn)) && upgradeCost <= playerMoney) {
+                PlaySound(SoundManager::upgrade);
                 selectedTower->upgrade(upgradeCost);
                 playerMoney -= upgradeCost;
             }
             else if (CheckCollisionPointRec(mouse, sellBtn) || IsKeyPressed(KEY_X)) {
+                PlaySound(SoundManager::sell);
                 playerMoney += selectedTower->getValue();
                 towers.erase(std::remove_if(towers.begin(), towers.end(),
                     [&](const std::shared_ptr<Tower>& t) { return t.get() == selectedTower; }),

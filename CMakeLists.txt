@@ -18,6 +18,7 @@ add_executable(TowerDefense
     src/play.cpp
     src/wave.cpp
     src/projectile.cpp
+    src/sounds.cpp
 )
 
 target_link_libraries(TowerDefense PRIVATE raylib)

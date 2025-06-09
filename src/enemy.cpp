@@ -1,8 +1,18 @@
 #include "raylib.h"
 #include "raymath.h"
 #include "enemy.h"
+#include "sounds.h"
 
 Enemy::Enemy(int health, float speed) : health(health), speed(speed), baseSpeed(speed) {}
+
+Sound metal;
+
+namespace SoundManager {
+    extern Sound shootSound;
+
+    void InitSounds();
+    void UnloadSounds();
+}
 
 void Enemy::reduceSpeed(float spd) {
     speed -= spd;
