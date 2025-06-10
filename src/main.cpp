@@ -77,6 +77,9 @@ int main() {
                     state = GAMEOVER;
                 } else if (IsWindowMinimized()) {
                     Paused = true;
+                } else if (HomePressed) {
+                    state = MENU;
+                    HomePressed = false;
                 }
                 break;
             }

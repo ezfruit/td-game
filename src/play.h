@@ -11,6 +11,7 @@ extern std::vector<std::shared_ptr<Enemy>> enemies;
 
 extern bool GameOver;
 extern bool Paused;
+extern bool HomePressed;
 
 extern int playerMoney;
 

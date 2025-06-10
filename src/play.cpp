@@ -35,6 +35,7 @@ static Vector2 previewPosition;
 
 bool GameOver = false;
 bool Paused = false;
+bool HomePressed = false;
 
 static float spawnTimer = 0.0f;
 static int spawnIndex = 0;
@@ -42,6 +43,36 @@ static int spawnIndex = 0;
 static bool spawning = false;
 
 static Tower* selectedTower = nullptr;
+
+std::vector<std::string> towerNames = {
+    "None",       
+    "Archer",     
+    "Mage",      
+    "Torcher",
+    "Placeholder",
+    "Placeholder",
+    "Placeholder"
+};
+
+std::vector<std::string> towerTypes = {
+    "None",
+    "Physical",
+    "Magic",
+    "Fire",
+    "Placeholder",
+    "Placeholder",
+    "Placeholder"
+};
+
+std::vector<std::string> towerRanges = {
+    "None",
+    "High",
+    "Low",
+    "Very Low",
+    "Placeholder",
+    "Placeholder",
+    "Placeholder"
+};
 
 std::unordered_map<int, int> costs = {
     {1, 200},
@@ -166,8 +197,6 @@ void ApplyAOEDamage(Projectile& projectile, Vector2 center, float radius, int da
         }
     }
 }
-
-
 
 // Logic to start the next wave
 void StartNextWave() {
@@ -304,7 +333,6 @@ void UpdatePlaying() {
                 } else if (type == "Fire Imp") {
                     enemy = std::make_shared<Fire_Imp>();
                 } else if (type == "Spider Queen") {
-                    std::cout << "Spawning Spider Queen" << '\n';
                     enemy = std::make_shared<Spider_Queen>();
                 } else if (type == "Brute") {
                     enemy = std::make_shared<Brute>();
@@ -566,40 +594,146 @@ void DrawPlaying() {
     int startX = 20;
     int y = 600;
 
+    int hoveredTowerIndex = -1;
+
     for (int i = 0; i < numSlots; i++) {
         int x = startX + i * (slotSize + spacing);
 
         Rectangle slotRect = { (float)x, (float)y, (float)slotSize, (float)slotSize };
         DrawRectangleRec(slotRect, DARKGRAY);
 
+        std::string keyText = std::to_string(i + 1);
+        int fontSize = 16;
+        int padding = 4; // distance from the top-left corner
+
+        DrawText(keyText.c_str(), (int)(slotRect.x + padding), (int)(slotRect.y + padding), fontSize, WHITE);
+
         if (CheckCollisionPointRec(mousePos, slotRect)) {
+            hoveredTowerIndex = i + 1; // Save which one is hovered
             Color borderColor = (selectedTowerIndex == i + 1) ? RED : GOLD;
             DrawRectangleLinesEx(slotRect, 3, borderColor);
 
-            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && costs[i+1] <= playerMoney) {
-                selectedTowerIndex = i + 1;
-                isPlacingTower = true;
-                selectedTower = nullptr;
-                HideCursor();
+            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                if (costs[i+1] <= playerMoney) {
+                    selectedTowerIndex = i + 1;
+                    isPlacingTower = true;
+                    selectedTower = nullptr;
+                    HideCursor();
+                } else {
+                    PlaySound(SoundManager::error);
+                    showNotEnoughMoney = true;
+                    moneyMsgTimer = 0.0f;
+                }
             }
         }
     }
 
+    // Draw tower info at bottom right
+    if (hoveredTowerIndex != -1 && !selectedTower) {
+        int screenW = GetScreenWidth();
+        int screenH = GetScreenHeight();
+
+        const int padding = 12;
+        const int fontSize = 20;
+
+        std::string name = towerNames[hoveredTowerIndex];
+        std::string type = towerTypes[hoveredTowerIndex];
+        std::string range = towerRanges[hoveredTowerIndex];
+        int cost = costs[hoveredTowerIndex];
+
+        std::string line1 = "Tower: " + name;
+        std::string line2 = "Type: " + type;
+        std::string line3 = "Range: " + range;
+        std::string line4 = "Cost: " + std::to_string(cost);
+
+        float textX = (screenW / 2) + 25.0f;
+        float textY = screenH - 150.0f;
+
+        DrawText(line1.c_str(), textX, textY, fontSize, WHITE);
+        DrawText(line2.c_str(), textX, textY + fontSize + padding, fontSize, WHITE);
+        DrawText(line3.c_str(), textX, textY + 2 * (fontSize + padding), fontSize, WHITE);
+        DrawText(line4.c_str(), textX, textY + 3 * (fontSize + padding), fontSize, WHITE);
+    }
+
+    // Pause button
     Rectangle pauseButton = {GetScreenWidth() - 100.0f, 0.0f, 40.0f, 40.0f};
 
+    // Hover effect for pause button
+    bool pauseHovered = CheckCollisionPointRec(GetMousePosition(), pauseButton);
+    float scale = pauseHovered ? 1.2f : 1.0f;
+
+    float scaledWidth = pauseButton.width * scale;
+    float scaledHeight = pauseButton.height * scale;
+    float offsetX = (scaledWidth - pauseButton.width) / 2.0f;
+    float offsetY = (scaledHeight - pauseButton.height) / 2.0f;
+
+    Rectangle scaledPauseButton = {
+        pauseButton.x - offsetX,
+        pauseButton.y - offsetY,
+        scaledWidth,
+        scaledHeight
+    };
+
     // Detect button click
-    if ((IsKeyPressed(KEY_ESCAPE)) || (CheckCollisionPointRec(GetMousePosition(), pauseButton) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))) {
+    if ((IsKeyPressed(KEY_P)) || (CheckCollisionPointRec(GetMousePosition(), pauseButton) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))) {
         Paused = !Paused;
     }
 
-    DrawRectangleLinesEx(pauseButton, 2, DARKGRAY);
+    if (!Paused) {
+        // Draw pause icon (two vertical bars)
+        float barWidth = 5.0f * scale;
+        float gap = 10.0f * scale;
 
-    // Draw two vertical bars inside the button (the pause icon)
-    float barWidth = 5.0f;
-    float gap = 10.0f;
+        DrawRectangle(scaledPauseButton.x + gap, scaledPauseButton.y + 6 * scale, barWidth, scaledPauseButton.height - 12 * scale, DARKGRAY);
+        DrawRectangle(scaledPauseButton.x + gap + barWidth + gap, scaledPauseButton.y + 6 * scale, barWidth, scaledPauseButton.height - 12 * scale, DARKGRAY);
+    } else {
+        
+        Vector2 center = { scaledPauseButton.x + scaledPauseButton.width / 2.0f, scaledPauseButton.y + scaledPauseButton.height / 2.0f };
+        float size = 12.0f * scale;
 
-    DrawRectangle(pauseButton.x + gap, pauseButton.y + 6, barWidth, pauseButton.height - 12, DARKGRAY);
-    DrawRectangle(pauseButton.x + gap + barWidth + gap, pauseButton.y + 6, barWidth, pauseButton.height - 12, DARKGRAY);
+        Vector2 p1 = { center.x - (size / 1.5f), center.y - size }; // top point
+        Vector2 p2 = { center.x - (size / 1.5f), center.y + size }; // bottom point
+        Vector2 p3 = { center.x + size, center.y };                 // right point
+
+        DrawTriangle(p1, p2, p3, DARKGRAY);
+    }
+
+    // Home button
+    Rectangle homeButton = { GetScreenWidth() - 50.0f, 0.0f, 40.0f, 40.0f };
+
+    // Determine if hovered for home button
+    bool isHovered = CheckCollisionPointRec(GetMousePosition(), homeButton);
+
+    // Enlarge the button if hovered
+    scale = isHovered ? 1.2f : 1.0f;
+    scaledWidth = homeButton.width * scale;
+    scaledHeight = homeButton.height * scale;
+    offsetX = (scaledWidth - homeButton.width) / 2.0f;
+    offsetY = (scaledHeight - homeButton.height) / 2.0f;
+
+    Rectangle scaledButton = {
+        homeButton.x - offsetX,
+        homeButton.y - offsetY,
+        scaledWidth,
+        scaledHeight
+    };
+
+    // Roof (triangle)
+    Vector2 top = { scaledButton.x + scaledButton.width / 2.0f, scaledButton.y + 5 * scale };
+    Vector2 left = { scaledButton.x + 5 * scale, scaledButton.y + scaledButton.height / 2.0f };
+    Vector2 right = { scaledButton.x + scaledButton.width - 5 * scale, scaledButton.y + scaledButton.height / 2.0f };
+    DrawTriangle(top, left, right, DARKGRAY);
+
+    // House base (square)
+    float baseX = scaledButton.x + 10 * scale;
+    float baseY = scaledButton.y + scaledButton.height / 2.0f;
+    float baseWidth = scaledButton.width - 20 * scale;
+    float baseHeight = scaledButton.height / 2.0f - 5 * scale;
+    DrawRectangle(baseX, baseY, baseWidth, baseHeight, DARKGRAY);
+
+    if (CheckCollisionPointRec(GetMousePosition(), homeButton) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        HomePressed = true;
+    }
 
     DrawLineV({640, 560}, {640, 720}, DARKGRAY);
 }
