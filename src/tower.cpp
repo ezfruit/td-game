@@ -48,7 +48,7 @@ float Tower::getProjectileRange() const {
     return projectileRange;
 }
 
-Archer::Archer(Vector2 pos) : Tower(150, 2, 0.8f, "single", 200, pos) {
+Archer::Archer(Vector2 pos) : Tower(150, 2, 0.8f, "Single", 200, pos) {
     name = "Archer";
     type = "Physical";
     value = 100;
@@ -56,7 +56,7 @@ Archer::Archer(Vector2 pos) : Tower(150, 2, 0.8f, "single", 200, pos) {
     projectileRange = 400.0f;
 }
 
-void Archer::attack(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<Projectile>& projectiles) {
+void Archer::attack(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) {
     attackCooldown -= deltaTime;
     if (attackCooldown > 0) return;
 
@@ -67,7 +67,7 @@ void Archer::attack(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemie
         if (distance <= range) {
             PlaySound(SoundManager::arrow_fly);
             Vector2 dir = Vector2Subtract(enemy->getPosition(), getPosition());
-            projectiles.emplace_back(getPosition(), dir, projectileSpeed, damage, type, shared_from_this(), pierceCount, AoERadius);
+            projectiles.emplace_back(std::make_shared<Projectile>(getPosition(), dir, projectileSpeed, damage, type, shared_from_this(), pierceCount, AoERadius));
             attackCooldown = 1.0f / attackSpeed;
             break;
         }
@@ -111,7 +111,7 @@ void Archer::upgrade(int upgCost) {
     }
 }
 
-Mage::Mage(Vector2 pos) : Tower(100, 3, 0.5, "AoE", 300, pos) {
+Mage::Mage(Vector2 pos) : Tower(100, 3, 0.5, "Area of Effect", 300, pos) {
     name = "Mage";
     type = "Magic";
     value = 150;
@@ -120,7 +120,7 @@ Mage::Mage(Vector2 pos) : Tower(100, 3, 0.5, "AoE", 300, pos) {
     AoERadius = 50.0f;
 }
 
-void Mage::attack(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<Projectile>& projectiles) {
+void Mage::attack(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) {
     attackCooldown -= deltaTime;
     if (attackCooldown > 0) return;
 
@@ -130,7 +130,7 @@ void Mage::attack(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies,
         float distance = Vector2Distance(getPosition(), enemy->getPosition());
         if (distance <= range) {
             Vector2 dir = Vector2Subtract(enemy->getPosition(), getPosition());
-            projectiles.emplace_back(getPosition(), dir, projectileSpeed, damage, type, shared_from_this(), pierceCount, AoERadius);
+            projectiles.emplace_back(std::make_shared<Projectile>(getPosition(), dir, projectileSpeed, damage, type, shared_from_this(), pierceCount, AoERadius));
             attackCooldown = 1.0f / attackSpeed;
             break;
         }
@@ -164,6 +164,87 @@ void Mage::upgrade(int upgCost) {
             range += 25;
             attackSpeed = 1.5;
             AoERadius += 25;
+            break;
+    }
+}
+
+Torcher::Torcher(Vector2 pos) : Tower(75, 1, 1.0, "Single", 700, pos) {
+    name = "Torcher";
+    type = "Fire";
+    value = 350;
+    projectileSpeed = 1000.0f;
+    projectileRange = range;
+}
+
+bool Torcher::IsInRange(std::shared_ptr<Enemy> enemy) {
+    float distance = Vector2Distance(getPosition(), enemy->getPosition());
+    if (distance <= range) {
+        return true;
+    }
+    return false;
+}
+
+std::shared_ptr<Enemy> Torcher::FindUnburnedTarget(std::vector<std::shared_ptr<Enemy>>& enemies) {
+    for (auto& enemy : enemies) {
+        if (!enemy->isBurning() && IsInRange(enemy)) {
+            return enemy;
+        }
+    }
+    return nullptr; // All are burning
+}
+
+void Torcher::FireAt(std::shared_ptr<Enemy> enemy) {
+    Vector2 dir = Vector2Subtract(enemy->getPosition(), getPosition());
+    auto flamesProj = std::make_shared<Flames>(getPosition(), dir, projectileSpeed, damage, type, shared_from_this(), pierceCount, AoERadius);
+    flamesProj->setTarget(enemy);
+    flamesProj->setBurnDelay(burnDelay);
+    flamesProj->setBurnDamage(damage);
+    flamesProj->setBurnDuration(burnDuration);
+    flamesProj->setSlowEffect(slowEffect);
+    projectiles.emplace_back(flamesProj);
+}
+
+void Torcher::attack(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) {
+    timeSinceLastFire += deltaTime;
+
+    if (timeSinceLastFire >= fireCooldown) {
+        auto target = FindUnburnedTarget(enemies);
+        if (target) {
+            FireAt(target);
+            timeSinceLastFire = 0.0f;
+        }
+    }
+}
+
+void Torcher::upgrade(int upgCost) {
+    level += 1;
+    if (level > 5) {
+        level = 5;
+        return;
+    } else {
+        value += (upgCost / 2);
+    }
+    switch (level) {
+        case 2:
+            damage += 1;
+            range += 25;
+            projectileRange = range;
+            break;
+        case 3:
+            damage += 3;
+            slowEffect = 0.8;
+            break;
+        case 4:
+            burnDuration += 2;
+            burnDelay = 0.5;
+            break;
+        case 5:
+            damage += 15;
+            slowEffect = 0.6;
+            range += 25;
+            projectileRange = range;
+            burnDuration += 2;
+            burnDelay = 0.25;
             break;
     }
 }

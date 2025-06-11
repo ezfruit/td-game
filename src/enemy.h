@@ -11,6 +11,14 @@ class Enemy {
         float speed;
         float baseSpeed;
         int currentTarget = 0;
+        bool burning = false;
+        float burnStartTime = 0.0f;
+        float burnEndTime;
+        float burnDuration = 0.0f;
+        float burnDamage;
+        float burnDelay;
+        float nextBurnTick;
+
         bool alive = true;
     public:
         virtual void takeDamage(int amount, const std::string& type) = 0;
@@ -33,7 +41,11 @@ class Enemy {
         
         bool isAlive() const;
 
+        bool isBurning() const;
+
         void setCurrentTarget(int target);
+
+        void applyBurn(float delay, float dps, float duration, float slowEffect);
 
         virtual ~Enemy() = default;
 

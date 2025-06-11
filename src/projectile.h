@@ -10,7 +10,7 @@ class Enemy;
 class Tower;
 
 class Projectile {
-    private:
+    protected:
         Vector2 position;
         Vector2 direction;
         float speed;
@@ -25,7 +25,7 @@ class Projectile {
     public:
         Projectile(Vector2 pos, Vector2 dir, float spd, int dmg, std::string type, std::weak_ptr<Tower> source, int pierceCount, float AoERadius);
 
-        void update(float deltaTime, std::weak_ptr<Tower> source);
+        virtual void update(float deltaTime, std::weak_ptr<Tower> source);
 
         void draw() const;
 
@@ -49,4 +49,28 @@ class Projectile {
         bool hasHit(Enemy* enemy) const;
         void markHit(Enemy* enemy);
         
+};
+
+class Flames : public Projectile {
+    private:
+        std::shared_ptr<Enemy> target;
+        float burnDelay, burnDPS, burnDuration, slowEffect;
+        float burnTimer = 0.0f;
+        bool hasAppliedBurn = false;
+        bool hasReachedTarget() const;
+    public:
+
+        void setTarget(std::shared_ptr<Enemy> enemy);
+
+        void setBurnDelay(float delay);
+
+        void setBurnDamage(int dmg);
+
+        void setBurnDuration(float duration);
+
+        void setSlowEffect(float slow);
+
+        void update(float deltaTime, std::weak_ptr<Tower> source);
+        
+        Flames(Vector2 pos, Vector2 dir, float spd, int dmg, std::string type, std::weak_ptr<Tower> source, int pierceCount, float AoERadius);
 };

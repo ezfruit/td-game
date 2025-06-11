@@ -83,4 +83,43 @@ void Projectile::markHit(Enemy* enemy) {
     }
 }
 
+Flames::Flames(Vector2 pos, Vector2 dir, float spd, int dmg, std::string type, std::weak_ptr<Tower> source, int pierceCount, float AoERadius) 
+        : Projectile(pos, dir, spd, dmg, type, source, pierceCount, AoERadius) {}
 
+void Flames::setTarget(std::shared_ptr<Enemy> enemy) {
+    target = enemy;
+}
+
+void Flames::setBurnDelay(float delay) {
+    burnDelay = delay;
+}
+
+void Flames::setBurnDamage(int dmg) {
+    burnDPS = dmg;
+}
+
+void Flames::setBurnDuration(float duration) {
+    burnDuration = duration;
+}
+
+void Flames::setSlowEffect(float slow) {
+    slowEffect = slow;
+}
+
+bool Flames::hasReachedTarget() const {
+    if (!target) {
+        return false;
+    }
+
+    float distance = Vector2Distance(position, target->getPosition());
+    return distance < 10.0f;
+}
+
+void Flames::update(float deltaTime, std::weak_ptr<Tower> source) {
+    Projectile::update(deltaTime, source);
+
+    if (target && hasReachedTarget()) {
+        target->applyBurn(burnDelay, burnDPS, burnDuration, slowEffect);
+        deactivate();
+    }
+}

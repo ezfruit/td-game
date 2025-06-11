@@ -32,9 +32,21 @@ void Enemy::setPosition(Vector2 pos) {
 }
 
 void Enemy::update(float deltaTime, const std::vector<Vector2>& track) {
-    if (currentTarget >= track.size()) return; // Already reached end
+    if (currentTarget >= track.size()) return;
 
     if (deltaTime > 0.05f) deltaTime = 0.05f;
+
+    float currentTime = GetTime();
+
+    if (burning) {
+        if (currentTime >= burnEndTime) {
+            burning = false;
+            revertSpeed();
+        } else if (currentTime >= nextBurnTick) {
+            takeDamage(burnDamage, "Fire");
+            nextBurnTick += burnDelay;
+        }
+    }
 
     Vector2 target = track[currentTarget];
     Vector2 direction = Vector2Normalize(Vector2Subtract(target, position));
@@ -61,8 +73,23 @@ bool Enemy::isAlive() const {
     return alive; 
 }
 
+bool Enemy::isBurning() const {
+    return burning;
+}
+
 void Enemy::setCurrentTarget(int target) {
     currentTarget = target;
+}
+
+void Enemy::applyBurn(float delay, float dps, float duration, float slowEffect) {
+    burning = true;
+    speed *= slowEffect;
+    burnDuration = duration;
+    burnDamage = dps;
+    burnDelay = delay;
+    burnStartTime = GetTime();
+    burnEndTime = burnStartTime + duration;
+    nextBurnTick = burnStartTime + delay;
 }
 
 Slime::Slime() : Enemy(4, 50.0f) { // 50 speed for normal
@@ -94,6 +121,8 @@ void Knight::takeDamage(int amount, const std::string& type) {
         health -= static_cast<int> (amount * 1.5);
     } else if (type == "Physical") {
         health -= static_cast<int> (amount * 0.5);
+    } else {
+        health -= amount;
     }
     if (health <= 0) {
         alive = false;
@@ -111,6 +140,8 @@ std::string Fire_Imp::getName() const {
 
 void Fire_Imp::takeDamage(int amount, const std::string& type) {
     if (type == "Fire") {
+        burning = false;
+        revertSpeed();
         return;
     } else {
         health -= amount;

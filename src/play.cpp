@@ -12,7 +12,7 @@ std::vector<Vector2> trackPoints;
 
 static std::vector<std::shared_ptr<Tower>> towers;
 std::vector<std::shared_ptr<Enemy>> enemies;
-static std::vector<Projectile> projectiles;
+std::vector<std::shared_ptr<Projectile>> projectiles;
 
 static int waveNumber = 0;
 
@@ -77,15 +77,16 @@ std::vector<std::string> towerRanges = {
 std::unordered_map<int, int> costs = {
     {1, 200},
     {2, 400},
-    {3, 20},
+    {3, 700},
     {4, 20},
     {5, 20},
     {6, 20}
 };
 
 std::unordered_map<std::string, std::vector<int>> upgradeCosts = {
-    {"Archer", {250, 1000, 2500, 4000, 0}},
-    {"Mage", {300, 800, 3000, 6000, 0}}
+    {"Archer", {250, 600, 2500, 4000, 0}},
+    {"Mage", {300, 800, 3000, 6000, 0}},
+    {"Torcher", {300, 1200, 4000, 10000}}
 };
 
 struct Explosion {
@@ -118,7 +119,7 @@ void InitPlaying() {
 
 void ResetGame() {
     waveNumber = 0;
-    playerMoney = 500;
+    playerMoney = 10000;
     playerHealth = 100;
     income = 500;
     waveInProgress = false;
@@ -134,6 +135,8 @@ void ResetGame() {
     spawnTimer = 0.0f;
 
     selectedTower = nullptr;
+
+    showNotEnoughMoney = false;
 
     towers.clear();
     enemies.clear();
@@ -228,30 +231,30 @@ void UpdatePlaying() {
 
     for (auto& projectile : projectiles) {
 
-        if (!projectile.isActive()) continue;
+        if (!projectile->isActive()) continue;
 
-        projectile.update(deltaTime, projectile.getSourceTower().lock());
+        projectile->update(deltaTime, projectile->getSourceTower().lock());
 
         for (auto& enemy : enemies) {
             if (!enemy->isAlive()) continue;
 
-            if (projectile.hasHit(enemy.get())) continue;
+            if (projectile->hasHit(enemy.get())) continue;
 
-            float distance = Vector2Distance(projectile.getPosition(), enemy->getPosition());
+            float distance = Vector2Distance(projectile->getPosition(), enemy->getPosition());
             if (distance < 10.0f) { // collision radius
 
-                if (projectile.getAOERadius() > 0.0f) {
+                if (projectile->getAOERadius() > 0.0f) {
                     PlaySound(SoundManager::explosion);
-                    ApplyAOEDamage(projectile, projectile.getPosition(), projectile.getAOERadius(), projectile.getDamage(), projectile.getDamageType());
-                    explosions.push_back({projectile.getPosition(), projectile.getAOERadius()});
-                    projectile.deactivate();  // deactivate projectile because it exploded
+                    ApplyAOEDamage(*projectile, projectile->getPosition(), projectile->getAOERadius(), projectile->getDamage(), projectile->getDamageType());
+                    explosions.push_back({projectile->getPosition(), projectile->getAOERadius()});
+                    projectile->deactivate();  // deactivate projectile because it exploded
                 } else {
                     int prevHealth = enemy->getHealth();
-                    enemy->takeDamage(projectile.getDamage(), projectile.getDamageType());
-                    projectile.markHit(enemy.get());
+                    enemy->takeDamage(projectile->getDamage(), projectile->getDamageType());
+                    projectile->markHit(enemy.get());
                     int curHealth = enemy->getHealth();
                     int damageDealt = prevHealth - curHealth;
-                    if (auto shooter = projectile.getSourceTower().lock()) {
+                    if (auto shooter = projectile->getSourceTower().lock()) {
                         shooter->setTotalDamageDealt(damageDealt);
                     }
                     playerMoney += damageDealt;
@@ -261,7 +264,7 @@ void UpdatePlaying() {
         }
     }
 
-    projectiles.erase(std::remove_if(projectiles.begin(), projectiles.end(), [](const Projectile& p) { return !p.isActive(); }), projectiles.end());
+    projectiles.erase(std::remove_if(projectiles.begin(), projectiles.end(), [](const std::shared_ptr<Projectile>& p) { return !p->isActive(); }), projectiles.end());
 
     for (auto& exp : explosions) {
         exp.timeAlive += deltaTime;
@@ -403,6 +406,11 @@ void UpdatePlaying() {
                     playerMoney -= 400;
                     std::cout << "Placed Mage" << '\n';
                     break;
+                case 3:
+                    towers.push_back(std::make_shared<Torcher>(mousePos));
+                    playerMoney -= 700;
+                    std::cout << "Placed Torcher" << '\n';
+                    break;
             }
 
             selectedTowerIndex = -1;
@@ -427,6 +435,7 @@ void DrawPlaying() {
         switch (selectedTowerIndex) {
             case 1: range = 150; break; // Archer
             case 2: range = 100; break; // Mage
+            case 3: range = 75; break; // Torcher
         }
 
         Vector2 mousePos = GetMousePosition();
@@ -466,6 +475,28 @@ void DrawPlaying() {
     }
 
     if (isPlacingTower) {
+
+        showNotEnoughMoney = false;
+
+        std::string tower;
+
+        switch (selectedTowerIndex) {
+            case 1: tower = "Archer"; break; // Archer
+            case 2: tower = "Mage"; break; // Mage
+            case 3: tower = "Torcher"; break; // Torcher
+        }
+
+        std::string placingText = "Placing " + tower;
+        int fontSize = 24;
+
+        // Measure the width in pixels of the text
+        int textWidth = MeasureText(placingText.c_str(), fontSize);
+
+        // Center horizontally
+        int x = GetScreenWidth() / 2 - textWidth / 2;
+
+        DrawText(placingText.c_str(), x, 50, fontSize, BLUE);
+
         DrawText("Press X to cancel", GetScreenWidth() / 2 - 100, GetScreenHeight() - 190, 20, RED);
     }
 
@@ -482,7 +513,7 @@ void DrawPlaying() {
     }
 
     for (auto& proj : projectiles) {
-        proj.draw();
+        proj->draw();
     }
 
     for (auto& exp : explosions) {
@@ -511,10 +542,25 @@ void DrawPlaying() {
         DrawText("Upgrade (E)", upgradeBtn.x + 10, upgradeBtn.y + 8, 16, WHITE);
         DrawText("Sell (X)", sellBtn.x + 29, sellBtn.y + 8, 16, WHITE);
 
-        DrawText(TextFormat("Sell Value: $%d", selectedTower->getValue()), GetScreenWidth() - 200, GetScreenHeight() - 30, 20, WHITE);
+        int upgradeCost = upgradeCosts[selectedTower->getName()][selectedTower->getLevel() - 1];
+        int fontSize = 20;
 
-        int upgradeCost = upgradeCosts[selectedTower->getName()][selectedTower->getLevel()-1];
-        DrawText(TextFormat("Upgrade Cost: $%d", upgradeCost), GetScreenWidth() - 225, GetScreenHeight() - 60, 20, LIME);
+        std::string costStr = TextFormat("Upgrade Cost: $%d", upgradeCost);
+        int textWidth = MeasureText(costStr.c_str(), fontSize);
+
+        // Center horizontally
+        int x = GetScreenWidth() - 125 - (textWidth / 2);
+        int y = GetScreenHeight() - 60;
+
+        DrawText(costStr.c_str(), x, y, fontSize, LIME);
+
+        std::string sellValueStr = TextFormat("Sell Value: $%d", selectedTower->getValue());
+        textWidth = MeasureText(sellValueStr.c_str(), fontSize);
+
+        x = GetScreenWidth() - 125 - (textWidth / 2);
+        y = GetScreenHeight() - 30;
+
+        DrawText(sellValueStr.c_str(), x, y, fontSize, WHITE);
 
         Vector2 mouse = GetMousePosition();
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) || IsKeyPressed(KEY_X) || IsKeyPressed(KEY_E)) {
@@ -583,9 +629,29 @@ void DrawPlaying() {
 
             // Draw enemy name and health as text
             std::string info = enemy->getName() + ": " + std::to_string(enemy->getHealth());
-            DrawText(info.c_str(), barPos.x, barPos.y - 18, 14, DARKGRAY);
+            
+            int fontSize = 14;
+            int textWidth = MeasureText(info.c_str(), fontSize);
+            int textX = enemyPos.x - textWidth / 2;
+            int textY = barPos.y - 18;
+
+            DrawText(info.c_str(), textX, textY, fontSize, DARKGRAY);
 
         }
+
+        if (enemy->isBurning()) {
+            // Position flame slightly above the enemy
+            Vector2 flamePos = { enemyPos.x, enemyPos.y - 20 };
+
+            // Optional: Flicker size with sine wave
+            float flicker = 2.0f + 2.0f * sin(GetTime() * 10.0f);
+
+            // Draw flickering fire circles
+            DrawCircleV(flamePos, 6 + flicker * 0.3f, RED);
+            DrawCircleV({flamePos.x + 2, flamePos.y - 4}, 4 + flicker * 0.2f, ORANGE);
+            DrawCircleV({flamePos.x - 3, flamePos.y - 2}, 3 + flicker * 0.2f, YELLOW);
+        }
+
     }
 
     int numSlots = 6;

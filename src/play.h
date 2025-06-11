@@ -6,8 +6,10 @@
 extern std::vector<Vector2> trackPoints;
 
 class Enemy;
+class Projectile;
 
 extern std::vector<std::shared_ptr<Enemy>> enemies;
+extern std::vector<std::shared_ptr<Projectile>> projectiles;
 
 extern bool GameOver;
 extern bool Paused;
