@@ -215,7 +215,6 @@ std::string Spider_Queen::getName() const {
 }
 
 void Spider_Queen::takeDamage(int amount, const std::string& type) {
-    health -= amount;
     if (type == "Fire") {
         health -= static_cast<int> (amount * 2);
     } else {
@@ -237,7 +236,6 @@ std::string Spiderling::getName() const {
 }
 
 void Spiderling::takeDamage(int amount, const std::string& type) {
-    health -= amount;
     if (type == "Fire") {
         health -= static_cast<int> (amount * 2);
     } else {

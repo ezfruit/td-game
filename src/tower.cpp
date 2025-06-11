@@ -129,6 +129,7 @@ void Mage::attack(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies,
 
         float distance = Vector2Distance(getPosition(), enemy->getPosition());
         if (distance <= range) {
+            PlaySound(SoundManager::fireball);
             Vector2 dir = Vector2Subtract(enemy->getPosition(), getPosition());
             projectiles.emplace_back(std::make_shared<Projectile>(getPosition(), dir, projectileSpeed, damage, type, shared_from_this(), pierceCount, AoERadius));
             attackCooldown = 1.0f / attackSpeed;

@@ -7,6 +7,8 @@ namespace SoundManager {
     Sound sell;
     Sound error;
     Sound place;
+    Sound fireball;
+    Sound spider_spawn;
 
     void InitSounds() {
         arrow_fly = LoadSound("assets/arrow_fly.wav");
@@ -15,8 +17,11 @@ namespace SoundManager {
         upgrade = LoadSound("assets/upgrade.wav");
         sell = LoadSound("assets/sell.wav");
         error = LoadSound("assets/error.wav");
-        SetSoundVolume(error, 0.3f);
+        SetSoundVolume(error, 0.2f);
         place = LoadSound("assets/place.wav");
+        fireball = LoadSound("assets/fireball.wav");
+        SetSoundVolume(fireball, 0.1f);
+        spider_spawn = LoadSound("assets/spider_spawn.wav");
     }
 
     void UnloadSounds() {
@@ -26,5 +31,7 @@ namespace SoundManager {
         UnloadSound(sell);
         UnloadSound(error);
         UnloadSound(place);
+        UnloadSound(fireball);
+        UnloadSound(spider_spawn);
     }
 }

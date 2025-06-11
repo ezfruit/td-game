@@ -336,6 +336,7 @@ void UpdatePlaying() {
                 } else if (type == "Fire Imp") {
                     enemy = std::make_shared<Fire_Imp>();
                 } else if (type == "Spider Queen") {
+                    PlaySound(SoundManager::spider_spawn);
                     enemy = std::make_shared<Spider_Queen>();
                 } else if (type == "Brute") {
                     enemy = std::make_shared<Brute>();

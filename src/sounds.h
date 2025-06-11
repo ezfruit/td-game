@@ -8,6 +8,8 @@ namespace SoundManager {
     extern Sound sell;
     extern Sound error;
     extern Sound place;
+    extern Sound fireball;
+    extern Sound spider_spawn;
 
     void InitSounds();
     void UnloadSounds();
