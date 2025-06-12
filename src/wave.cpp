@@ -171,6 +171,35 @@ std::vector<GameWave> waveDefinitions = {
         }
     },
 
+    // Wave 9
+    {
+        {
+            { "Brute", 1.0f },
+            { "Brute", 3.0f },
+            { "Brute", 3.0f },
+            { "Brute", 3.0f },
+            { "Brute", 3.0f },
+            { "Brute", 3.0f },
+            { "Arcane Shell", 1.0f },
+            { "Arcane Shell", 1.0f },
+            { "Arcane Shell", 1.0f },
+            { "Arcane Shell", 1.0f },
+            { "Arcane Shell", 1.0f },
+            { "Knight", 1.0f },
+            { "Knight", 1.0f },
+            { "Knight", 1.0f },
+            { "Knight", 1.0f },
+            { "Knight", 1.0f },
+            { "Knight", 1.0f },
+            { "Knight", 1.0f },
+            { "Knight", 1.0f },
+            { "Knight", 1.0f },
+            { "Knight", 1.0f },
+            { "Fire Imp", 1.0f },
+            { "Fire Imp", 1.0f },
+        }
+    },
+
 };
 
 const size_t totalWaves = waveDefinitions.size();

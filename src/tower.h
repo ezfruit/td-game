@@ -39,6 +39,8 @@ class Tower : public std::enable_shared_from_this<Tower> {
 
         int getDamage() const;
 
+        std::string getTargeting() const;
+
         void setTotalDamageDealt(int dmg);
 
         int getTotalDamageDealt() const;
@@ -78,7 +80,7 @@ class Mage : public Tower {
 class Torcher : public Tower {
     private:
 
-        float fireCooldown = 0.5f;
+        float fireCooldown = 1.0f;
         float timeSinceLastFire = 0.0f;
 
         float burnDelay = 1.0f;

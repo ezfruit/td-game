@@ -127,3 +127,13 @@ class Spiderling : public Enemy {
 
         Spiderling();
 };
+
+class Arcane_Shell : public Enemy {
+    public:
+
+        std::string getName() const override;
+
+        void takeDamage(int amount, const std::string& type) override;
+
+        Arcane_Shell();
+};

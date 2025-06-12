@@ -74,6 +74,16 @@ std::vector<std::string> towerRanges = {
     "Placeholder"
 };
 
+std::vector<std::string> towerTargetings = {
+    "None",
+    "Pierce",
+    "Area of Effect",
+    "Single",
+    "Placeholder",
+    "Placeholder",
+    "Placeholder"
+};
+
 std::unordered_map<int, int> costs = {
     {1, 200},
     {2, 400},
@@ -340,6 +350,8 @@ void UpdatePlaying() {
                     enemy = std::make_shared<Spider_Queen>();
                 } else if (type == "Brute") {
                     enemy = std::make_shared<Brute>();
+                } else if (type == "Arcane Shell") {
+                    enemy = std::make_shared<Arcane_Shell>();
                 }
 
                 if (enemy) {
@@ -616,6 +628,8 @@ void DrawPlaying() {
             DrawCircleV(enemyPos, 5, BLACK);
         } else if (name == "Brute") {
             DrawCircleV(enemyPos, 30, BROWN);
+        } else if (name == "Arcane Shell") {
+            DrawCircleV(enemyPos, 15, PINK);
         }
 
         if (Vector2Distance(mousePos, enemyPos) <= hoverDistance) {
@@ -706,12 +720,14 @@ void DrawPlaying() {
         std::string name = towerNames[hoveredTowerIndex];
         std::string type = towerTypes[hoveredTowerIndex];
         std::string range = towerRanges[hoveredTowerIndex];
+        std::string targeting = towerTargetings[hoveredTowerIndex];
         int cost = costs[hoveredTowerIndex];
 
         std::string line1 = "Tower: " + name;
         std::string line2 = "Type: " + type;
         std::string line3 = "Range: " + range;
-        std::string line4 = "Cost: " + std::to_string(cost);
+        std::string line4 = "Targeting: " + targeting;
+        std::string line5 = "Cost: " + std::to_string(cost);
 
         float textX = (screenW / 2) + 25.0f;
         float textY = screenH - 150.0f;
@@ -720,6 +736,7 @@ void DrawPlaying() {
         DrawText(line2.c_str(), textX, textY + fontSize + padding, fontSize, WHITE);
         DrawText(line3.c_str(), textX, textY + 2 * (fontSize + padding), fontSize, WHITE);
         DrawText(line4.c_str(), textX, textY + 3 * (fontSize + padding), fontSize, WHITE);
+        DrawText(line5.c_str(), textX, textY + 4 * (fontSize + padding), fontSize, WHITE);
     }
 
     // Pause button

@@ -24,6 +24,10 @@ int Tower::getDamage() const {
     return damage;
 }
 
+std::string Tower::getTargeting() const {
+    return targeting;
+}
+
 void Tower::setTotalDamageDealt(int dmg) {
     totalDamageDealt += dmg;
 }
@@ -48,7 +52,7 @@ float Tower::getProjectileRange() const {
     return projectileRange;
 }
 
-Archer::Archer(Vector2 pos) : Tower(150, 2, 0.8f, "Single", 200, pos) {
+Archer::Archer(Vector2 pos) : Tower(150, 2, 0.8f, "Pierce", 200, pos) {
     name = "Archer";
     type = "Physical";
     value = 100;
@@ -211,6 +215,7 @@ void Torcher::attack(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemi
     if (timeSinceLastFire >= fireCooldown) {
         auto target = FindUnburnedTarget(enemies);
         if (target) {
+            PlaySound(SoundManager::torcher);
             FireAt(target);
             timeSinceLastFire = 0.0f;
         }
@@ -233,6 +238,7 @@ void Torcher::upgrade(int upgCost) {
             break;
         case 3:
             damage += 3;
+            fireCooldown = 0.75f;
             slowEffect = 0.8;
             break;
         case 4:
@@ -246,6 +252,7 @@ void Torcher::upgrade(int upgCost) {
             projectileRange = range;
             burnDuration += 2;
             burnDelay = 0.25;
+            fireCooldown = 0.5f;
             break;
     }
 }

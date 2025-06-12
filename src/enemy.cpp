@@ -247,3 +247,26 @@ void Spiderling::takeDamage(int amount, const std::string& type) {
         health = 0;
     }
 }
+
+Arcane_Shell::Arcane_Shell() : Enemy(100, 60.0f) {
+    maxHealth = health;
+}
+
+std::string Arcane_Shell::getName() const {
+    return "Arcane Shell";
+}
+
+void Arcane_Shell::takeDamage(int amount, const std::string& type) {
+    if (type == "Magic") {
+        return;
+    } else if (type == "Physical") {
+        health -= static_cast<int> (amount * 1.5);
+    } else {
+        health -= static_cast<int> (amount * 0.5);
+    }
+
+    if (health <= 0) {
+        alive = false;
+        health = 0;
+    }
+}
