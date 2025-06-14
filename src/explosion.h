@@ -15,4 +15,6 @@ struct LightningBolt {
     float duration = 2.0f; // lasts 2 seconds
     float timeAlive = 0.0f;
     std::vector<Vector2> points; // precomputed zigzag path
+    Color color;
+    bool active = true;
 };

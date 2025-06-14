@@ -2,6 +2,8 @@
 #include <iostream>
 #include <vector>
 
+class Tower;
+
 class Enemy {
     protected:
         Vector2 position;
@@ -19,7 +21,7 @@ class Enemy {
         float burnDamage;
         float burnDelay;
         float nextBurnTick;
-
+        std::weak_ptr<Tower> burnSource;
         bool alive = true;
     public:
         virtual void takeDamage(int amount, const std::string& type) = 0;
@@ -48,7 +50,7 @@ class Enemy {
 
         void setCurrentTarget(int target);
 
-        void applyBurn(float delay, float dps, float duration, float slowEffect);
+        void applyBurn(float delay, float dps, float duration, float slowEffect, std::weak_ptr<Tower> source);
 
         virtual ~Enemy() = default;
 

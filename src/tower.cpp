@@ -348,6 +348,8 @@ void Stormshaper::DrawLightningBolt(std::shared_ptr<Enemy> target, int segments,
     bolt.start = position;
     bolt.end = target->getPosition();
 
+    level <= 3 ? bolt.color = SKYBLUE : bolt.color = PURPLE;
+
     // Generate bolt shape
     Vector2 lastPoint = bolt.start;
 

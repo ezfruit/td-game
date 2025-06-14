@@ -132,15 +132,15 @@ bool Flames::hasReachedTarget() const {
         return false;
     }
 
-    float distance = Vector2Distance(position, target->getPosition()) - target->getRadius();
-    return distance < 10.0f;
+    float distance = Vector2Distance(position, target->getPosition());
+    return distance <= target->getRadius();
 }
 
 void Flames::update(float deltaTime, std::weak_ptr<Tower> source) {
     Projectile::update(deltaTime, source);
 
     if (target && hasReachedTarget()) {
-        target->applyBurn(burnDelay, burnDPS, burnDuration, slowEffect);
+        target->applyBurn(burnDelay, burnDPS, burnDuration, slowEffect, source);
         deactivate();
     }
 }

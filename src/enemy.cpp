@@ -4,17 +4,9 @@
 #include "sounds.h"
 #include "play.h"
 #include <memory>
+#include "tower.h"
 
 Enemy::Enemy(int health, float speed, float radius) : health(health), speed(speed), baseSpeed(speed), hitboxRadius(radius) {}
-
-Sound metal;
-
-namespace SoundManager {
-    extern Sound shootSound;
-
-    void InitSounds();
-    void UnloadSounds();
-}
 
 void Enemy::reduceSpeed(float spd) {
     speed -= spd;
@@ -43,7 +35,13 @@ void Enemy::update(float deltaTime, const std::vector<Vector2>& track) {
             burning = false;
             revertSpeed();
         } else if (currentTime >= nextBurnTick) {
+            int prevHealth = getHealth();
             takeDamage(burnDamage, "Fire");
+            int curHealth = getHealth();
+            int damageDealt = prevHealth - curHealth;
+            if (auto tower = burnSource.lock()) {
+                tower->setTotalDamageDealt(damageDealt);
+            }
             nextBurnTick += burnDelay;
         }
     }
@@ -85,7 +83,7 @@ void Enemy::setCurrentTarget(int target) {
     currentTarget = target;
 }
 
-void Enemy::applyBurn(float delay, float dps, float duration, float slowEffect) {
+void Enemy::applyBurn(float delay, float dps, float duration, float slowEffect, std::weak_ptr<Tower> source) {
     burning = true;
     speed *= slowEffect;
     burnDuration = duration;
@@ -94,6 +92,7 @@ void Enemy::applyBurn(float delay, float dps, float duration, float slowEffect) 
     burnStartTime = GetTime();
     burnEndTime = burnStartTime + duration;
     nextBurnTick = burnStartTime + delay;
+    burnSource = source;
 }
 
 Slime::Slime() : Enemy(4, 50.0f, 10.0f) { // 50 speed for normal

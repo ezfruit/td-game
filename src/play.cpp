@@ -8,8 +8,7 @@
 #include <unordered_map>
 #include "sounds.h"
 
-// TODO: Fix Torcher attacks against brutes (they don't burn them)
-// TODO: Make Stormshaper attack lock on target without missing
+// TODO: Fix Torcher damage dealt damage (not updating total damage dealt)
 
 std::vector<Vector2> trackPoints;
 
@@ -262,6 +261,15 @@ void UpdatePlaying() {
 
     explosions.erase(std::remove_if(explosions.begin(), explosions.end(), [](const Explosion& e) { return !e.active; }), explosions.end());
 
+    for (auto& lightning : lightningBolts) {
+        lightning.timeAlive += deltaTime;
+        if (lightning.timeAlive >= lightning.duration) {
+            lightning.active = false;
+        }
+    }
+
+    lightningBolts.erase(std::remove_if(lightningBolts.begin(), lightningBolts.end(), [](const LightningBolt& l) { return !l.active; }), lightningBolts.end());
+
     for (int i = enemies.size() - 1; i >= 0; --i) {
         Vector2 pos = enemies[i]->getPosition();
         float distanceToGoal = Vector2Distance(pos, goal);
@@ -511,39 +519,6 @@ void DrawPlaying() {
         DrawCircleV(point, 6, LIGHTGRAY);
     }
 
-    for (auto& proj : projectiles) {
-        proj->draw();
-    }
-
-    for (auto& exp : explosions) {
-        float alpha = 1.0f - (exp.timeAlive / exp.duration); // fade out
-        Color color = Fade(ORANGE, alpha);
-        DrawCircleV(exp.position, exp.radius, color);
-    }
-
-    for (auto it = lightningBolts.begin(); it != lightningBolts.end();) {
-        it->timeAlive += GetFrameTime();
-
-        float alpha = 1.0f - (it->timeAlive / it->duration);
-        if (alpha < 0.0f) alpha = 0.0f;
-
-        Color faded = ColorAlpha(SKYBLUE, alpha);
-
-        Vector2 prev = it->start;
-        for (auto& point : it->points) {
-            DrawLineV(prev, point, faded);
-            prev = point;
-        }
-        DrawLineV(prev, it->end, faded);
-
-        if (it->timeAlive >= it->duration) {
-            it = lightningBolts.erase(it);
-        } else {
-            ++it;
-        }
-    }
-
-
     DrawRectangle(0, 560, GetScreenWidth(), 160, LIGHTGRAY); // Bottom Gray Rectangle UI
 
     // When a tower is selected (clicked on in the field)
@@ -687,6 +662,29 @@ void DrawPlaying() {
             DrawCircleV({flamePos.x - 3, flamePos.y - 2}, 3 + flicker * 0.2f, YELLOW);
         }
 
+    }
+
+    for (auto& proj : projectiles) {
+        proj->draw();
+    }
+
+    for (auto& exp : explosions) {
+        float alpha = 1.0f - (exp.timeAlive / exp.duration); // fade out
+        alpha = Clamp(alpha, 0.0f, 1.0f);
+        Color color = Fade(ORANGE, alpha);
+        DrawCircleV(exp.position, exp.radius, color);
+    }
+
+    for (auto& lightning : lightningBolts) {
+        float alpha = 1.0f - (lightning.timeAlive / lightning.duration);
+        alpha = Clamp(alpha, 0.0f, 1.0f);
+        Color color = Fade(lightning.color, alpha);
+        Vector2 prev = lightning.start;
+        for (auto& point : lightning.points) {
+            DrawLineV(prev, point, color);
+            prev = point;
+        }
+        DrawLineV(prev, lightning.end, color);
     }
 
     int numSlots = 6;
