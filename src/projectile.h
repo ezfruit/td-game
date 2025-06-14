@@ -46,6 +46,8 @@ class Projectile {
         void setAOERadius(float radius);
         float getAOERadius() const;
 
+        void ApplyAOEDamage(Projectile& projectile, Vector2 center, float radius, int damage, std::string type);
+
         bool hasHit(Enemy* enemy) const;
         void markHit(Enemy* enemy);
         

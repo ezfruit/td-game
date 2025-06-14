@@ -11,6 +11,7 @@ namespace SoundManager {
     extern Sound fireball;
     extern Sound spider_spawn;
     extern Sound torcher;
+    extern Sound thunder;
 
     void InitSounds();
     void UnloadSounds();

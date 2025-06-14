@@ -8,6 +8,9 @@
 #include <unordered_map>
 #include "sounds.h"
 
+// TODO: Fix Torcher attacks against brutes (they don't burn them)
+// TODO: Make Stormshaper attack lock on target without missing
+
 std::vector<Vector2> trackPoints;
 
 static std::vector<std::shared_ptr<Tower>> towers;
@@ -100,15 +103,8 @@ std::unordered_map<std::string, std::vector<int>> upgradeCosts = {
     {"Stormshaper", {600, 1800, 6000, 15000, 0}}
 };
 
-struct Explosion {
-    Vector2 position;
-    float radius;
-    float duration = 0.4f; // in seconds
-    float timeAlive = 0.0f;
-    bool active = true;
-};
-
-static std::vector<Explosion> explosions;
+std::vector<Explosion> explosions;
+std::vector<LightningBolt> lightningBolts;
 
 // Creates the track
 void InitPlaying() {
@@ -193,25 +189,6 @@ bool IsWithinBounds(Vector2 pos) {
     return false;
 }
 
-void ApplyAOEDamage(Projectile& projectile, Vector2 center, float radius, int damage, std::string type) {
-    for (auto& enemy : enemies) {
-        if (!enemy->isAlive()) continue;
-
-        float dist = Vector2Distance(enemy->getPosition(), center);
-        if (dist <= radius) {
-            int prevHealth = enemy->getHealth();
-            enemy->takeDamage(damage, type);
-            projectile.markHit(enemy.get());
-            int curHealth = enemy->getHealth();
-            int damageDealt = prevHealth - curHealth;
-            if (auto shooter = projectile.getSourceTower().lock()) {
-                shooter->setTotalDamageDealt(damageDealt);
-            }
-            playerMoney += damageDealt;
-        }
-    }
-}
-
 // Logic to start the next wave
 void StartNextWave() {
     waveNumber++;
@@ -255,8 +232,7 @@ void UpdatePlaying() {
             if (distance <= enemy->getRadius()) { // collision radius
 
                 if (projectile->getAOERadius() > 0.0f) {
-                    PlaySound(SoundManager::explosion);
-                    ApplyAOEDamage(*projectile, projectile->getPosition(), projectile->getAOERadius(), projectile->getDamage(), projectile->getDamageType());
+                    projectile->ApplyAOEDamage(*projectile, projectile->getPosition(), projectile->getAOERadius(), projectile->getDamage(), projectile->getDamageType());
                     explosions.push_back({projectile->getPosition(), projectile->getAOERadius()});
                     projectile->deactivate();  // deactivate projectile because it exploded
                 } else {
@@ -544,6 +520,29 @@ void DrawPlaying() {
         Color color = Fade(ORANGE, alpha);
         DrawCircleV(exp.position, exp.radius, color);
     }
+
+    for (auto it = lightningBolts.begin(); it != lightningBolts.end();) {
+        it->timeAlive += GetFrameTime();
+
+        float alpha = 1.0f - (it->timeAlive / it->duration);
+        if (alpha < 0.0f) alpha = 0.0f;
+
+        Color faded = ColorAlpha(SKYBLUE, alpha);
+
+        Vector2 prev = it->start;
+        for (auto& point : it->points) {
+            DrawLineV(prev, point, faded);
+            prev = point;
+        }
+        DrawLineV(prev, it->end, faded);
+
+        if (it->timeAlive >= it->duration) {
+            it = lightningBolts.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
 
     DrawRectangle(0, 560, GetScreenWidth(), 160, LIGHTGRAY); // Bottom Gray Rectangle UI
 

@@ -10,6 +10,7 @@ namespace SoundManager {
     Sound fireball;
     Sound spider_spawn;
     Sound torcher;
+    Sound thunder;
 
     void InitSounds() {
         arrow_fly = LoadSound("assets/arrow_fly.wav");
@@ -25,6 +26,8 @@ namespace SoundManager {
         spider_spawn = LoadSound("assets/spider_spawn.wav");
         torcher = LoadSound("assets/torcher.wav");
         SetSoundVolume(torcher, 0.3f);
+        thunder = LoadSound("assets/thunder.wav");
+        SetSoundVolume(thunder, 0.02f);
     }
 
     void UnloadSounds() {
@@ -37,5 +40,6 @@ namespace SoundManager {
         UnloadSound(fireball);
         UnloadSound(spider_spawn);
         UnloadSound(torcher);
+        UnloadSound(thunder);
     }
 }

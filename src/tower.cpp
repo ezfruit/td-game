@@ -1,5 +1,6 @@
 #include "tower.h"
 #include "sounds.h"
+#include "explosion.h"
 
 Tower::Tower(int range, int damage, float attackSpeed, std::string targeting, int cost, Vector2 position) :
             range(range), damage(damage), attackSpeed(attackSpeed), targeting(targeting), cost(cost), position(position) {}
@@ -46,6 +47,14 @@ int Tower::getValue() const {
 
 int Tower::getLevel() const {
     return level;
+}
+
+bool Tower::IsInRange(std::shared_ptr<Enemy> enemy) {
+    float distance = Vector2Distance(getPosition(), enemy->getPosition()) - enemy->getRadius();
+    if (distance <= range) {
+        return true;
+    }
+    return false;
 }
 
 float Tower::getProjectileRange() const {
@@ -181,14 +190,6 @@ Torcher::Torcher(Vector2 pos) : Tower(75, 1, 1.0, "Single", 700, pos) {
     projectileRange = range;
 }
 
-bool Torcher::IsInRange(std::shared_ptr<Enemy> enemy) {
-    float distance = Vector2Distance(getPosition(), enemy->getPosition()) - enemy->getRadius();
-    if (distance <= range) {
-        return true;
-    }
-    return false;
-}
-
 std::shared_ptr<Enemy> Torcher::FindUnburnedTarget(std::vector<std::shared_ptr<Enemy>>& enemies) {
     for (auto& enemy : enemies) {
         if (!enemy->isBurning() && IsInRange(enemy)) {
@@ -266,20 +267,48 @@ Stormshaper::Stormshaper(Vector2 pos) : Tower(300, 30, 0.2, "Area of Effect", 30
     AoERadius = 10.0f;
 }
 
-void Stormshaper::attack(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) {
-    attackCooldown -= deltaTime;
-    if (attackCooldown > 0) return;
+std::shared_ptr<Enemy> Tower::FindStrongestTarget(std::vector<std::shared_ptr<Enemy>>& enemies) {
+    int highestHealth = 0;
+    std::shared_ptr<Enemy> target = nullptr;
+    for (auto& enemy : enemies) {
+        if (IsInRange(enemy) && enemy->getHealth() > highestHealth) {
+            highestHealth = enemy->getHealth();
+            target = enemy;
+        }
+    }
+    return target;
+}
 
+void Tower::ApplyAOEDamage(Vector2 center, float radius, int damage, std::string type) {
+    PlaySound(SoundManager::explosion);
     for (auto& enemy : enemies) {
         if (!enemy->isAlive()) continue;
 
-        float distance = Vector2Distance(getPosition(), enemy->getPosition()) - enemy->getRadius();
-        if (distance <= range) {
-            Vector2 dir = Vector2Subtract(enemy->getPosition(), getPosition());
-            projectiles.emplace_back(std::make_shared<Projectile>(getPosition(), dir, projectileSpeed, damage, type, shared_from_this(), pierceCount, AoERadius));
-            attackCooldown = 1.0f / attackSpeed;
-            break;
+        float dist = Vector2Distance(enemy->getPosition(), center) - enemy->getRadius();
+        if (dist <= radius) {
+            int prevHealth = enemy->getHealth();
+            enemy->takeDamage(damage, type);
+            int curHealth = enemy->getHealth();
+            int damageDealt = prevHealth - curHealth;
+            setTotalDamageDealt(damageDealt);
+            playerMoney += damageDealt;
         }
+    }
+}
+
+void Stormshaper::attack(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) {
+
+    attackCooldown -= deltaTime;
+
+    if (attackCooldown > 0) return;
+
+    auto target = FindStrongestTarget(enemies);
+    if (target) {
+        PlaySound(SoundManager::thunder);
+        DrawLightningBolt(target);
+        ApplyAOEDamage(target->getPosition(), AoERadius, damage, type);
+        explosions.push_back({target->getPosition(), AoERadius});
+        attackCooldown = 1.0f / attackSpeed;
     }
 }
 
@@ -311,4 +340,27 @@ void Stormshaper::upgrade(int upgCost) {
             AoERadius += 5;
             break;
     }
+}
+
+void Stormshaper::DrawLightningBolt(std::shared_ptr<Enemy> target, int segments, float offset, Color color) {
+    // Create lightning bolt
+    LightningBolt bolt;
+    bolt.start = position;
+    bolt.end = target->getPosition();
+
+    // Generate bolt shape
+    Vector2 lastPoint = bolt.start;
+
+    for (int i = 1; i <= segments; i++) {
+        float t = (float)i / (float)segments;
+        Vector2 point = {
+            bolt.start.x + (bolt.end.x - bolt.start.x) * t,
+            bolt.start.y + (bolt.end.y - bolt.start.y) * t
+        };
+        point.x += GetRandomValue(-offset, offset);
+        point.y += GetRandomValue(-offset, offset);
+        bolt.points.push_back(point);
+    }
+
+    lightningBolts.push_back(bolt);
 }

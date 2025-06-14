@@ -2,6 +2,7 @@
 #include "raymath.h"
 #include "projectile.h"
 #include "tower.h"
+#include "sounds.h"
 
 Projectile::Projectile(Vector2 pos, Vector2 dir, float spd, int dmg, std::string type, std::weak_ptr<Tower> source, int pierceCount, float AoERadius) : 
     position(pos), direction(Vector2Normalize(dir)), speed(spd), damage(dmg), type(type), sourceTower(source), pierceCount(pierceCount), AoERadius(AoERadius) {}
@@ -70,6 +71,26 @@ void Projectile::setAOERadius(float radius) {
 float Projectile::getAOERadius() const {
     return AoERadius;
 }
+
+void Projectile::ApplyAOEDamage(Projectile& projectile, Vector2 center, float radius, int damage, std::string type) {
+    PlaySound(SoundManager::explosion);
+    for (auto& enemy : enemies) {
+        if (!enemy->isAlive()) continue;
+
+        float dist = Vector2Distance(enemy->getPosition(), center) - enemy->getRadius();
+        if (dist <= radius) {
+            int prevHealth = enemy->getHealth();
+            enemy->takeDamage(damage, type);
+            projectile.markHit(enemy.get());
+            int curHealth = enemy->getHealth();
+            int damageDealt = prevHealth - curHealth;
+            if (auto shooter = projectile.getSourceTower().lock()) {
+                shooter->setTotalDamageDealt(damageDealt);
+            }
+            playerMoney += damageDealt;
+        }
+    }
+}
         
 bool Projectile::hasHit(Enemy* enemy) const {
     return hitEnemies.find(enemy) != hitEnemies.end();
@@ -111,7 +132,7 @@ bool Flames::hasReachedTarget() const {
         return false;
     }
 
-    float distance = Vector2Distance(position, target->getPosition());
+    float distance = Vector2Distance(position, target->getPosition()) - target->getRadius();
     return distance < 10.0f;
 }
 

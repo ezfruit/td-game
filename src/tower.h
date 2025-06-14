@@ -51,6 +51,12 @@ class Tower : public std::enable_shared_from_this<Tower> {
 
         int getLevel() const;
 
+        bool IsInRange(std::shared_ptr<Enemy> enemy);
+
+        std::shared_ptr<Enemy> FindStrongestTarget(std::vector<std::shared_ptr<Enemy>>& enemies);
+
+        void ApplyAOEDamage(Vector2 center, float radius, int damage, std::string type);
+
         float getProjectileRange() const;
 
         virtual ~Tower() = default;
@@ -84,12 +90,11 @@ class Torcher : public Tower {
         float timeSinceLastFire = 0.0f;
 
         float burnDelay = 1.0f;
-        float burnDuration = 4.0f;
+        float burnDuration = 5.0f;
 
         float slowEffect = 1.0f;
 
         std::shared_ptr<Enemy> FindUnburnedTarget(std::vector<std::shared_ptr<Enemy>>& enemies);
-        bool IsInRange(std::shared_ptr<Enemy> enemy);
     public:
         void attack(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) override;
 
@@ -105,6 +110,8 @@ class Stormshaper : public Tower {
         void attack(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) override;
 
         void upgrade(int upgCost) override;
+
+        void DrawLightningBolt(std::shared_ptr<Enemy> target, int segments = 10, float offset = 10.0f, Color color = SKYBLUE);
 
         Stormshaper(Vector2 pos);
 };
