@@ -49,7 +49,7 @@ std::vector<std::string> towerNames = {
     "Archer",     
     "Mage",      
     "Torcher",
-    "Placeholder",
+    "Stormshaper",
     "Placeholder",
     "Placeholder"
 };
@@ -59,7 +59,7 @@ std::vector<std::string> towerTypes = {
     "Physical",
     "Magic",
     "Fire",
-    "Placeholder",
+    "Air",
     "Placeholder",
     "Placeholder"
 };
@@ -69,7 +69,7 @@ std::vector<std::string> towerRanges = {
     "High",
     "Low",
     "Very Low",
-    "Placeholder",
+    "Very High",
     "Placeholder",
     "Placeholder"
 };
@@ -79,7 +79,7 @@ std::vector<std::string> towerTargetings = {
     "Pierce",
     "Area of Effect",
     "Single",
-    "Placeholder",
+    "Area of Effect",
     "Placeholder",
     "Placeholder"
 };
@@ -88,7 +88,7 @@ std::unordered_map<int, int> costs = {
     {1, 200},
     {2, 400},
     {3, 700},
-    {4, 20},
+    {4, 3000},
     {5, 20},
     {6, 20}
 };
@@ -96,7 +96,8 @@ std::unordered_map<int, int> costs = {
 std::unordered_map<std::string, std::vector<int>> upgradeCosts = {
     {"Archer", {250, 600, 2500, 4000, 0}},
     {"Mage", {300, 800, 3000, 6000, 0}},
-    {"Torcher", {300, 1200, 4000, 10000}}
+    {"Torcher", {300, 1200, 4000, 10000, 0}},
+    {"Stormshaper", {600, 1800, 6000, 15000, 0}}
 };
 
 struct Explosion {
@@ -129,7 +130,7 @@ void InitPlaying() {
 
 void ResetGame() {
     waveNumber = 0;
-    playerMoney = 10000;
+    playerMoney = 30000;
     playerHealth = 100;
     income = 500;
     waveInProgress = false;
@@ -251,7 +252,7 @@ void UpdatePlaying() {
             if (projectile->hasHit(enemy.get())) continue;
 
             float distance = Vector2Distance(projectile->getPosition(), enemy->getPosition());
-            if (distance < 10.0f) { // collision radius
+            if (distance <= enemy->getRadius()) { // collision radius
 
                 if (projectile->getAOERadius() > 0.0f) {
                     PlaySound(SoundManager::explosion);
@@ -352,6 +353,8 @@ void UpdatePlaying() {
                     enemy = std::make_shared<Brute>();
                 } else if (type == "Arcane Shell") {
                     enemy = std::make_shared<Arcane_Shell>();
+                } else if (type == "Flux") {
+                    enemy = std::make_shared<Flux>();
                 }
 
                 if (enemy) {
@@ -411,18 +414,23 @@ void UpdatePlaying() {
             switch (selectedTowerIndex) {
                 case 1:
                     towers.push_back(std::make_shared<Archer>(mousePos));
-                    playerMoney -= 200;
+                    playerMoney -= costs[1];
                     std::cout << "Placed Archer" << '\n';
                     break;
                 case 2:
                     towers.push_back(std::make_shared<Mage>(mousePos));
-                    playerMoney -= 400;
+                    playerMoney -= costs[2];
                     std::cout << "Placed Mage" << '\n';
                     break;
                 case 3:
                     towers.push_back(std::make_shared<Torcher>(mousePos));
-                    playerMoney -= 700;
+                    playerMoney -= costs[3];
                     std::cout << "Placed Torcher" << '\n';
+                    break;
+                case 4:
+                    towers.push_back(std::make_shared<Stormshaper>(mousePos));
+                    playerMoney -= costs[4];
+                    std::cout << "Placed Stormshaper" << '\n';
                     break;
             }
 
@@ -449,6 +457,7 @@ void DrawPlaying() {
             case 1: range = 150; break; // Archer
             case 2: range = 100; break; // Mage
             case 3: range = 75; break; // Torcher
+            case 4: range = 300; break; // Stormshaper
         }
 
         Vector2 mousePos = GetMousePosition();
@@ -497,6 +506,7 @@ void DrawPlaying() {
             case 1: tower = "Archer"; break; // Archer
             case 2: tower = "Mage"; break; // Mage
             case 3: tower = "Torcher"; break; // Torcher
+            case 4: tower = "Stormshaper"; break; // Stormshaper
         }
 
         std::string placingText = "Placing " + tower;
@@ -616,20 +626,31 @@ void DrawPlaying() {
 
         std::string name = enemy->getName();
 
+        float hitbox = enemy->getRadius();
+
         if (name == "Slime") {
-            DrawCircleV(enemyPos, 10, GREEN);
+            DrawCircleV(enemyPos, hitbox, GREEN);
         } else if (name == "Knight") {
-            DrawCircleV(enemyPos, 10, GRAY);
+            DrawCircleV(enemyPos, hitbox, GRAY);
         } else if (name == "Fire Imp") {
-            DrawCircleV(enemyPos, 10, ORANGE);
+            DrawCircleV(enemyPos, hitbox, ORANGE);
         } else if (name == "Spider Queen") {
-            DrawCircleV(enemyPos, 20, BLACK);
+            DrawCircleV(enemyPos, hitbox, BLACK);
         } else if (name == "Spiderling") {
-            DrawCircleV(enemyPos, 5, BLACK);
+            DrawCircleV(enemyPos, hitbox, BLACK);
         } else if (name == "Brute") {
-            DrawCircleV(enemyPos, 30, BROWN);
+            DrawCircleV(enemyPos, hitbox, BROWN);
         } else if (name == "Arcane Shell") {
-            DrawCircleV(enemyPos, 15, PINK);
+            DrawCircleV(enemyPos, hitbox, PINK);
+        } else if (name == "Flux") {
+            auto fluxPtr = std::dynamic_pointer_cast<Flux>(enemy);
+            if (fluxPtr) {
+                Color ringColor = (fluxPtr->getShield() == "Physical") ? GRAY : PINK;
+                // Draw outer ring for the shield
+                DrawCircleLinesV(enemyPos, hitbox, ringColor);
+                // Draw inner enemy body
+                DrawCircleV(enemyPos, 12, YELLOW);
+            }
         }
 
         if (Vector2Distance(mousePos, enemyPos) <= hoverDistance) {

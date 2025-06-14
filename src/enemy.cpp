@@ -5,7 +5,7 @@
 #include "play.h"
 #include <memory>
 
-Enemy::Enemy(int health, float speed) : health(health), speed(speed), baseSpeed(speed) {}
+Enemy::Enemy(int health, float speed, float radius) : health(health), speed(speed), baseSpeed(speed), hitboxRadius(radius) {}
 
 Sound metal;
 
@@ -68,6 +68,10 @@ int Enemy::getHealth() const {
 int Enemy::getMaxHealth() const {
     return maxHealth;
 }
+
+float Enemy::getRadius() const {
+    return hitboxRadius;
+}
         
 bool Enemy::isAlive() const { 
     return alive; 
@@ -92,7 +96,7 @@ void Enemy::applyBurn(float delay, float dps, float duration, float slowEffect) 
     nextBurnTick = burnStartTime + delay;
 }
 
-Slime::Slime() : Enemy(4, 50.0f) { // 50 speed for normal
+Slime::Slime() : Enemy(4, 50.0f, 10.0f) { // 50 speed for normal
     maxHealth = health;
 } 
 
@@ -108,7 +112,7 @@ void Slime::takeDamage(int amount, const std::string& type) {
     }
 }
 
-Knight::Knight() : Enemy(10, 40.0f) { // 40 speed for normal
+Knight::Knight() : Enemy(10, 40.0f, 10.0f) { // 40 speed for normal
     maxHealth = health;
 }
 
@@ -130,7 +134,7 @@ void Knight::takeDamage(int amount, const std::string& type) {
     }
 }
 
-Fire_Imp::Fire_Imp() : Enemy(25, 100.0f) { // 100 speed for normal
+Fire_Imp::Fire_Imp() : Enemy(25, 100.0f, 10.0f) { // 100 speed for normal
     maxHealth = health;
 }
 
@@ -152,7 +156,7 @@ void Fire_Imp::takeDamage(int amount, const std::string& type) {
     }
 }
 
-Brute::Brute() : Enemy(50, 25.0f) { // 25 speed for normal
+Brute::Brute() : Enemy(50, 25.0f, 30.0f) { // 25 speed for normal
     maxHealth = health;
 }
 
@@ -169,7 +173,7 @@ void Brute::takeDamage(int amount, const std::string& type) {
 }
 
 
-SpawnableEnemy::SpawnableEnemy(float hp, float speed, float delay, float cooldown, int spawnCount) : Enemy(hp, speed), spawnDelay(delay), spawnCooldown(cooldown), spawnCount(spawnCount) {
+SpawnableEnemy::SpawnableEnemy(float hp, float speed, float radius, float delay, float cooldown, int spawnCount) : Enemy(hp, speed, radius), spawnDelay(delay), spawnCooldown(cooldown), spawnCount(spawnCount) {
     remainingSpawns = spawnCount;
 }
 
@@ -198,7 +202,7 @@ void SpawnableEnemy::update(float deltaTime, const std::vector<Vector2>& track) 
     }
 }
 
-Spider_Queen::Spider_Queen() : SpawnableEnemy(300, 25.0f, 1.0f, 5.0f, 3) { // 25 speed for normal
+Spider_Queen::Spider_Queen() : SpawnableEnemy(300, 25.0f, 20.0f, 1.0f, 5.0f, 3) { // 25 speed for normal
     maxHealth = health;
 }
 
@@ -227,7 +231,7 @@ void Spider_Queen::takeDamage(int amount, const std::string& type) {
     }
 }
 
-Spiderling::Spiderling() : Enemy(10, 80.0f) {
+Spiderling::Spiderling() : Enemy(10, 80.0f, 5.0f) {
     maxHealth = health;
 }
 
@@ -248,7 +252,7 @@ void Spiderling::takeDamage(int amount, const std::string& type) {
     }
 }
 
-Arcane_Shell::Arcane_Shell() : Enemy(100, 60.0f) {
+Arcane_Shell::Arcane_Shell() : Enemy(100, 60.0f, 15.0f) {
     maxHealth = health;
 }
 
@@ -269,4 +273,50 @@ void Arcane_Shell::takeDamage(int amount, const std::string& type) {
         alive = false;
         health = 0;
     }
+}
+
+Flux::Flux() : Enemy(250, 30.0f, 14.0f) {
+    maxHealth = health;
+}
+
+void Flux::update(float deltaTime, const std::vector<Vector2>& track) {
+    
+    Enemy::update(deltaTime, track);
+
+    shieldChangeTimer += GetFrameTime();
+
+    if (shieldChangeTimer >= shieldChangeCooldown) {
+        if (shield == "Physical") {
+            shield = "Magic";
+        } else {
+            shield = "Physical";
+        }
+        shieldChangeTimer = 0.0f;
+    }
+}
+
+std::string Flux::getName() const {
+    return "Flux";
+}
+
+void Flux::takeDamage(int amount, const std::string& type) {
+    if (shield == type) {
+        speed += 1;
+        return;
+    } else {
+        health -= amount;
+    }
+
+    if (health <= 0) {
+        alive = false;
+        health = 0;
+    }
+}
+
+void Flux::setShield(std::string newShield) {
+    shield = newShield;
+}
+
+std::string Flux::getShield() const {
+    return shield;
 }

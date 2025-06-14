@@ -8,6 +8,7 @@ class Enemy {
         std::string name;
         int health;
         int maxHealth;
+        float hitboxRadius;
         float speed;
         float baseSpeed;
         int currentTarget = 0;
@@ -38,6 +39,8 @@ class Enemy {
         int getHealth() const;
 
         int getMaxHealth() const;
+
+        float getRadius() const;
         
         bool isAlive() const;
 
@@ -49,7 +52,7 @@ class Enemy {
 
         virtual ~Enemy() = default;
 
-        Enemy(int health, float speed);
+        Enemy(int health, float speed, float radius);
 };
 
 class Slime : public Enemy {
@@ -103,7 +106,7 @@ class SpawnableEnemy : public Enemy {
 
         virtual void spawn() = 0;
 
-        SpawnableEnemy(float hp, float speed, float delay, float cooldown, int spawnCount);
+        SpawnableEnemy(float hp, float speed, float radius, float delay, float cooldown, int spawnCount);
 };
 
 
@@ -136,4 +139,24 @@ class Arcane_Shell : public Enemy {
         void takeDamage(int amount, const std::string& type) override;
 
         Arcane_Shell();
+};
+
+class Flux : public Enemy {
+    private:
+        float shieldChangeTimer = 0.0f;
+        float shieldChangeCooldown = 5.0f;
+        std::string shield = "Physical";
+    public:
+
+        void update(float deltaTime, const std::vector<Vector2>& track);
+
+        std::string getName() const override;
+
+        void takeDamage(int amount, const std::string& type) override;
+
+        void setShield(std::string shield);
+
+        std::string getShield() const;
+
+        Flux();
 };

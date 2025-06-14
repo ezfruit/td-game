@@ -55,7 +55,7 @@ float Tower::getProjectileRange() const {
 Archer::Archer(Vector2 pos) : Tower(150, 2, 0.8f, "Pierce", 200, pos) {
     name = "Archer";
     type = "Physical";
-    value = 100;
+    value = cost / 2;
     projectileSpeed = 400.0f;
     projectileRange = 400.0f;
 }
@@ -67,7 +67,7 @@ void Archer::attack(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemie
     for (auto& enemy : enemies) {
         if (!enemy->isAlive()) continue;
 
-        float distance = Vector2Distance(getPosition(), enemy->getPosition());
+        float distance = Vector2Distance(getPosition(), enemy->getPosition()) - enemy->getRadius();
         if (distance <= range) {
             PlaySound(SoundManager::arrow_fly);
             Vector2 dir = Vector2Subtract(enemy->getPosition(), getPosition());
@@ -118,7 +118,7 @@ void Archer::upgrade(int upgCost) {
 Mage::Mage(Vector2 pos) : Tower(100, 3, 0.5, "Area of Effect", 300, pos) {
     name = "Mage";
     type = "Magic";
-    value = 150;
+    value = cost / 2;
     projectileSpeed = 500.0f;
     projectileRange = 500.0f;
     AoERadius = 50.0f;
@@ -131,7 +131,7 @@ void Mage::attack(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies,
     for (auto& enemy : enemies) {
         if (!enemy->isAlive()) continue;
 
-        float distance = Vector2Distance(getPosition(), enemy->getPosition());
+        float distance = Vector2Distance(getPosition(), enemy->getPosition()) - enemy->getRadius();
         if (distance <= range) {
             PlaySound(SoundManager::fireball);
             Vector2 dir = Vector2Subtract(enemy->getPosition(), getPosition());
@@ -176,13 +176,13 @@ void Mage::upgrade(int upgCost) {
 Torcher::Torcher(Vector2 pos) : Tower(75, 1, 1.0, "Single", 700, pos) {
     name = "Torcher";
     type = "Fire";
-    value = 350;
+    value = cost / 2;
     projectileSpeed = 1000.0f;
     projectileRange = range;
 }
 
 bool Torcher::IsInRange(std::shared_ptr<Enemy> enemy) {
-    float distance = Vector2Distance(getPosition(), enemy->getPosition());
+    float distance = Vector2Distance(getPosition(), enemy->getPosition()) - enemy->getRadius();
     if (distance <= range) {
         return true;
     }
@@ -253,6 +253,62 @@ void Torcher::upgrade(int upgCost) {
             burnDuration += 2;
             burnDelay = 0.25;
             fireCooldown = 0.5f;
+            break;
+    }
+}
+
+Stormshaper::Stormshaper(Vector2 pos) : Tower(300, 30, 0.2, "Area of Effect", 3000, pos) {
+    name = "Stormshaper";
+    type = "Air";
+    value = cost / 2;
+    projectileSpeed = 4000.0f;
+    projectileRange = range * 2;
+    AoERadius = 10.0f;
+}
+
+void Stormshaper::attack(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) {
+    attackCooldown -= deltaTime;
+    if (attackCooldown > 0) return;
+
+    for (auto& enemy : enemies) {
+        if (!enemy->isAlive()) continue;
+
+        float distance = Vector2Distance(getPosition(), enemy->getPosition()) - enemy->getRadius();
+        if (distance <= range) {
+            Vector2 dir = Vector2Subtract(enemy->getPosition(), getPosition());
+            projectiles.emplace_back(std::make_shared<Projectile>(getPosition(), dir, projectileSpeed, damage, type, shared_from_this(), pierceCount, AoERadius));
+            attackCooldown = 1.0f / attackSpeed;
+            break;
+        }
+    }
+}
+
+void Stormshaper::upgrade(int upgCost) {
+    level += 1;
+    if (level > 5) {
+        level = 5;
+        return;
+    } else {
+        value += (upgCost / 2);
+    }
+    switch (level) {
+        case 2:
+            attackSpeed = 0.4;
+            break;
+        case 3:
+            damage += 20;
+            range += 50;
+            break;
+        case 4:
+            damage += 20;
+            attackSpeed = 0.5;
+            AoERadius += 5;
+            break;
+        case 5:
+            damage += 50;
+            range += 50;
+            attackSpeed = 0.75;
+            AoERadius += 5;
             break;
     }
 }

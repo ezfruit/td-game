@@ -9,7 +9,7 @@ std::vector<GameWave> waveDefinitions = {
             { "Slime", 1.0f },
             { "Slime", 1.0f },
             { "Slime", 1.0f },
-            { "Slime", 1.0f }
+            { "Slime", 1.0f },
         }
     },
     // Wave 2
@@ -22,7 +22,9 @@ std::vector<GameWave> waveDefinitions = {
             { "Slime", 1.0f },
             { "Slime", 1.0f },
             { "Slime", 1.0f },
-            { "Slime", 1.0f }
+            { "Slime", 1.0f },
+            { "Slime", 1.0f },
+            { "Slime", 1.0f },
         }
     },
     // Wave 3
@@ -73,7 +75,6 @@ std::vector<GameWave> waveDefinitions = {
             { "Knight", 1.0f },
             { "Knight", 1.0f },
             { "Brute", 1.0f},
-            { "Brute", 3.0f},
         }
     },
 
@@ -84,7 +85,6 @@ std::vector<GameWave> waveDefinitions = {
             { "Fire Imp", 1.0f},
             { "Fire Imp", 1.0f },
             { "Fire Imp", 1.0f},
-            { "Fire Imp", 1.0f },
             { "Slime", 1.0f },
             { "Slime", 1.0f },
             { "Slime", 1.0f },
@@ -113,17 +113,17 @@ std::vector<GameWave> waveDefinitions = {
             { "Knight", 0.5f },
             { "Knight", 0.5f },
             { "Knight", 0.5f },
-            { "Knight", 0.0f },
             { "Knight", 0.5f },
             { "Knight", 0.5f },
             { "Knight", 0.5f },
             { "Knight", 0.5f },
-            { "Knight", 0.0f },
             { "Knight", 0.5f },
             { "Knight", 0.5f },
             { "Knight", 0.5f },
             { "Knight", 0.5f },
-            { "Knight", 0.0f },
+            { "Knight", 0.5f },
+            { "Knight", 0.5f },
+            { "Knight", 0.5f },
             { "Knight", 0.5f },
             { "Knight", 0.5f },
             { "Knight", 0.5f },
@@ -174,6 +174,26 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 9
     {
         {
+            { "Fire Imp", 0.0f },
+            { "Fire Imp", 1.0f },
+            { "Knight", 1.0f },
+            { "Knight", 1.0f },
+            { "Knight", 1.0f },
+            { "Slime", 1.0f },
+            { "Slime", 1.0f },
+            { "Slime", 1.0f },
+            { "Slime", 1.0f },
+            { "Brute", 1.0f },
+            { "Brute", 3.0f },
+            { "Brute", 3.0f },
+            { "Brute", 3.0f },
+            { "Brute", 3.0f },
+        }
+    },
+
+    // Wave 10
+    {
+        {
             { "Brute", 1.0f },
             { "Brute", 3.0f },
             { "Brute", 3.0f },
@@ -183,8 +203,6 @@ std::vector<GameWave> waveDefinitions = {
             { "Arcane Shell", 1.0f },
             { "Arcane Shell", 1.0f },
             { "Arcane Shell", 1.0f },
-            { "Arcane Shell", 1.0f },
-            { "Arcane Shell", 1.0f },
             { "Knight", 1.0f },
             { "Knight", 1.0f },
             { "Knight", 1.0f },
@@ -197,6 +215,69 @@ std::vector<GameWave> waveDefinitions = {
             { "Knight", 1.0f },
             { "Fire Imp", 1.0f },
             { "Fire Imp", 1.0f },
+        }
+    },
+
+    // Wave 11
+    {
+        {
+            { "Fire Imp", 0.0f },
+            { "Fire Imp", 1.0f },
+            { "Fire Imp", 1.0f },
+            { "Fire Imp", 1.0f },
+            { "Fire Imp", 1.0f },
+            { "Fire Imp", 1.0f },
+            { "Fire Imp", 1.0f },
+            { "Fire Imp", 1.0f },
+            { "Fire Imp", 1.0f },
+            { "Fire Imp", 1.0f },
+            { "Fire Imp", 1.0f },
+            { "Fire Imp", 1.0f },
+            { "Fire Imp", 1.0f },
+            { "Fire Imp", 1.0f },
+            { "Fire Imp", 1.0f },
+            { "Fire Imp", 1.0f },
+            { "Fire Imp", 1.0f },
+            { "Fire Imp", 1.0f },
+            { "Fire Imp", 1.0f },
+            { "Fire Imp", 1.0f },
+        }
+    },
+
+    // Wave 12
+    {
+        {
+            { "Knight", 0.0f },
+            { "Knight", 1.0f },
+            { "Knight", 1.0f },
+            { "Knight", 1.0f },
+            { "Knight", 1.0f },
+            { "Brute", 1.0f },
+            { "Brute", 3.0f },
+            { "Brute", 3.0f },
+            { "Brute", 3.0f },
+            { "Brute", 3.0f },
+            { "Brute", 3.0f },
+            { "Brute", 3.0f },
+            { "Brute", 3.0f },
+            { "Brute", 3.0f },
+            { "Brute", 3.0f },
+            { "Fire Imp", 1.0f },
+            { "Fire Imp", 1.0f },
+            { "Fire Imp", 1.0f },
+            { "Fire Imp", 1.0f },
+            { "Fire Imp", 1.0f },
+            { "Fire Imp", 1.0f },
+            { "Arcane Shell", 1.0f },
+            { "Arcane Shell", 1.0f },
+            { "Arcane Shell", 1.0f },
+            { "Arcane Shell", 1.0f },
+            { "Arcane Shell", 1.0f },
+            { "Flux", 1.0f },
+            { "Flux", 1.0f },
+            { "Flux", 1.0f},
+            { "Spider Queen", 1.0f },
+            { "Spider Queen", 3.0f },
         }
     },
 

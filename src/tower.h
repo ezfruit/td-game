@@ -99,3 +99,12 @@ class Torcher : public Tower {
 
         Torcher(Vector2 pos);
 };
+
+class Stormshaper : public Tower {
+    public:
+        void attack(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) override;
+
+        void upgrade(int upgCost) override;
+
+        Stormshaper(Vector2 pos);
+};
