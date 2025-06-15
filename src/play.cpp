@@ -12,7 +12,7 @@
 
 std::vector<Vector2> trackPoints;
 
-static std::vector<std::shared_ptr<Tower>> towers;
+std::vector<std::shared_ptr<Tower>> towers;
 std::vector<std::shared_ptr<Enemy>> enemies;
 std::vector<std::shared_ptr<Projectile>> projectiles;
 
@@ -52,8 +52,8 @@ std::vector<std::string> towerNames = {
     "Mage",      
     "Torcher",
     "Stormshaper",
-    "Placeholder",
-    "Placeholder"
+    "War Drummer",
+    "Gold Mine"
 };
 
 std::vector<std::string> towerTypes = {
@@ -62,18 +62,18 @@ std::vector<std::string> towerTypes = {
     "Magic",
     "Fire",
     "Air",
-    "Placeholder",
-    "Placeholder"
+    "None",
+    "None"
 };
 
 std::vector<std::string> towerRanges = {
     "None",
-    "High",
+    "Medium",
     "Low",
     "Very Low",
     "Very High",
-    "Placeholder",
-    "Placeholder"
+    "High",
+    "None"
 };
 
 std::vector<std::string> towerTargetings = {
@@ -82,8 +82,8 @@ std::vector<std::string> towerTargetings = {
     "Area of Effect",
     "Single",
     "Area of Effect",
-    "Placeholder",
-    "Placeholder"
+    "Towers",
+    "Utility"
 };
 
 std::unordered_map<int, int> costs = {
@@ -91,19 +91,22 @@ std::unordered_map<int, int> costs = {
     {2, 400},
     {3, 700},
     {4, 3000},
-    {5, 20},
-    {6, 20}
+    {5, 1000},
+    {6, 300}
 };
 
 std::unordered_map<std::string, std::vector<int>> upgradeCosts = {
     {"Archer", {250, 600, 2500, 4000, 0}},
     {"Mage", {300, 800, 3000, 6000, 0}},
     {"Torcher", {300, 1200, 4000, 10000, 0}},
-    {"Stormshaper", {600, 1800, 6000, 15000, 0}}
+    {"Stormshaper", {600, 1800, 6000, 15000, 0}},
+    {"War Drummer", {750, 2500, 4500, 12000, 0}},
+    {"Gold Mine", {600, 1500, 3000, 6000, 0}}
 };
 
 std::vector<Explosion> explosions;
 std::vector<LightningBolt> lightningBolts;
+std::vector<FloatingText> floatingTexts;
 
 // Creates the track
 void InitPlaying() {
@@ -125,7 +128,7 @@ void InitPlaying() {
 
 void ResetGame() {
     waveNumber = 0;
-    playerMoney = 600;
+    playerMoney = 200000;
     playerHealth = 100;
     income = 500;
     waveInProgress = false;
@@ -190,6 +193,13 @@ bool IsWithinBounds(Vector2 pos) {
 
 // Logic to start the next wave
 void StartNextWave() {
+
+    for (auto& tower : towers) {
+        if (auto goldGen = std::dynamic_pointer_cast<Gold_Mine>(tower)) {
+            goldGen->generate(playerMoney);
+        }
+    }
+
     waveNumber++;
     waveInProgress = true;
     waveCooldownTimer = 0.0f;
@@ -213,7 +223,19 @@ void UpdatePlaying() {
     Vector2 goal = trackPoints.back();
 
     for (auto& tower : towers) {
-        tower->attack(deltaTime, enemies, projectiles);
+        if (tower->getName() != "War Drummer") {
+            tower->resetBuffs();  // Reset multipliers
+        }
+    }
+
+    for (auto& tower : towers) {
+        if (auto drummer = std::dynamic_pointer_cast<War_Drummer>(tower)) {
+            drummer->update(deltaTime, enemies, projectiles); // Apply War Drummer buffs
+        }
+    }
+
+    for (auto& tower : towers) {
+        tower->update(deltaTime, enemies, projectiles); // Let the towers attack
     }
 
     for (auto& projectile : projectiles) {
@@ -269,6 +291,13 @@ void UpdatePlaying() {
     }
 
     lightningBolts.erase(std::remove_if(lightningBolts.begin(), lightningBolts.end(), [](const LightningBolt& l) { return !l.active; }), lightningBolts.end());
+
+    for (auto& text : floatingTexts) {
+        text.timeAlive += deltaTime;
+        text.position.y -= text.riseSpeed * deltaTime;
+    }
+    
+    floatingTexts.erase(std::remove_if(floatingTexts.begin(), floatingTexts.end(), [](const FloatingText& t) { return t.timeAlive >= t.duration; }), floatingTexts.end());
 
     for (int i = enemies.size() - 1; i >= 0; --i) {
         Vector2 pos = enemies[i]->getPosition();
@@ -418,6 +447,16 @@ void UpdatePlaying() {
                     playerMoney -= costs[4];
                     std::cout << "Placed Stormshaper" << '\n';
                     break;
+                case 5:
+                    towers.push_back(std::make_shared<War_Drummer>(mousePos));
+                    playerMoney -= costs[5];
+                    std::cout << "Placed War Drummer" << '\n';
+                    break;
+                case 6:
+                    towers.push_back(std::make_shared<Gold_Mine>(mousePos));
+                    playerMoney -= costs[6];
+                    std::cout << "Placed Gold Mine" << '\n';
+                    break;
             }
 
             selectedTowerIndex = -1;
@@ -444,6 +483,8 @@ void DrawPlaying() {
             case 2: range = 100; break; // Mage
             case 3: range = 75; break; // Torcher
             case 4: range = 300; break; // Stormshaper
+            case 5: range = 200; break; // War Drummer
+            case 6: range = 50; break; // Gold Mine
         }
 
         Vector2 mousePos = GetMousePosition();
@@ -493,6 +534,8 @@ void DrawPlaying() {
             case 2: tower = "Mage"; break; // Mage
             case 3: tower = "Torcher"; break; // Torcher
             case 4: tower = "Stormshaper"; break; // Stormshaper
+            case 5: tower = "War Drummer"; break; // War Drummer
+            case 6: tower = "Gold Mine"; break; // Gold Mine
         }
 
         std::string placingText = "Placing " + tower;
@@ -530,7 +573,11 @@ void DrawPlaying() {
         DrawRectangle(infoX, infoY, 200, 160, LIGHTGRAY);
         DrawText(selectedTower->getName().c_str(), infoX + 10, infoY + 10, 24, DARKGRAY);
         DrawText(TextFormat("Level: %d", selectedTower->getLevel()), infoX + 10, infoY + 45, 20, DARKGRAY);
-        DrawText(TextFormat("Damage Dealt: %d", selectedTower->getTotalDamageDealt()), infoX + 10, infoY + 75, 20, DARKGRAY);
+        if (auto goldGen = dynamic_cast<Gold_Mine*>(selectedTower)) {
+            DrawText(TextFormat("Money Generated: %d", goldGen->getTotalMoneyGenerated()), infoX + 10, infoY + 75, 20, DARKGRAY);
+        } else {
+            DrawText(TextFormat("Damage Dealt: %d", selectedTower->getTotalDamageDealt()), infoX + 10, infoY + 75, 20, DARKGRAY);
+        }
 
         Rectangle upgradeBtn = { (float)(infoX + 10), (float)(infoY + 110), 110, 30 };
         Rectangle sellBtn = { (float)(infoX + 130), (float)(infoY + 110), 110, 30 };
@@ -689,6 +736,12 @@ void DrawPlaying() {
             prev = point;
         }
         DrawLineV(prev, lightning.end, color);
+    }
+
+    for (auto& text : floatingTexts) {
+        float alpha = 1.0f - (text.timeAlive / text.duration);
+        Color faded = Fade(text.color, alpha);
+        DrawText(text.text.c_str(), text.position.x, text.position.y, 20, faded);
     }
 
     int numSlots = 6;

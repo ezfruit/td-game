@@ -13,9 +13,12 @@ class Tower : public std::enable_shared_from_this<Tower> {
         std::string type;
         int range;
         int damage;
+        float damageMultiplier = 1.0f;
         int totalDamageDealt = 0;
         float attackCooldown = 0.0f;
         float attackSpeed;
+        float attackSpeedMultiplier = 1.0f;
+        bool war_drummer_buff = false;
         float projectileSpeed;
         float projectileRange;
         int pierceCount = 1;
@@ -25,7 +28,7 @@ class Tower : public std::enable_shared_from_this<Tower> {
         int value;
         int level = 1;
     public:
-        virtual void attack(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) = 0;
+        virtual void update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) = 0;
 
         virtual void upgrade(int upgCost) = 0;
 
@@ -39,6 +42,12 @@ class Tower : public std::enable_shared_from_this<Tower> {
 
         int getDamage() const;
 
+        void setDamageMultiplier(float multiplier);
+
+        void setAttackSpeedMultiplier(float multiplier);
+
+        void setWarDrummerBuff();
+
         std::string getTargeting() const;
 
         void setTotalDamageDealt(int dmg);
@@ -50,6 +59,8 @@ class Tower : public std::enable_shared_from_this<Tower> {
         int getValue() const;
 
         int getLevel() const;
+
+        void resetBuffs();
 
         bool IsInRange(std::shared_ptr<Enemy> enemy);
 
@@ -67,7 +78,7 @@ class Tower : public std::enable_shared_from_this<Tower> {
 class Archer : public Tower {
     public:
 
-        void attack(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) override;
+        void update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) override;
 
         void upgrade(int upgCost) override;
 
@@ -76,7 +87,7 @@ class Archer : public Tower {
 
 class Mage : public Tower {
     public:
-        void attack(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) override;
+        void update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) override;
 
         void upgrade(int upgCost) override;
 
@@ -96,22 +107,48 @@ class Torcher : public Tower {
 
         std::shared_ptr<Enemy> FindUnburnedTarget(std::vector<std::shared_ptr<Enemy>>& enemies);
     public:
-        void attack(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) override;
+        void update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) override;
 
         void upgrade(int upgCost) override;
 
-        void FireAt(std::shared_ptr<Enemy> enemy);
+        void FireAt(std::shared_ptr<Enemy> enemy, int actualDamage);
 
         Torcher(Vector2 pos);
 };
 
 class Stormshaper : public Tower {
     public:
-        void attack(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) override;
+        void update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) override;
 
         void upgrade(int upgCost) override;
 
         void DrawLightningBolt(std::shared_ptr<Enemy> target, int segments = 10, float offset = 10.0f, Color color = SKYBLUE);
 
         Stormshaper(Vector2 pos);
+};
+
+class War_Drummer : public Tower {
+    public:
+        void update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) override;
+
+        void upgrade(int upgCost) override;
+
+        War_Drummer(Vector2 pos);
+};
+
+class Gold_Mine : public Tower {
+    private:
+        int totalGoldGenerated = 0;
+        int goldPerRound = 100;
+    public:
+
+        int getTotalMoneyGenerated() const;
+
+        void generate(int& playerMoney);
+
+        void update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) override;
+
+        void upgrade(int upgCost) override;
+
+        Gold_Mine(Vector2 pos);
 };

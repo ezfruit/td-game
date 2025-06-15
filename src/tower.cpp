@@ -1,6 +1,6 @@
 #include "tower.h"
 #include "sounds.h"
-#include "explosion.h"
+#include "effects.h"
 
 Tower::Tower(int range, int damage, float attackSpeed, std::string targeting, int cost, Vector2 position) :
             range(range), damage(damage), attackSpeed(attackSpeed), targeting(targeting), cost(cost), position(position) {}
@@ -23,6 +23,14 @@ int Tower::getRange() const {
 
 int Tower::getDamage() const {
     return damage;
+}
+
+void Tower::setDamageMultiplier(float multiplier) {
+    damageMultiplier = multiplier;
+}
+
+void Tower::setAttackSpeedMultiplier(float multiplier) {
+    attackSpeedMultiplier = multiplier;
 }
 
 std::string Tower::getTargeting() const {
@@ -49,6 +57,16 @@ int Tower::getLevel() const {
     return level;
 }
 
+void Tower::resetBuffs() {
+    war_drummer_buff = false;
+    damageMultiplier = 1.0f;
+    attackSpeedMultiplier = 1.0f;
+}
+
+void Tower::setWarDrummerBuff() {
+    war_drummer_buff = true;
+}
+
 bool Tower::IsInRange(std::shared_ptr<Enemy> enemy) {
     float distance = Vector2Distance(getPosition(), enemy->getPosition()) - enemy->getRadius();
     if (distance <= range) {
@@ -70,7 +88,8 @@ Archer::Archer(Vector2 pos) : Tower(150, 2, 0.8f, "Pierce", 200, pos) {
     pierceCount = 2;
 }
 
-void Archer::attack(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) {
+void Archer::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) {
+
     attackCooldown -= deltaTime;
     if (attackCooldown > 0) return;
 
@@ -81,8 +100,12 @@ void Archer::attack(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemie
         if (distance <= range) {
             PlaySound(SoundManager::arrow_fly);
             Vector2 dir = Vector2Subtract(enemy->getPosition(), getPosition());
-            projectiles.emplace_back(std::make_shared<Projectile>(getPosition(), dir, projectileSpeed, damage, type, shared_from_this(), pierceCount, AoERadius));
-            attackCooldown = 1.0f / attackSpeed;
+
+            int actualDamage = static_cast<int>(std::ceil(damage * damageMultiplier));
+            float actualAttackSpeed = attackSpeed * attackSpeedMultiplier;
+
+            projectiles.emplace_back(std::make_shared<Projectile>(getPosition(), dir, projectileSpeed, actualDamage, type, shared_from_this(), pierceCount, AoERadius));
+            attackCooldown = 1.0f / actualAttackSpeed;
             break;
         }
     }
@@ -134,7 +157,8 @@ Mage::Mage(Vector2 pos) : Tower(100, 3, 0.5, "Area of Effect", 300, pos) {
     AoERadius = 50.0f;
 }
 
-void Mage::attack(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) {
+void Mage::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) {
+
     attackCooldown -= deltaTime;
     if (attackCooldown > 0) return;
 
@@ -145,8 +169,12 @@ void Mage::attack(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies,
         if (distance <= range) {
             PlaySound(SoundManager::fireball);
             Vector2 dir = Vector2Subtract(enemy->getPosition(), getPosition());
-            projectiles.emplace_back(std::make_shared<Projectile>(getPosition(), dir, projectileSpeed, damage, type, shared_from_this(), pierceCount, AoERadius));
-            attackCooldown = 1.0f / attackSpeed;
+
+            int actualDamage = static_cast<int>(std::ceil(damage * damageMultiplier));
+            float actualAttackSpeed = attackSpeed * attackSpeedMultiplier;
+
+            projectiles.emplace_back(std::make_shared<Projectile>(getPosition(), dir, projectileSpeed, actualDamage, type, shared_from_this(), pierceCount, AoERadius));
+            attackCooldown = 1.0f / actualAttackSpeed;
             break;
         }
     }
@@ -200,25 +228,31 @@ std::shared_ptr<Enemy> Torcher::FindUnburnedTarget(std::vector<std::shared_ptr<E
     return nullptr; // All are burning
 }
 
-void Torcher::FireAt(std::shared_ptr<Enemy> enemy) {
+void Torcher::FireAt(std::shared_ptr<Enemy> enemy, int actualDamage) {
     Vector2 dir = Vector2Subtract(enemy->getPosition(), getPosition());
     auto flamesProj = std::make_shared<Flames>(getPosition(), dir, projectileSpeed, damage, type, shared_from_this(), pierceCount, AoERadius);
     flamesProj->setTarget(enemy);
     flamesProj->setBurnDelay(burnDelay);
-    flamesProj->setBurnDamage(damage);
+    flamesProj->setBurnDamage(actualDamage);
     flamesProj->setBurnDuration(burnDuration);
     flamesProj->setSlowEffect(slowEffect);
     projectiles.emplace_back(flamesProj);
 }
 
-void Torcher::attack(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) {
+void Torcher::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) {
+
+    float effectiveCooldown = fireCooldown / attackSpeedMultiplier;
+
     timeSinceLastFire += deltaTime;
 
-    if (timeSinceLastFire >= fireCooldown) {
+    if (timeSinceLastFire >= effectiveCooldown) {
         auto target = FindUnburnedTarget(enemies);
         if (target) {
             PlaySound(SoundManager::torcher);
-            FireAt(target);
+
+            int actualDamage = static_cast<int>(std::ceil(damage * damageMultiplier));
+
+            FireAt(target, actualDamage);
             timeSinceLastFire = 0.0f;
         }
     }
@@ -259,7 +293,7 @@ void Torcher::upgrade(int upgCost) {
     }
 }
 
-Stormshaper::Stormshaper(Vector2 pos) : Tower(300, 30, 0.2, "Area of Effect", 3000, pos) {
+Stormshaper::Stormshaper(Vector2 pos) : Tower(300, 30, 0.2f, "Area of Effect", 3000, pos) {
     name = "Stormshaper";
     type = "Air";
     value = cost / 2;
@@ -297,7 +331,7 @@ void Tower::ApplyAOEDamage(Vector2 center, float radius, int damage, std::string
     }
 }
 
-void Stormshaper::attack(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) {
+void Stormshaper::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) {
 
     attackCooldown -= deltaTime;
 
@@ -307,9 +341,13 @@ void Stormshaper::attack(float deltaTime, std::vector<std::shared_ptr<Enemy>>& e
     if (target) {
         PlaySound(SoundManager::thunder);
         DrawLightningBolt(target);
-        ApplyAOEDamage(target->getPosition(), AoERadius, damage, type);
+
+        int actualDamage = static_cast<int>(std::ceil(damage * damageMultiplier));
+        float actualAttackSpeed = attackSpeed * attackSpeedMultiplier;
+
+        ApplyAOEDamage(target->getPosition(), AoERadius, actualDamage, type);
         explosions.push_back({target->getPosition(), AoERadius});
-        attackCooldown = 1.0f / attackSpeed;
+        attackCooldown = 1.0f / actualAttackSpeed;
     }
 }
 
@@ -366,4 +404,99 @@ void Stormshaper::DrawLightningBolt(std::shared_ptr<Enemy> target, int segments,
     }
 
     lightningBolts.push_back(bolt);
+}
+
+War_Drummer::War_Drummer(Vector2 pos) : Tower(200, 0, 0.0f, "Towers", 1000, pos) {
+    name = "War Drummer";
+    type = "None";
+    value = cost / 2;
+    damageMultiplier = 1.15f;
+    attackSpeedMultiplier = 1.2f;
+}
+
+void War_Drummer::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) {
+    for (auto& tower : towers) {
+        if (tower.get() == this) continue; // Don't buff self
+        float dist = Vector2Distance(this->getPosition(), tower->getPosition());
+        if (dist <= this->getRange()) {
+            tower->setWarDrummerBuff();
+            tower->setDamageMultiplier(damageMultiplier);
+            tower->setAttackSpeedMultiplier(attackSpeedMultiplier);
+        }
+    }
+}
+
+void War_Drummer::upgrade(int upgCost) {
+    level += 1;
+    if (level > 5) {
+        level = 5;
+        return;
+    } else {
+        value += (upgCost / 2);
+    }
+    switch (level) {
+        case 2:
+            range += 50;
+            break;
+        case 3:
+            damageMultiplier += 0.05f;
+            break;
+        case 4:
+            attackSpeedMultiplier += 0.1f;
+            break;
+        case 5:
+            range += 50;
+            damageMultiplier += 0.1f;
+            attackSpeedMultiplier += 0.1f;
+            break;
+    }
+}
+
+Gold_Mine::Gold_Mine(Vector2 pos) : Tower(50, 0, 0.0f, "Utility", 300, pos) {
+    name = "Gold Mine";
+    type = "None";
+    value = cost / 2;
+}
+
+int Gold_Mine::getTotalMoneyGenerated() const {
+    return totalGoldGenerated;
+}
+
+void Gold_Mine::generate(int& playerMoney) {
+    PlaySound(SoundManager::money);
+    playerMoney += goldPerRound;
+    totalGoldGenerated += goldPerRound;
+
+    FloatingText text;
+    text.position = getPosition();
+    text.text = "+ " + std::to_string(goldPerRound);
+    floatingTexts.push_back(text);
+}
+
+void Gold_Mine::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) {
+    return;
+}
+
+void Gold_Mine::upgrade(int upgCost) {
+    level += 1;
+    if (level > 5) {
+        level = 5;
+        return;
+    } else {
+        value += (upgCost / 2);
+    }
+    switch (level) {
+        case 2:
+            goldPerRound = 200;
+            break;
+        case 3:
+            goldPerRound = 500;
+            break;
+        case 4:
+            goldPerRound = 1000;
+            break;
+        case 5:
+            goldPerRound = 2000;
+            break;
+    }
 }

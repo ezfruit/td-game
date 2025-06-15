@@ -2,17 +2,20 @@
 #include "raymath.h"
 #include <vector>
 #include <memory>
-#include "explosion.h"
+#include "effects.h"
 
 extern std::vector<Vector2> trackPoints;
 
+class Tower;
 class Enemy;
 class Projectile;
 
+extern std::vector<std::shared_ptr<Tower>> towers;
 extern std::vector<std::shared_ptr<Enemy>> enemies;
 extern std::vector<std::shared_ptr<Projectile>> projectiles;
 extern std::vector<Explosion> explosions;
 extern std::vector<LightningBolt> lightningBolts;
+extern std::vector<FloatingText> floatingTexts;
 
 extern bool GameOver;
 extern bool Paused;

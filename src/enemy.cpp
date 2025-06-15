@@ -42,6 +42,7 @@ void Enemy::update(float deltaTime, const std::vector<Vector2>& track) {
             if (auto tower = burnSource.lock()) {
                 tower->setTotalDamageDealt(damageDealt);
             }
+            playerMoney += damageDealt;
             nextBurnTick += burnDelay;
         }
     }
