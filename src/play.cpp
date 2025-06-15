@@ -125,7 +125,7 @@ void InitPlaying() {
 
 void ResetGame() {
     waveNumber = 0;
-    playerMoney = 30000;
+    playerMoney = 600;
     playerHealth = 100;
     income = 500;
     waveInProgress = false;
@@ -339,6 +339,8 @@ void UpdatePlaying() {
                     enemy = std::make_shared<Arcane_Shell>();
                 } else if (type == "Flux") {
                     enemy = std::make_shared<Flux>();
+                } else if (type == "Husk") {
+                    enemy = std::make_shared<Husk>();
                 }
 
                 if (enemy) {
@@ -625,6 +627,8 @@ void DrawPlaying() {
                 // Draw inner enemy body
                 DrawCircleV(enemyPos, 12, YELLOW);
             }
+        } else if (name == "Husk") {
+            DrawCircleV(enemyPos, hitbox, DARKGRAY);
         }
 
         if (Vector2Distance(mousePos, enemyPos) <= hoverDistance) {

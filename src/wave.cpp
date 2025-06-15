@@ -275,9 +275,40 @@ std::vector<GameWave> waveDefinitions = {
             { "Arcane Shell", 1.0f },
             { "Flux", 1.0f },
             { "Flux", 1.0f },
-            { "Flux", 1.0f},
+            { "Flux", 1.0f },
             { "Spider Queen", 1.0f },
             { "Spider Queen", 3.0f },
+        }
+    },
+
+    // Wave 13
+    {
+        {
+            { "Fire Imp", 0.0f },
+            { "Fire Imp", 1.0f },
+            { "Fire Imp", 1.0f },
+            { "Arcane Shell", 1.0f },
+            { "Arcane Shell", 1.0f },
+            { "Arcane Shell", 1.0f },
+            { "Brute", 1.0f },
+            { "Brute", 2.0f },
+            { "Flux", 1.0f },
+            { "Flux", 1.0f },
+            { "Husk", 1.0f },
+            { "Husk", 1.0f },
+            { "Husk", 1.0f },
+            { "Husk", 1.0f },
+            { "Husk", 1.0f },
+            { "Flux", 1.0f },
+            { "Flux", 1.0f },
+            { "Brute", 1.0f },
+            { "Brute", 2.0f },
+            { "Arcane Shell", 1.0f },
+            { "Arcane Shell", 1.0f },
+            { "Arcane Shell", 1.0f },
+            { "Fire Imp", 1.0f },
+            { "Fire Imp", 1.0f },
+            { "Fire Imp", 1.0f },
         }
     },
 

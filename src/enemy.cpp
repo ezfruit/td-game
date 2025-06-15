@@ -319,3 +319,24 @@ void Flux::setShield(std::string newShield) {
 std::string Flux::getShield() const {
     return shield;
 }
+
+Husk::Husk() : Enemy(75, 150.0f, 20.0f) {
+    maxHealth = health;
+}
+
+std::string Husk::getName() const {
+    return "Husk";
+}
+
+void Husk::takeDamage(int amount, const std::string& type) {
+    if (type == "Air" || type == "Fire") {
+        health -= static_cast<int> (amount * 3);
+    } else {
+        health -= amount;
+    }
+
+    if (health <= 0) {
+        alive = false;
+        health = 0;
+    }
+}

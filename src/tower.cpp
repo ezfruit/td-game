@@ -67,6 +67,7 @@ Archer::Archer(Vector2 pos) : Tower(150, 2, 0.8f, "Pierce", 200, pos) {
     value = cost / 2;
     projectileSpeed = 400.0f;
     projectileRange = 400.0f;
+    pierceCount = 2;
 }
 
 void Archer::attack(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) {
@@ -103,7 +104,7 @@ void Archer::upgrade(int upgCost) {
             break;
         case 3:
             damage += 3;
-            pierceCount = 2;
+            pierceCount = 4;
             projectileSpeed += 100;
             projectileRange += 250;
             break;
@@ -117,7 +118,7 @@ void Archer::upgrade(int upgCost) {
             damage += 25;
             range += 25;
             attackSpeed = 2;
-            pierceCount = 4;
+            pierceCount = 8;
             projectileSpeed += 200;
             projectileRange += 500;
             break;
@@ -329,12 +330,12 @@ void Stormshaper::upgrade(int upgCost) {
             range += 50;
             break;
         case 4:
-            damage += 20;
+            damage += 30;
             attackSpeed = 0.5;
             AoERadius += 5;
             break;
         case 5:
-            damage += 50;
+            damage += 100;
             range += 50;
             attackSpeed = 0.75;
             AoERadius += 5;

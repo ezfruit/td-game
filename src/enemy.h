@@ -162,3 +162,12 @@ class Flux : public Enemy {
 
         Flux();
 };
+
+class Husk : public Enemy {
+    public:
+        std::string getName() const override;
+
+        void takeDamage(int amount, const std::string& type) override;
+
+        Husk();
+};
