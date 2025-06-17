@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
-# Add this BEFORE project() line
-set(CMAKE_TOOLCHAIN_FILE "C:/Users/saint/Downloads/vcpkg/scripts/buildsystems/vcpkg.cmake"
+set(CMAKE_TOOLCHAIN_FILE "C:/Users/saint/Downloads/vcpkg/scripts/buildsystems/vcpkg.cmake" 
     CACHE STRING "Vcpkg toolchain file")
 
 project(TowerDefense)

@@ -4,8 +4,8 @@
 #include "tower.h"
 #include "sounds.h"
 
-Projectile::Projectile(Vector2 pos, Vector2 dir, float spd, int dmg, std::string type, std::weak_ptr<Tower> source, int pierceCount, float AoERadius) : 
-    position(pos), direction(Vector2Normalize(dir)), speed(spd), damage(dmg), type(type), sourceTower(source), pierceCount(pierceCount), AoERadius(AoERadius) {}
+Projectile::Projectile(Vector2 pos, Vector2 dir, float spd, int dmg, std::string type, std::string targeting, std::weak_ptr<Tower> source, int pierceCount, float AoERadius) : 
+    position(pos), direction(Vector2Normalize(dir)), speed(spd), damage(dmg), type(type), targeting(targeting), sourceTower(source), pierceCount(pierceCount), AoERadius(AoERadius) {}
 
 void Projectile::update(float deltaTime, std::weak_ptr<Tower> source) {
     position = Vector2Add(position, Vector2Scale(direction, speed * deltaTime));
@@ -24,6 +24,7 @@ void Projectile::update(float deltaTime, std::weak_ptr<Tower> source) {
     }
 }
 
+// Override later when separating projectiles (arrows, fireball, etc.)
 void Projectile::draw() const {
     DrawCircleV(position, 5, RED);
 }
@@ -50,6 +51,10 @@ int Projectile::getDamage() const {
     
 std::string Projectile::getDamageType() const { 
     return type; 
+}
+
+std::string Projectile::getDamageTargeting() const {
+    return targeting;
 }
 
 std::weak_ptr<Tower> Projectile::getSourceTower() const { 
@@ -80,7 +85,7 @@ void Projectile::ApplyAOEDamage(Projectile& projectile, Vector2 center, float ra
         float dist = Vector2Distance(enemy->getPosition(), center) - enemy->getRadius();
         if (dist <= radius) {
             int prevHealth = enemy->getHealth();
-            enemy->takeDamage(damage, type);
+            enemy->takeDamage(damage, type, targeting);
             projectile.markHit(enemy.get());
             int curHealth = enemy->getHealth();
             int damageDealt = prevHealth - curHealth;
@@ -104,8 +109,8 @@ void Projectile::markHit(Enemy* enemy) {
     }
 }
 
-Flames::Flames(Vector2 pos, Vector2 dir, float spd, int dmg, std::string type, std::weak_ptr<Tower> source, int pierceCount, float AoERadius) 
-        : Projectile(pos, dir, spd, dmg, type, source, pierceCount, AoERadius) {}
+Flames::Flames(Vector2 pos, Vector2 dir, float spd, int dmg, std::string type, std::string targeting, std::weak_ptr<Tower> source, int pierceCount, float AoERadius) 
+        : Projectile(pos, dir, spd, dmg, type, targeting, source, pierceCount, AoERadius) {}
 
 void Flames::setTarget(std::shared_ptr<Enemy> enemy) {
     target = enemy;

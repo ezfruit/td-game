@@ -24,7 +24,11 @@ class Enemy {
         std::weak_ptr<Tower> burnSource;
         bool alive = true;
     public:
-        virtual void takeDamage(int amount, const std::string& type) = 0;
+        Enemy(int health, float speed, float radius);
+
+        virtual ~Enemy() = default;
+
+        virtual void takeDamage(int amount, const std::string& type, const std::string& targeting) = 0;
 
         virtual std::string getName() const = 0;
 
@@ -33,6 +37,8 @@ class Enemy {
         void revertSpeed();
 
         void setPosition(Vector2 pos);
+
+        float getPathProgress(const std::vector<Vector2>& track) const;
 
         virtual void update(float deltaTime, const std::vector<Vector2>& track);
 
@@ -52,45 +58,53 @@ class Enemy {
 
         void applyBurn(float delay, float dps, float duration, float slowEffect, std::weak_ptr<Tower> source);
 
-        virtual ~Enemy() = default;
-
-        Enemy(int health, float speed, float radius);
+        virtual void draw() const = 0;
 };
+
+extern std::vector<std::shared_ptr<Enemy>> deathSpawns;
 
 class Slime : public Enemy {
     public:
+        Slime();
+
         std::string getName() const override;
 
-        void takeDamage(int amount, const std::string& type) override;
+        void takeDamage(int amount, const std::string& type, const std::string& targeting) override;
 
-        Slime();
+        void draw() const override;
 };
 
 class Knight : public Enemy {
     public:
+        Knight();
+
         std::string getName() const override;
 
-        void takeDamage(int amount, const std::string& type) override;
+        void takeDamage(int amount, const std::string& type, const std::string& targeting) override;
 
-        Knight();
+        void draw() const override;
 };
 
 class Fire_Imp : public Enemy {
     public:
+        Fire_Imp();
+
         std::string getName() const override;
 
-        void takeDamage(int amount, const std::string& type) override;
+        void takeDamage(int amount, const std::string& type, const std::string& targeting) override;
 
-        Fire_Imp();
+        void draw() const override;
 };
 
 class Brute : public Enemy {
     public:
+        Brute();
+
         std::string getName() const override;
 
-        void takeDamage(int amount, const std::string& type) override;
+        void takeDamage(int amount, const std::string& type, const std::string& targeting) override;
 
-        Brute();
+        void draw() const override;
 };
 
 class SpawnableEnemy : public Enemy {
@@ -103,44 +117,47 @@ class SpawnableEnemy : public Enemy {
         int remainingSpawns;
         bool inCooldown = false;
     public:
+        SpawnableEnemy(float hp, float speed, float radius, float delay, float cooldown, int spawnCount);
 
         void update(float deltaTime, const std::vector<Vector2>& track) override;
 
         virtual void spawn() = 0;
-
-        SpawnableEnemy(float hp, float speed, float radius, float delay, float cooldown, int spawnCount);
 };
 
 
 class Spider_Queen : public SpawnableEnemy {
     public:
+        Spider_Queen();
+
         std::string getName() const override;
 
-        void takeDamage(int amount, const std::string& type) override;
+        void takeDamage(int amount, const std::string& type, const std::string& targeting) override;
 
         void spawn() override;
 
-        Spider_Queen();
+        void draw() const override;
 };
 
 class Spiderling : public Enemy {
     public:
+        Spiderling();
 
         std::string getName() const override;
 
-        void takeDamage(int amount, const std::string& type) override;
+        void takeDamage(int amount, const std::string& type, const std::string& targeting) override;
 
-        Spiderling();
+        void draw() const override;
 };
 
 class Arcane_Shell : public Enemy {
     public:
+        Arcane_Shell();
 
         std::string getName() const override;
 
-        void takeDamage(int amount, const std::string& type) override;
+        void takeDamage(int amount, const std::string& type, const std::string& targeting) override;
 
-        Arcane_Shell();
+        void draw() const override;
 };
 
 class Flux : public Enemy {
@@ -149,25 +166,97 @@ class Flux : public Enemy {
         float shieldChangeCooldown = 5.0f;
         std::string shield = "Physical";
     public:
+        Flux();
 
         void update(float deltaTime, const std::vector<Vector2>& track);
 
         std::string getName() const override;
 
-        void takeDamage(int amount, const std::string& type) override;
+        void takeDamage(int amount, const std::string& type, const std::string& targeting) override;
+
+        void draw() const override;
 
         void setShield(std::string shield);
 
         std::string getShield() const;
-
-        Flux();
 };
 
 class Husk : public Enemy {
     public:
+        Husk();
+
         std::string getName() const override;
 
-        void takeDamage(int amount, const std::string& type) override;
+        void takeDamage(int amount, const std::string& type, const std::string& targeting) override;
 
-        Husk();
+        void draw() const override;
+};
+
+class Exoskeleton : public Enemy {
+    public:
+        Exoskeleton();
+
+        std::string getName() const override;
+
+        void takeDamage(int amount, const std::string& type, const std::string& targeting) override;
+
+        void draw() const override;
+
+};
+
+class Goliath : public Enemy {
+    public:
+        Goliath();
+
+        std::string getName() const override;
+
+        void takeDamage(int amount, const std::string& type, const std::string& targeting) override;
+
+        void draw() const override;
+};
+
+class Sludge : public Enemy {
+    public:
+        Sludge();
+
+        std::string getName() const override;
+
+        void takeDamage(int amount, const std::string& type, const std::string& targeting) override;
+
+        void spawn();
+
+        void draw() const override;
+};
+
+class Sludge_Mite : public Enemy {
+    public:
+        Sludge_Mite();
+
+        std::string getName() const override;
+
+        void takeDamage(int amount, const std::string& type, const std::string& targeting) override;
+
+        void draw() const override;
+};
+
+class Lava_Golem : public Enemy {
+    public:
+        Lava_Golem();
+
+        std::string getName() const override;
+
+        void takeDamage(int amount, const std::string& type, const std::string& targeting) override;
+
+        void draw() const override;
+};
+
+class Obsidian_Behemoth : public Enemy {
+    public:
+        Obsidian_Behemoth();
+
+        std::string getName() const override;
+
+        void takeDamage(int amount, const std::string& type, const std::string& targeting) override;
+
+        void draw() const override;
 };

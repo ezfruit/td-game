@@ -19,11 +19,12 @@ class Projectile {
         float AoERadius = 0.0f;
         std::unordered_set<Enemy *> hitEnemies;
         bool active = true;
-        std::string type;
+        std::string type; // Physical, Magic, Fire, Air, etc.
+        std::string targeting; // AoE, Single, Pierce, etc.
         std::weak_ptr<Tower> sourceTower;
 
     public:
-        Projectile(Vector2 pos, Vector2 dir, float spd, int dmg, std::string type, std::weak_ptr<Tower> source, int pierceCount, float AoERadius);
+        Projectile(Vector2 pos, Vector2 dir, float spd, int dmg, std::string type, std::string targeting, std::weak_ptr<Tower> source, int pierceCount, float AoERadius);
 
         virtual void update(float deltaTime, std::weak_ptr<Tower> source);
 
@@ -37,6 +38,7 @@ class Projectile {
         Vector2 getPosition() const;
         int getDamage() const;
         std::string getDamageType() const;
+        std::string getDamageTargeting() const;
 
         std::weak_ptr<Tower> getSourceTower() const;
 
@@ -74,5 +76,5 @@ class Flames : public Projectile {
 
         void update(float deltaTime, std::weak_ptr<Tower> source);
         
-        Flames(Vector2 pos, Vector2 dir, float spd, int dmg, std::string type, std::weak_ptr<Tower> source, int pierceCount, float AoERadius);
+        Flames(Vector2 pos, Vector2 dir, float spd, int dmg, std::string type, std::string targeting, std::weak_ptr<Tower> source, int pierceCount, float AoERadius);
 };

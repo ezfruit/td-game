@@ -28,7 +28,7 @@ class Tower : public std::enable_shared_from_this<Tower> {
         int value;
         int level = 1;
     public:
-        virtual void update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) = 0;
+        virtual void update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, const std::vector<Vector2>& track, std::vector<std::shared_ptr<Projectile>>& projectiles) = 0;
 
         virtual void upgrade(int upgCost) = 0;
 
@@ -64,6 +64,10 @@ class Tower : public std::enable_shared_from_this<Tower> {
 
         bool IsInRange(std::shared_ptr<Enemy> enemy);
 
+        std::shared_ptr<Enemy> FindFirstTarget(std::vector<std::shared_ptr<Enemy>>& enemies, const std::vector<Vector2>& track);
+
+        std::shared_ptr<Enemy> FindLastTarget(std::vector<std::shared_ptr<Enemy>>& enemies, const std::vector<Vector2>& track);
+
         std::shared_ptr<Enemy> FindStrongestTarget(std::vector<std::shared_ptr<Enemy>>& enemies);
 
         void ApplyAOEDamage(Vector2 center, float radius, int damage, std::string type);
@@ -78,7 +82,7 @@ class Tower : public std::enable_shared_from_this<Tower> {
 class Archer : public Tower {
     public:
 
-        void update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) override;
+        void update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, const std::vector<Vector2>& track, std::vector<std::shared_ptr<Projectile>>& projectiles) override;
 
         void upgrade(int upgCost) override;
 
@@ -87,7 +91,7 @@ class Archer : public Tower {
 
 class Mage : public Tower {
     public:
-        void update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) override;
+        void update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, const std::vector<Vector2>& track, std::vector<std::shared_ptr<Projectile>>& projectiles) override;
 
         void upgrade(int upgCost) override;
 
@@ -107,7 +111,7 @@ class Torcher : public Tower {
 
         std::shared_ptr<Enemy> FindUnburnedTarget(std::vector<std::shared_ptr<Enemy>>& enemies);
     public:
-        void update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) override;
+        void update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, const std::vector<Vector2>& track, std::vector<std::shared_ptr<Projectile>>& projectiles) override;
 
         void upgrade(int upgCost) override;
 
@@ -118,7 +122,7 @@ class Torcher : public Tower {
 
 class Stormshaper : public Tower {
     public:
-        void update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) override;
+        void update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, const std::vector<Vector2>& track, std::vector<std::shared_ptr<Projectile>>& projectiles) override;
 
         void upgrade(int upgCost) override;
 
@@ -129,7 +133,7 @@ class Stormshaper : public Tower {
 
 class War_Drummer : public Tower {
     public:
-        void update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) override;
+        void update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, const std::vector<Vector2>& track, std::vector<std::shared_ptr<Projectile>>& projectiles) override;
 
         void upgrade(int upgCost) override;
 
@@ -146,7 +150,7 @@ class Gold_Mine : public Tower {
 
         void generate(int& playerMoney);
 
-        void update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, std::vector<std::shared_ptr<Projectile>>& projectiles) override;
+        void update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, const std::vector<Vector2>& track, std::vector<std::shared_ptr<Projectile>>& projectiles) override;
 
         void upgrade(int upgCost) override;
 

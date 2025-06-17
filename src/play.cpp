@@ -21,7 +21,7 @@ static int waveNumber = 0;
 int playerMoney;
 
 static int playerHealth = 100;
-static int income = 500;
+static int income;
 static bool waveInProgress = false;
 static float waveDuration = 30.0f;
 static float waveCooldown = 3.0f;
@@ -128,9 +128,9 @@ void InitPlaying() {
 
 void ResetGame() {
     waveNumber = 0;
-    playerMoney = 200000;
+    playerMoney = 600;
     playerHealth = 100;
-    income = 500;
+    income = 400;
     waveInProgress = false;
     waveDuration = 30.0f;
     waveCooldown = 3.0f;
@@ -230,12 +230,12 @@ void UpdatePlaying() {
 
     for (auto& tower : towers) {
         if (auto drummer = std::dynamic_pointer_cast<War_Drummer>(tower)) {
-            drummer->update(deltaTime, enemies, projectiles); // Apply War Drummer buffs
+            drummer->update(deltaTime, enemies, trackPoints, projectiles); // Apply War Drummer buffs
         }
     }
 
     for (auto& tower : towers) {
-        tower->update(deltaTime, enemies, projectiles); // Let the towers attack
+        tower->update(deltaTime, enemies, trackPoints, projectiles); // Let the towers attack
     }
 
     for (auto& projectile : projectiles) {
@@ -258,7 +258,7 @@ void UpdatePlaying() {
                     projectile->deactivate();  // deactivate projectile because it exploded
                 } else {
                     int prevHealth = enemy->getHealth();
-                    enemy->takeDamage(projectile->getDamage(), projectile->getDamageType());
+                    enemy->takeDamage(projectile->getDamage(), projectile->getDamageType(), projectile->getDamageTargeting());
                     projectile->markHit(enemy.get());
                     int curHealth = enemy->getHealth();
                     int damageDealt = prevHealth - curHealth;
@@ -270,6 +270,9 @@ void UpdatePlaying() {
                 }
             }
         }
+        // Add new enemies after the loop
+        enemies.insert(enemies.end(), std::make_move_iterator(deathSpawns.begin()), std::make_move_iterator(deathSpawns.end()));
+        deathSpawns.clear();
     }
 
     projectiles.erase(std::remove_if(projectiles.begin(), projectiles.end(), [](const std::shared_ptr<Projectile>& p) { return !p->isActive(); }), projectiles.end());
@@ -370,6 +373,16 @@ void UpdatePlaying() {
                     enemy = std::make_shared<Flux>();
                 } else if (type == "Husk") {
                     enemy = std::make_shared<Husk>();
+                } else if (type == "Exoskeleton") {
+                    enemy = std::make_shared<Exoskeleton>();
+                } else if (type == "Goliath") {
+                    enemy = std::make_shared<Goliath>();
+                } else if (type == "Sludge") {
+                    enemy = std::make_shared<Sludge>();
+                } else if (type == "Lava Golem") {
+                    enemy = std::make_shared<Lava_Golem>();
+                } else if (type == "Obsidian Behemoth") {
+                    enemy = std::make_shared<Obsidian_Behemoth>();
                 }
 
                 if (enemy) {
@@ -647,36 +660,7 @@ void DrawPlaying() {
 
         float hoverDistance = 15.0f;
 
-        std::string name = enemy->getName();
-
-        float hitbox = enemy->getRadius();
-
-        if (name == "Slime") {
-            DrawCircleV(enemyPos, hitbox, GREEN);
-        } else if (name == "Knight") {
-            DrawCircleV(enemyPos, hitbox, GRAY);
-        } else if (name == "Fire Imp") {
-            DrawCircleV(enemyPos, hitbox, ORANGE);
-        } else if (name == "Spider Queen") {
-            DrawCircleV(enemyPos, hitbox, BLACK);
-        } else if (name == "Spiderling") {
-            DrawCircleV(enemyPos, hitbox, BLACK);
-        } else if (name == "Brute") {
-            DrawCircleV(enemyPos, hitbox, BROWN);
-        } else if (name == "Arcane Shell") {
-            DrawCircleV(enemyPos, hitbox, PINK);
-        } else if (name == "Flux") {
-            auto fluxPtr = std::dynamic_pointer_cast<Flux>(enemy);
-            if (fluxPtr) {
-                Color ringColor = (fluxPtr->getShield() == "Physical") ? GRAY : PINK;
-                // Draw outer ring for the shield
-                DrawCircleLinesV(enemyPos, hitbox, ringColor);
-                // Draw inner enemy body
-                DrawCircleV(enemyPos, 12, YELLOW);
-            }
-        } else if (name == "Husk") {
-            DrawCircleV(enemyPos, hitbox, DARKGRAY);
-        }
+        enemy->draw();
 
         if (Vector2Distance(mousePos, enemyPos) <= hoverDistance) {
             // Draw enemy health bar
