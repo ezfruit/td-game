@@ -8,8 +8,6 @@
 #include <unordered_map>
 #include "sounds.h"
 
-// TODO: Fix Torcher damage dealt damage (not updating total damage dealt)
-
 std::vector<Vector2> trackPoints;
 
 std::vector<std::shared_ptr<Tower>> towers;
@@ -149,6 +147,7 @@ void ResetGame() {
 
     towers.clear();
     enemies.clear();
+    projectiles.clear();
 }
 
 // This function checks if the mouse is currently on the track (returns true if so)
@@ -443,32 +442,26 @@ void UpdatePlaying() {
                 case 1:
                     towers.push_back(std::make_shared<Archer>(mousePos));
                     playerMoney -= costs[1];
-                    std::cout << "Placed Archer" << '\n';
                     break;
                 case 2:
                     towers.push_back(std::make_shared<Mage>(mousePos));
                     playerMoney -= costs[2];
-                    std::cout << "Placed Mage" << '\n';
                     break;
                 case 3:
                     towers.push_back(std::make_shared<Torcher>(mousePos));
                     playerMoney -= costs[3];
-                    std::cout << "Placed Torcher" << '\n';
                     break;
                 case 4:
                     towers.push_back(std::make_shared<Stormshaper>(mousePos));
                     playerMoney -= costs[4];
-                    std::cout << "Placed Stormshaper" << '\n';
                     break;
                 case 5:
                     towers.push_back(std::make_shared<War_Drummer>(mousePos));
                     playerMoney -= costs[5];
-                    std::cout << "Placed War Drummer" << '\n';
                     break;
                 case 6:
                     towers.push_back(std::make_shared<Gold_Mine>(mousePos));
                     playerMoney -= costs[6];
-                    std::cout << "Placed Gold Mine" << '\n';
                     break;
             }
 
@@ -725,7 +718,16 @@ void DrawPlaying() {
     for (auto& text : floatingTexts) {
         float alpha = 1.0f - (text.timeAlive / text.duration);
         Color faded = Fade(text.color, alpha);
-        DrawText(text.text.c_str(), text.position.x, text.position.y, 20, faded);
+
+        int fontSize = 18;
+        int textWidth = MeasureText(text.text.c_str(), fontSize);
+
+        Vector2 drawPos = {
+            text.position.x - textWidth / 2.0f,
+            text.position.y - fontSize / 2.0f  // optional: vertically center
+        };
+
+        DrawText(text.text.c_str(), (int)drawPos.x, (int)drawPos.y, fontSize, faded);
     }
 
     int numSlots = 6;
@@ -747,6 +749,19 @@ void DrawPlaying() {
         int padding = 4; // distance from the top-left corner
 
         DrawText(keyText.c_str(), (int)(slotRect.x + padding), (int)(slotRect.y + padding), fontSize, WHITE);
+
+        // Draw cost underneath the slot
+        std::string costText = "$" + std::to_string(costs.at(i + 1));
+        int costFontSize = 20;
+        int costTextWidth = MeasureText(costText.c_str(), costFontSize);
+
+        DrawText(
+            costText.c_str(),
+            (int)(slotRect.x + slotSize / 2 - costTextWidth / 2),
+            (int)(slotRect.y + slotSize + 4), // a bit below the square
+            costFontSize,
+            LIME
+        );
 
         if (CheckCollisionPointRec(mousePos, slotRect)) {
             hoveredTowerIndex = i + 1; // Save which one is hovered

@@ -109,6 +109,67 @@ void Projectile::markHit(Enemy* enemy) {
     }
 }
 
+Arrow::Arrow(Vector2 pos, Vector2 dir, float spd, int dmg, std::string type, std::string targeting, std::weak_ptr<Tower> source, int pierceCount, float AoERadius) 
+        : Projectile(pos, dir, spd, dmg, type, targeting, source, pierceCount, AoERadius) {}
+
+void Arrow::draw() const {
+    
+    float shaftLength = 20.0f;
+    float shaftWidth = 2.0f;
+    float headLength = 8.0f;
+    float headWidth = 6.0f;
+
+    // Calculate shaft end
+    Vector2 shaftEnd = {
+        position.x + direction.x * shaftLength,
+        position.y + direction.y * shaftLength
+    };
+
+    // Draw shaft (thin line)
+    DrawLineEx(position, shaftEnd, shaftWidth, DARKBROWN);
+
+    // Calculate perpendicular vector for arrowhead base
+    Vector2 perp = { -direction.y, direction.x }; // 90-degree rotation
+
+    // Arrowhead tip (extends beyond shaft)
+    Vector2 tip = {
+        shaftEnd.x + direction.x * headLength,
+        shaftEnd.y + direction.y * headLength
+    };
+
+    // Base corners of the arrowhead triangle
+    Vector2 baseLeft = {
+        shaftEnd.x + perp.x * (headWidth / 2),
+        shaftEnd.y + perp.y * (headWidth / 2)
+    };
+
+    Vector2 baseRight = {
+        shaftEnd.x - perp.x * (headWidth / 2),
+        shaftEnd.y - perp.y * (headWidth / 2)
+    };
+
+    // Draw triangle arrowhead
+    DrawTriangle(tip, baseLeft, baseRight, BROWN);
+}
+
+Fireball::Fireball(Vector2 pos, Vector2 dir, float spd, int dmg, std::string type, std::string targeting, std::weak_ptr<Tower> source, int pierceCount, float AoERadius)
+        : Projectile(pos, dir, spd, dmg, type, targeting, source, pierceCount, AoERadius) {}
+
+void Fireball::draw() const {
+    // Core position
+    float radius = 8.0f;
+
+    // Glowing outer aura (drawn behind the core)
+    DrawCircleV(position, radius + 6, ColorAlpha(ORANGE, 0.3f));  // light aura
+    DrawCircleV(position, radius + 3, ColorAlpha(RED, 0.5f));     // mid aura
+
+    // Core
+    DrawCircleV(position, radius, RED);
+
+    // Center sparkle or flame core
+    DrawCircleV(position, radius / 2, YELLOW);
+}
+
 Flames::Flames(Vector2 pos, Vector2 dir, float spd, int dmg, std::string type, std::string targeting, std::weak_ptr<Tower> source, int pierceCount, float AoERadius) 
         : Projectile(pos, dir, spd, dmg, type, targeting, source, pierceCount, AoERadius) {}
 

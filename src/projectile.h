@@ -28,7 +28,7 @@ class Projectile {
 
         virtual void update(float deltaTime, std::weak_ptr<Tower> source);
 
-        void draw() const;
+        virtual void draw() const;
 
         void drawExplosion() const;
 
@@ -55,6 +55,20 @@ class Projectile {
         
 };
 
+class Arrow : public Projectile {
+    public:
+        Arrow(Vector2 pos, Vector2 dir, float spd, int dmg, std::string type, std::string targeting, std::weak_ptr<Tower> source, int pierceCount, float AoERadius);
+
+        void draw() const override;
+};
+
+class Fireball : public Projectile {
+    public:
+        Fireball(Vector2 pos, Vector2 dir, float spd, int dmg, std::string type, std::string targeting, std::weak_ptr<Tower> source, int pierceCount, float AoERadius);
+
+        void draw() const override;
+};
+
 class Flames : public Projectile {
     private:
         std::shared_ptr<Enemy> target;
@@ -63,6 +77,7 @@ class Flames : public Projectile {
         bool hasAppliedBurn = false;
         bool hasReachedTarget() const;
     public:
+        Flames(Vector2 pos, Vector2 dir, float spd, int dmg, std::string type, std::string targeting, std::weak_ptr<Tower> source, int pierceCount, float AoERadius);
 
         void setTarget(std::shared_ptr<Enemy> enemy);
 
@@ -75,6 +90,4 @@ class Flames : public Projectile {
         void setSlowEffect(float slow);
 
         void update(float deltaTime, std::weak_ptr<Tower> source);
-        
-        Flames(Vector2 pos, Vector2 dir, float spd, int dmg, std::string type, std::string targeting, std::weak_ptr<Tower> source, int pierceCount, float AoERadius);
 };

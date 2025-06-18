@@ -170,7 +170,7 @@ void Archer::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemie
         int actualDamage = static_cast<int>(std::ceil(damage * damageMultiplier));
         float actualAttackSpeed = attackSpeed * attackSpeedMultiplier;
 
-        projectiles.emplace_back(std::make_shared<Projectile>(getPosition(), dir, projectileSpeed, actualDamage, type, targeting, shared_from_this(), pierceCount, AoERadius));
+        projectiles.emplace_back(std::make_shared<Arrow>(getPosition(), dir, projectileSpeed, actualDamage, type, targeting, shared_from_this(), pierceCount, AoERadius));
         attackCooldown = 1.0f / actualAttackSpeed;
     }
 
@@ -236,7 +236,7 @@ void Mage::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies,
         int actualDamage = static_cast<int>(std::ceil(damage * damageMultiplier));
         float actualAttackSpeed = attackSpeed * attackSpeedMultiplier;
 
-        projectiles.emplace_back(std::make_shared<Projectile>(getPosition(), dir, projectileSpeed, actualDamage, type, targeting, shared_from_this(), pierceCount, AoERadius));
+        projectiles.emplace_back(std::make_shared<Fireball>(getPosition(), dir, projectileSpeed, actualDamage, type, targeting, shared_from_this(), pierceCount, AoERadius));
         attackCooldown = 1.0f / actualAttackSpeed;
     }
 }
