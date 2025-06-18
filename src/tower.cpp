@@ -123,6 +123,20 @@ std::shared_ptr<Enemy> Tower::FindStrongestTarget(std::vector<std::shared_ptr<En
     return target;
 }
 
+std::shared_ptr<Enemy> Tower::FindWeakestTarget(std::vector<std::shared_ptr<Enemy>>& enemies) {
+    int lowestHealth = std::numeric_limits<int>::max();
+    std::shared_ptr<Enemy> target = nullptr;
+    for (auto& enemy : enemies) {
+        if (!enemy->isAlive()) continue;
+
+        if (IsInRange(enemy) && enemy->getHealth() < lowestHealth) {
+            lowestHealth = enemy->getHealth();
+            target = enemy;
+        }
+    }
+    return target;
+}
+
 void Tower::ApplyAOEDamage(Vector2 center, float radius, int damage, std::string type) {
     PlaySound(SoundManager::explosion);
     for (auto& enemy : enemies) {
@@ -147,6 +161,28 @@ float Tower::getProjectileRange() const {
     return projectileRange;
 }
 
+std::shared_ptr<Enemy> Tower::EnemyToShoot(TargetMode mode, std::vector<std::shared_ptr<Enemy>>& enemies, const std::vector<Vector2>& track) {
+    std::shared_ptr<Enemy> target = nullptr;
+    if (mode == FIRST) {
+        target = FindFirstTarget(enemies, track);
+    } else if (mode == LAST) {
+        target = FindLastTarget(enemies, track);
+    } else if (mode == STRONG) {
+        target = FindStrongestTarget(enemies);
+    } else if (mode == WEAK) {
+        target = FindWeakestTarget(enemies);
+    }
+    return target;
+}
+
+void Tower::setTargetMode(TargetMode newMode) {
+    mode = newMode;
+}
+
+TargetMode Tower::getTargetMode() const {
+    return mode;
+}
+
 Archer::Archer(Vector2 pos) : Tower(150, 2, 0.8f, "Pierce", 200, pos) {
     name = "Archer";
     type = "Physical";
@@ -161,7 +197,7 @@ void Archer::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemie
     attackCooldown -= deltaTime;
     if (attackCooldown > 0) return;
 
-    auto target = FindFirstTarget(enemies, track);
+    auto target = EnemyToShoot(mode, enemies, track);
 
     if (target) {
         PlaySound(SoundManager::arrow_fly);
@@ -192,7 +228,7 @@ void Archer::upgrade(int upgCost) {
             break;
         case 3:
             damage += 3;
-            pierceCount = 4;
+            pierceCount = 3;
             projectileSpeed += 100;
             projectileRange += 250;
             break;
@@ -206,7 +242,7 @@ void Archer::upgrade(int upgCost) {
             damage += 25;
             range += 25;
             attackSpeed = 1.75f;
-            pierceCount = 6;
+            pierceCount = 4;
             projectileSpeed += 200;
             projectileRange += 500;
             break;
@@ -227,7 +263,7 @@ void Mage::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies,
     attackCooldown -= deltaTime;
     if (attackCooldown > 0) return;
 
-    auto target = FindFirstTarget(enemies, track);
+    auto target = EnemyToShoot(mode, enemies, track);
 
     if (target) {
         PlaySound(SoundManager::fireball);
@@ -369,7 +405,8 @@ void Stormshaper::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& e
 
     if (attackCooldown > 0) return;
 
-    auto target = FindStrongestTarget(enemies);
+    auto target = EnemyToShoot(mode, enemies, track);
+
     if (target) {
         PlaySound(SoundManager::thunder);
         DrawLightningBolt(target);

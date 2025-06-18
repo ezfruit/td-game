@@ -94,13 +94,17 @@ std::unordered_map<int, int> costs = {
 };
 
 std::unordered_map<std::string, std::vector<int>> upgradeCosts = {
-    {"Archer", {250, 600, 2500, 4000, 0}},
+    {"Archer", {250, 600, 2500, 4500, 0}},
     {"Mage", {300, 800, 3000, 6000, 0}},
     {"Torcher", {300, 1200, 4000, 10000, 0}},
     {"Stormshaper", {600, 1800, 6000, 15000, 0}},
     {"War Drummer", {750, 2500, 4500, 12000, 0}},
     {"Gold Mine", {600, 1500, 3000, 6000, 0}}
 };
+
+TargetMode currentTargetMode = FIRST;
+
+const char* targetModeNames[] = { "First", "Last", "Strong", "Weak" };
 
 std::vector<Explosion> explosions;
 std::vector<LightningBolt> lightningBolts;
@@ -126,7 +130,7 @@ void InitPlaying() {
 
 void ResetGame() {
     waveNumber = 0;
-    playerMoney = 600;
+    playerMoney = 600000;
     playerHealth = 100;
     income = 400;
     waveInProgress = false;
@@ -570,81 +574,6 @@ void DrawPlaying() {
         DrawCircleV(point, 6, LIGHTGRAY);
     }
 
-    DrawRectangle(0, 560, GetScreenWidth(), 160, LIGHTGRAY); // Bottom Gray Rectangle UI
-
-    // When a tower is selected (clicked on in the field)
-    if (selectedTower) {
-        int infoX = GetScreenWidth() / 2 + 25;
-        int infoY = GetScreenHeight() - 160;
-        DrawRectangle(infoX, infoY, 200, 160, LIGHTGRAY);
-        DrawText(selectedTower->getName().c_str(), infoX + 10, infoY + 10, 24, DARKGRAY);
-        DrawText(TextFormat("Level: %d", selectedTower->getLevel()), infoX + 10, infoY + 45, 20, DARKGRAY);
-        if (auto goldGen = dynamic_cast<Gold_Mine*>(selectedTower)) {
-            DrawText(TextFormat("Money Generated: %d", goldGen->getTotalMoneyGenerated()), infoX + 10, infoY + 75, 20, DARKGRAY);
-        } else {
-            DrawText(TextFormat("Damage Dealt: %d", selectedTower->getTotalDamageDealt()), infoX + 10, infoY + 75, 20, DARKGRAY);
-        }
-
-        Rectangle upgradeBtn = { (float)(infoX + 10), (float)(infoY + 110), 110, 30 };
-        Rectangle sellBtn = { (float)(infoX + 130), (float)(infoY + 110), 110, 30 };
-
-        DrawRectangleRec(upgradeBtn, GREEN);
-        DrawRectangleRec(sellBtn, RED);
-
-        DrawText("Upgrade (E)", upgradeBtn.x + 10, upgradeBtn.y + 8, 16, WHITE);
-        DrawText("Sell (X)", sellBtn.x + 29, sellBtn.y + 8, 16, WHITE);
-
-        int upgradeCost = upgradeCosts[selectedTower->getName()][selectedTower->getLevel() - 1];
-        int fontSize = 20;
-
-        std::string costStr = TextFormat("Upgrade Cost: $%d", upgradeCost);
-        int textWidth = MeasureText(costStr.c_str(), fontSize);
-
-        // Center horizontally
-        int x = GetScreenWidth() - 125 - (textWidth / 2);
-        int y = GetScreenHeight() - 60;
-
-        DrawText(costStr.c_str(), x, y, fontSize, LIME);
-
-        std::string sellValueStr = TextFormat("Sell Value: $%d", selectedTower->getValue());
-        textWidth = MeasureText(sellValueStr.c_str(), fontSize);
-
-        x = GetScreenWidth() - 125 - (textWidth / 2);
-        y = GetScreenHeight() - 30;
-
-        DrawText(sellValueStr.c_str(), x, y, fontSize, WHITE);
-
-        Vector2 mouse = GetMousePosition();
-        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) || IsKeyPressed(KEY_X) || IsKeyPressed(KEY_E)) {
-
-            if (IsKeyPressed(KEY_E) || CheckCollisionPointRec(mouse, upgradeBtn)) {
-                if (upgradeCost <= playerMoney) {
-                    PlaySound(SoundManager::upgrade);
-                    selectedTower->upgrade(upgradeCost);
-                    playerMoney -= upgradeCost;
-                } else {
-                    PlaySound(SoundManager::error);
-                    showNotEnoughMoney = true;
-                    moneyMsgTimer = 0.0f;
-                }
-            }
-            else if (CheckCollisionPointRec(mouse, sellBtn) || IsKeyPressed(KEY_X)) {
-                PlaySound(SoundManager::sell);
-                playerMoney += selectedTower->getValue();
-                towers.erase(std::remove_if(towers.begin(), towers.end(),
-                    [&](const std::shared_ptr<Tower>& t) { return t.get() == selectedTower; }),
-                    towers.end());
-                selectedTower = nullptr;
-            }
-        }
-    }
-
-    DrawRectangle(0, 0, GetScreenWidth(), 40, LIGHTGRAY); // Top Gray Rectangle UI
-
-    DrawText(TextFormat("Health: %d", playerHealth), 20, 10, 20, RED);
-    DrawText(TextFormat("$ %d", playerMoney), 200, 10, 20, LIME);
-    DrawText(TextFormat("Wave: %d", waveNumber), 600, 10, 20, DARKGRAY);
-
     Vector2 mousePos = GetMousePosition();
 
     for (const auto& enemy : enemies) {
@@ -728,6 +657,92 @@ void DrawPlaying() {
         };
 
         DrawText(text.text.c_str(), (int)drawPos.x, (int)drawPos.y, fontSize, faded);
+    }
+
+    DrawRectangle(0, 0, GetScreenWidth(), 40, LIGHTGRAY); // Top Gray Rectangle UI
+
+    DrawText(TextFormat("Health: %d", playerHealth), 20, 10, 20, RED);
+    DrawText(TextFormat("$ %d", playerMoney), 200, 10, 20, LIME);
+    DrawText(TextFormat("Wave: %d", waveNumber), 600, 10, 20, DARKGRAY);
+
+    DrawRectangle(0, 560, GetScreenWidth(), 160, LIGHTGRAY); // Bottom Gray Rectangle UI
+
+    // When a tower is selected (clicked on in the field)
+    if (selectedTower) {
+        int infoX = GetScreenWidth() / 2 + 25;
+        int infoY = GetScreenHeight() - 160;
+        DrawRectangle(infoX, infoY, 200, 160, LIGHTGRAY);
+        DrawText(selectedTower->getName().c_str(), infoX + 10, infoY + 10, 24, DARKGRAY);
+        DrawText(TextFormat("Level: %d", selectedTower->getLevel()), infoX + 10, infoY + 45, 20, DARKGRAY);
+        if (auto goldGen = dynamic_cast<Gold_Mine*>(selectedTower)) {
+            DrawText(TextFormat("Money Generated: %d", goldGen->getTotalMoneyGenerated()), infoX + 10, infoY + 75, 20, DARKGRAY);
+        } else {
+            DrawText(TextFormat("Damage Dealt: %d", selectedTower->getTotalDamageDealt()), infoX + 10, infoY + 75, 20, DARKGRAY);
+        }
+
+        Rectangle upgradeBtn = { (float)(infoX + 10), (float)(infoY + 100), 110, 50 };
+        Rectangle sellBtn = { (float)(infoX + 130), (float)(infoY + 100), 110, 50 };
+
+        DrawRectangleRec(upgradeBtn, GREEN);
+        DrawRectangleRec(sellBtn, RED);
+
+        DrawText("Upgrade (E)", upgradeBtn.x + 10, upgradeBtn.y + 8, 16, WHITE);
+        DrawText("Sell (X)", sellBtn.x + 29, sellBtn.y + 8, 16, WHITE);
+
+        int upgradeCost = upgradeCosts[selectedTower->getName()][selectedTower->getLevel() - 1];
+        int fontSize = 20;
+
+        std::string costStr = TextFormat("$%d", upgradeCost);
+        int textWidth = MeasureText(costStr.c_str(), fontSize);
+
+        // Center horizontally
+        int x = upgradeBtn.x + 55 - (textWidth / 2);
+        int y = GetScreenHeight() - 30;
+
+        DrawText(costStr.c_str(), x, y, fontSize, WHITE);
+
+        std::string sellValueStr = TextFormat("$%d", selectedTower->getValue());
+        textWidth = MeasureText(sellValueStr.c_str(), fontSize);
+
+        x = sellBtn.x + 55 - (textWidth / 2);
+
+        DrawText(sellValueStr.c_str(), x, y, fontSize, WHITE);
+
+        // Targeting mode button
+        Rectangle targetBtn = { (float)GetScreenWidth() - 160, (float)GetScreenHeight() - 40, 150, 35 };
+        DrawRectangleRec(targetBtn, DARKGRAY);
+
+        std::string targetText = TextFormat("Targets: %s", targetModeNames[selectedTower->getTargetMode()]);
+        textWidth = MeasureText(targetText.c_str(), 18);
+        DrawText(targetText.c_str(), targetBtn.x + (targetBtn.width - textWidth) / 2, targetBtn.y + 10, 18, WHITE);
+
+        Vector2 mouse = GetMousePosition();
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) || IsKeyPressed(KEY_X) || IsKeyPressed(KEY_E)) {
+
+            if (IsKeyPressed(KEY_E) || CheckCollisionPointRec(mouse, upgradeBtn)) {
+                if (upgradeCost <= playerMoney) {
+                    PlaySound(SoundManager::upgrade);
+                    selectedTower->upgrade(upgradeCost);
+                    playerMoney -= upgradeCost;
+                } else {
+                    PlaySound(SoundManager::error);
+                    showNotEnoughMoney = true;
+                    moneyMsgTimer = 0.0f;
+                }
+            }
+            else if (CheckCollisionPointRec(mouse, sellBtn) || IsKeyPressed(KEY_X)) {
+                PlaySound(SoundManager::sell);
+                playerMoney += selectedTower->getValue();
+                towers.erase(std::remove_if(towers.begin(), towers.end(),
+                    [&](const std::shared_ptr<Tower>& t) { return t.get() == selectedTower; }),
+                    towers.end());
+                selectedTower = nullptr;
+            }
+            else if (CheckCollisionPointRec(mouse, targetBtn)) {
+                currentTargetMode = static_cast<TargetMode>((selectedTower->getTargetMode() + 1) % 4);
+                selectedTower->setTargetMode(currentTargetMode);
+            }
+        }
     }
 
     int numSlots = 6;

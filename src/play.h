@@ -23,6 +23,9 @@ extern bool HomePressed;
 
 extern int playerMoney;
 
+enum TargetMode { FIRST, LAST, STRONG, WEAK };
+extern const char* targetModeNames[];
+
 void InitPlaying();
 
 void ResetGame();
