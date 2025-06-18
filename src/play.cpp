@@ -7,6 +7,7 @@
 #include <string>
 #include <unordered_map>
 #include "sounds.h"
+#include "images.h"
 
 std::vector<Vector2> trackPoints;
 
@@ -483,30 +484,37 @@ void DrawPlaying() {
 
     // When a tower is currently being placed
     if (isPlacingTower) {
-        int range = 0;
         previewPosition = GetMousePosition();
-
         HideCursor();
 
+        int range = 0;
+        Texture2D previewIcon;
+        float desiredSize = 40.0f;
+
         switch (selectedTowerIndex) {
-            case 1: range = 150; break; // Archer
-            case 2: range = 100; break; // Mage
-            case 3: range = 75; break; // Torcher
-            case 4: range = 300; break; // Stormshaper
-            case 5: range = 200; break; // War Drummer
-            case 6: range = 50; break; // Gold Mine
+            case 1: range = 150; previewIcon = ImageHandler::archerIcon; break;
+            case 2: range = 100; previewIcon = ImageHandler::mageIcon; break;
+            case 3: range = 75;  previewIcon = ImageHandler::torcherIcon; break;
+            case 4: range = 300; previewIcon = ImageHandler::stormshaperIcon; break;
+            case 5: range = 200; previewIcon = ImageHandler::wardrummerIcon; break;
+            case 6: range = 50;  previewIcon = ImageHandler::goldmineIcon; break;
         }
 
-        Vector2 mousePos = GetMousePosition();
-
-        bool invalidPlacement = IsOnTrack(mousePos, trackPoints) || IsOnTower(mousePos, towers) || !IsWithinBounds(mousePos);
-
-        Color color;
-        invalidPlacement ? color = Fade(RED, 0.3f) : color = Fade(BLUE, 0.3f);
-        
+        bool invalidPlacement = IsOnTrack(previewPosition, trackPoints) || IsOnTower(previewPosition, towers) || !IsWithinBounds(previewPosition);
+        Color color = invalidPlacement ? Fade(RED, 0.3f) : Fade(BLUE, 0.3f);
         DrawCircle(previewPosition.x, previewPosition.y, range, color);
-        DrawRectangleV({ previewPosition.x - 20, previewPosition.y - 20 }, { 40, 40 }, DARKGRAY);
-        
+
+        // Draw the icon centered at the mouse
+        float scale = desiredSize / previewIcon.width;
+        float iconWidth = previewIcon.width * scale;
+        float iconHeight = previewIcon.height * scale;
+
+        Vector2 iconPos = {
+            previewPosition.x - iconWidth / 2.0f,
+            previewPosition.y - iconHeight / 2.0f
+        };
+
+        DrawTextureEx(previewIcon, iconPos, 0.0f, scale, WHITE);
     }
 
     if (showNotEnoughMoney) {
@@ -529,8 +537,7 @@ void DrawPlaying() {
     }
 
     for (const auto& tower : towers) {
-        Vector2 pos = tower->getPosition();
-        DrawRectangleV({ pos.x - 20, pos.y - 20 }, { 40, 40 }, DARKGRAY);
+        tower->draw();
     }
 
     if (isPlacingTower) {
@@ -669,6 +676,24 @@ void DrawPlaying() {
 
     // When a tower is selected (clicked on in the field)
     if (selectedTower) {
+
+        if (selectedTower->getWarDrummerBuff()) {
+            Vector2 pos = selectedTower->getPosition();
+            Texture2D icon = ImageHandler::wardrummerIcon;
+
+            float scale = 1.5f;
+            float iconWidth = icon.width * scale;
+            float iconHeight = icon.height * scale;
+
+            // Position above the tower
+            Vector2 iconPos = {
+                pos.x - 12,  // center horizontally
+                pos.y - iconHeight - 20 // a bit above the tower
+            };
+
+            DrawTextureEx(icon, iconPos, 0.0f, scale, WHITE);
+        }
+
         int infoX = GetScreenWidth() / 2 + 25;
         int infoY = GetScreenHeight() - 160;
         DrawRectangle(infoX, infoY, 200, 160, LIGHTGRAY);
@@ -764,6 +789,16 @@ void DrawPlaying() {
         int padding = 4; // distance from the top-left corner
 
         DrawText(keyText.c_str(), (int)(slotRect.x + padding), (int)(slotRect.y + padding), fontSize, WHITE);
+
+        Texture2D icon = ImageHandler::towerIcons[i];
+
+        Vector2 scale = { 3.0f, 3.0f };  // 3x size = 48x48 on screen
+
+        float scaledSize = icon.width * scale.x;
+        float iconX = slotRect.x + (slotSize - scaledSize) / 2.0f;
+        float iconY = slotRect.y + (slotSize - scaledSize) / 2.0f;
+
+        DrawTextureEx(icon, { iconX, iconY }, 0.0f, scale.x, WHITE);
 
         // Draw cost underneath the slot
         std::string costText = "$" + std::to_string(costs.at(i + 1));

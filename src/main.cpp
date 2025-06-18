@@ -5,6 +5,7 @@
 #include "tower.h"
 #include "enemy.h"
 #include "sounds.h"
+#include "images.h"
 
 int main() {
     const int screenWidth = 1280;
@@ -18,6 +19,7 @@ int main() {
     InitAudioDevice();
 
     SoundManager::InitSounds();
+    ImageHandler::InitImages();
 
     SetExitKey(0); // Prevents ESC key from closing the window
 
@@ -121,6 +123,7 @@ int main() {
     }
 
     SoundManager::UnloadSounds();
+    ImageHandler::UnloadImages();
 
     CloseAudioDevice();
     CloseWindow();

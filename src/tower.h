@@ -37,6 +37,8 @@ class Tower : public std::enable_shared_from_this<Tower> {
 
         virtual void upgrade(int upgCost) = 0;
 
+        virtual void draw() const = 0;
+
         bool canShoot() const;
 
         Vector2 getPosition() const;
@@ -52,6 +54,8 @@ class Tower : public std::enable_shared_from_this<Tower> {
         void setAttackSpeedMultiplier(float multiplier);
 
         void setWarDrummerBuff();
+
+        bool getWarDrummerBuff() const;
 
         std::string getTargeting() const;
 
@@ -95,6 +99,8 @@ class Archer : public Tower {
         void update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, const std::vector<Vector2>& track, std::vector<std::shared_ptr<Projectile>>& projectiles) override;
 
         void upgrade(int upgCost) override;
+
+        void draw() const override;
 };
 
 class Mage : public Tower {
@@ -104,6 +110,8 @@ class Mage : public Tower {
         void update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, const std::vector<Vector2>& track, std::vector<std::shared_ptr<Projectile>>& projectiles) override;
 
         void upgrade(int upgCost) override;
+
+        void draw() const override;
 };
 
 class Torcher : public Tower {
@@ -126,6 +134,8 @@ class Torcher : public Tower {
         void upgrade(int upgCost) override;
 
         void FireAt(std::shared_ptr<Enemy> enemy, int actualDamage);
+
+        void draw() const override;
 };
 
 class Stormshaper : public Tower {
@@ -137,6 +147,8 @@ class Stormshaper : public Tower {
         void upgrade(int upgCost) override;
 
         void DrawLightningBolt(std::shared_ptr<Enemy> target, int segments = 10, float offset = 10.0f, Color color = SKYBLUE);
+
+        void draw() const override;
 };
 
 class War_Drummer : public Tower {
@@ -146,6 +158,8 @@ class War_Drummer : public Tower {
         void update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, const std::vector<Vector2>& track, std::vector<std::shared_ptr<Projectile>>& projectiles) override;
 
         void upgrade(int upgCost) override;
+
+        void draw() const override;
 };
 
 class Gold_Mine : public Tower {
@@ -162,4 +176,6 @@ class Gold_Mine : public Tower {
         void update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, const std::vector<Vector2>& track, std::vector<std::shared_ptr<Projectile>>& projectiles) override;
 
         void upgrade(int upgCost) override;
+
+        void draw() const override;
 };

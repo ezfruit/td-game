@@ -1,6 +1,7 @@
 #include "tower.h"
 #include "sounds.h"
 #include "effects.h"
+#include "images.h"
 
 Tower::Tower(int range, int damage, float attackSpeed, std::string targeting, int cost, Vector2 position) :
             range(range), damage(damage), attackSpeed(attackSpeed), targeting(targeting), cost(cost), position(position) {}
@@ -65,6 +66,10 @@ void Tower::resetBuffs() {
 
 void Tower::setWarDrummerBuff() {
     war_drummer_buff = true;
+}
+
+bool Tower::getWarDrummerBuff() const {
+    return war_drummer_buff;
 }
 
 bool Tower::IsInRange(std::shared_ptr<Enemy> enemy) {
@@ -249,6 +254,11 @@ void Archer::upgrade(int upgCost) {
     }
 }
 
+void Archer::draw() const {
+    Vector2 pos = getPosition();
+    DrawRectangleV({ pos.x - 20, pos.y - 20 }, { 40, 40 }, DARKGRAY);
+}
+
 Mage::Mage(Vector2 pos) : Tower(100, 3, 0.5, "Area of Effect", 300, pos) {
     name = "Mage";
     type = "Magic";
@@ -306,6 +316,11 @@ void Mage::upgrade(int upgCost) {
             AoERadius += 25;
             break;
     }
+}
+
+void Mage::draw() const {
+    Vector2 pos = getPosition();
+    DrawRectangleV({ pos.x - 20, pos.y - 20 }, { 40, 40 }, BLUE);
 }
 
 Torcher::Torcher(Vector2 pos) : Tower(75, 1, 1.0, "Single", 700, pos) {
@@ -388,6 +403,11 @@ void Torcher::upgrade(int upgCost) {
             fireCooldown = 0.5f;
             break;
     }
+}
+
+void Torcher::draw() const {
+    Vector2 pos = getPosition();
+    DrawRectangleV({ pos.x - 20, pos.y - 20 }, { 40, 40 }, ORANGE);
 }
 
 Stormshaper::Stormshaper(Vector2 pos) : Tower(300, 30, 0.2f, "Area of Effect", 3000, pos) {
@@ -475,6 +495,11 @@ void Stormshaper::DrawLightningBolt(std::shared_ptr<Enemy> target, int segments,
     lightningBolts.push_back(bolt);
 }
 
+void Stormshaper::draw() const {
+    Vector2 pos = getPosition();
+    DrawRectangleV({ pos.x - 20, pos.y - 20 }, { 40, 40 }, PURPLE);
+}
+
 War_Drummer::War_Drummer(Vector2 pos) : Tower(200, 0, 0.0f, "Towers", 1000, pos) {
     name = "War Drummer";
     type = "None";
@@ -519,6 +544,11 @@ void War_Drummer::upgrade(int upgCost) {
             attackSpeedMultiplier += 0.1f;
             break;
     }
+}
+
+void War_Drummer::draw() const {
+    Vector2 pos = getPosition();
+    DrawRectangleV({ pos.x - 20, pos.y - 20 }, { 40, 40 }, YELLOW);
 }
 
 Gold_Mine::Gold_Mine(Vector2 pos) : Tower(50, 0, 0.0f, "Utility", 300, pos) {
@@ -568,4 +598,22 @@ void Gold_Mine::upgrade(int upgCost) {
             goldPerRound = 2000;
             break;
     }
+}
+
+void Gold_Mine::draw() const {
+    Vector2 center = getPosition();  // center of the tower
+    Texture2D icon = ImageHandler::goldmineIcon;
+
+    float desiredSize = 40.0f;
+    float scale = desiredSize / icon.width;
+
+    float iconWidth = icon.width * scale;
+    float iconHeight = icon.height * scale;
+
+    Vector2 topLeft = {
+        center.x - iconWidth / 2.0f,
+        center.y - iconHeight / 2.0f
+    };
+
+    DrawTextureEx(icon, topLeft, 0.0f, scale, WHITE);
 }

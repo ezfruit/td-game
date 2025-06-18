@@ -14,22 +14,22 @@ namespace SoundManager {
     Sound money;
 
     void InitSounds() {
-        arrow_fly = LoadSound("assets/arrow_fly.wav");
+        arrow_fly = LoadSound("assets/sound_effects/arrow_fly.wav");
         SetSoundVolume(arrow_fly, 0.5f);
-        explosion = LoadSound("assets/explosion.wav");
-        upgrade = LoadSound("assets/upgrade.wav");
-        sell = LoadSound("assets/sell.wav");
-        error = LoadSound("assets/error.wav");
+        explosion = LoadSound("assets/sound_effects/explosion.wav");
+        upgrade = LoadSound("assets/sound_effects/upgrade.wav");
+        sell = LoadSound("assets/sound_effects/sell.wav");
+        error = LoadSound("assets/sound_effects/error.wav");
         SetSoundVolume(error, 0.2f);
-        place = LoadSound("assets/place.wav");
-        fireball = LoadSound("assets/fireball.wav");
+        place = LoadSound("assets/sound_effects/place.wav");
+        fireball = LoadSound("assets/sound_effects/fireball.wav");
         SetSoundVolume(fireball, 0.1f);
-        spider_spawn = LoadSound("assets/spider_spawn.wav");
-        torcher = LoadSound("assets/torcher.wav");
+        spider_spawn = LoadSound("assets/sound_effects/spider_spawn.wav");
+        torcher = LoadSound("assets/sound_effects/torcher.wav");
         SetSoundVolume(torcher, 0.3f);
-        thunder = LoadSound("assets/thunder.wav");
+        thunder = LoadSound("assets/sound_effects/thunder.wav");
         SetSoundVolume(thunder, 0.02f);
-        money = LoadSound("assets/money.wav");
+        money = LoadSound("assets/sound_effects/money.wav");
     }
 
     void UnloadSounds() {
