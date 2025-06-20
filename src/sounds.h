@@ -13,6 +13,7 @@ namespace SoundManager {
     extern Sound torcher;
     extern Sound thunder;
     extern Sound money;
+    extern Sound arcane_warden_spawn;
 
     void InitSounds();
     void UnloadSounds();

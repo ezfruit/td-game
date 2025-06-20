@@ -42,6 +42,15 @@ void Enemy::update(float deltaTime, const std::vector<Vector2>& track) {
 
     float currentTime = GetTime();
 
+    animationTimer += deltaTime;
+
+    if (!moveFrames.empty()) {
+        if (animationTimer >= frameSpeed) {
+            animationTimer = 0.0f;
+            currentFrame = (currentFrame + 1) % moveFrames.size();
+        }
+    }
+
     if (burning) {
         if (currentTime >= burnEndTime) {
             burning = false;
@@ -108,8 +117,16 @@ void Enemy::applyBurn(float delay, float dps, float duration, float slowEffect, 
     burnSource = source;
 }
 
+void Enemy::unloadFrames() {
+    for (auto& frame : moveFrames) {
+        UnloadTexture(frame);
+    }
+    moveFrames.clear();
+}
+
 Slime::Slime() : Enemy(4, 50.0f, 10.0f) { // 50 speed for normal
     maxHealth = health;
+    moveFrames = ImageHandler::LoadAnimationFrames("slime", 8);
 } 
 
 std::string Slime::getName() const {
@@ -121,11 +138,55 @@ void Slime::takeDamage(int amount, const std::string& type, const std::string& t
     if (health <= 0) {
         alive = false;
         health = 0;
+        unloadFrames();
     }
 }
 
 void Slime::draw() const {
-    DrawCircleV(position, hitboxRadius, GREEN);
+    Texture2D frame = moveFrames[currentFrame];
+    float diameter = hitboxRadius * 2.0f;
+
+    Rectangle dest = {
+        position.x,
+        position.y,
+        diameter,
+        diameter
+    };
+
+    Vector2 origin = {
+        diameter / 2.0f,
+        diameter / 2.0f
+    };
+
+    float angleDeg = 0.0f;
+
+    if (currentTarget < trackPoints.size()) {
+        Vector2 dir = Vector2Subtract(trackPoints[currentTarget], position);
+        float angleRad = atan2f(dir.y, dir.x);
+        angleDeg = angleRad * (180.0f / PI);
+
+        // Flip horizontally when moving left
+        if (angleDeg > 90.0f || angleDeg < -90.0f) {
+            angleDeg += 180.0f;
+            // Flip source rect too
+            Rectangle source = {
+                0.0f, 0.0f,
+                (float)-frame.width, // flip horizontally
+                (float)frame.height
+            };
+            DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
+            return;
+        }
+    }
+
+    // Default source rect (not flipped)
+    Rectangle source = {
+        0.0f, 0.0f,
+        (float)frame.width,
+        (float)frame.height
+    };
+
+    DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
 }
 
 Knight::Knight() : Enemy(10, 40.0f, 10.0f) { // 40 speed for normal
@@ -147,6 +208,7 @@ void Knight::takeDamage(int amount, const std::string& type, const std::string& 
     if (health <= 0) {
         alive = false;
         health = 0;
+        unloadFrames();
     }
 }
 
@@ -173,6 +235,7 @@ void Fire_Imp::takeDamage(int amount, const std::string& type, const std::string
     if (health <= 0) {
         alive = false;
         health = 0;
+        unloadFrames();
     }
 }
 
@@ -194,6 +257,7 @@ void Brute::takeDamage(int amount, const std::string& type, const std::string& t
     if (health <= 0) {
         alive = false;
         health = 0;
+        unloadFrames();
     }
 }
 
@@ -256,6 +320,7 @@ void Spider_Queen::takeDamage(int amount, const std::string& type, const std::st
     if (health <= 0) {
         alive = false;
         health = 0;
+        unloadFrames();
     }
 }
 
@@ -281,6 +346,7 @@ void Spiderling::takeDamage(int amount, const std::string& type, const std::stri
     if (health <= 0) {
         alive = false;
         health = 0;
+        unloadFrames();
     }
 }
 
@@ -308,6 +374,7 @@ void Arcane_Shell::takeDamage(int amount, const std::string& type, const std::st
     if (health <= 0) {
         alive = false;
         health = 0;
+        unloadFrames();
     }
 }
 
@@ -350,6 +417,7 @@ void Flux::takeDamage(int amount, const std::string& type, const std::string& ta
     if (health <= 0) {
         alive = false;
         health = 0;
+        unloadFrames();
     }
 }
 
@@ -358,7 +426,7 @@ void Flux::draw() const {
     // Draw outer ring for the shield
     DrawCircleLinesV(position, hitboxRadius, ringColor);
     // Draw inner enemy body
-    DrawCircleV(position, 12, YELLOW);
+    DrawCircleV(position, hitboxRadius - 2, YELLOW);
 }
 
 void Flux::setShield(std::string newShield) {
@@ -387,6 +455,7 @@ void Husk::takeDamage(int amount, const std::string& type, const std::string& ta
     if (health <= 0) {
         alive = false;
         health = 0;
+        unloadFrames();
     }
 }
 
@@ -415,6 +484,7 @@ void Exoskeleton::takeDamage(int amount, const std::string& type, const std::str
     if (health <= 0) {
         alive = false;
         health = 0;
+        unloadFrames();
     }
 }
 
@@ -440,6 +510,7 @@ void Goliath::takeDamage(int amount, const std::string& type, const std::string&
     if (health <= 0) {
         alive = false;
         health = 0;
+        unloadFrames();
     }
 }
 
@@ -468,6 +539,7 @@ void Sludge::takeDamage(int amount, const std::string& type, const std::string& 
         alive = false;
         health = 0;
         spawn();
+        unloadFrames();
     }
 }
 
@@ -503,6 +575,7 @@ void Sludge_Mite::takeDamage(int amount, const std::string& type, const std::str
     if (health <= 0) {
         alive = false;
         health = 0;
+        unloadFrames();
     }
 }
 
@@ -529,6 +602,7 @@ void Lava_Golem::takeDamage(int amount, const std::string& type, const std::stri
     if (health <= 0) {
         alive = false;
         health = 0;
+        unloadFrames();
     }
 }
 
@@ -550,9 +624,71 @@ void Obsidian_Behemoth::takeDamage(int amount, const std::string& type, const st
     if (health <= 0) {
         alive = false;
         health = 0;
+        unloadFrames();
     }
 }
 
 void Obsidian_Behemoth::draw() const {
     DrawCircleV(position, hitboxRadius, BLACK);
+}
+
+Ravager::Ravager() : Enemy(800, 75.0f, 35.0f) {
+    maxHealth = health;
+}
+
+std::string Ravager::getName() const {
+    return "Ravager";
+}
+
+void Ravager::takeDamage(int amount, const std::string& type, const std::string& targeting) {
+    if (type == "Magic") {
+        health -= static_cast<int> (amount * 2);
+    } else {
+        health -= amount;
+    }
+
+    if (health <= 0) {
+        alive = false;
+        health = 0;
+        unloadFrames();
+    }
+}
+
+void Ravager::draw() const {
+    DrawCircleV(position, hitboxRadius, DARKBLUE);
+}
+
+Arcane_Warden::Arcane_Warden() : SpawnableEnemy(1500, 30.0f, 25.0f, 0.5f, 6.0f, 4) {
+    maxHealth = health;
+}
+
+std::string Arcane_Warden::getName() const {
+    return "Arcane Warden";
+}
+
+void Arcane_Warden::takeDamage(int amount, const std::string& type, const std::string& targeting) {
+    if (type == "Magic") {
+        health -= static_cast<int> (amount * 0.5);
+    } else {
+        health -= amount;
+    }
+
+    if (health <= 0) {
+        alive = false;
+        health = 0;
+        unloadFrames();
+    }
+}
+
+void Arcane_Warden::spawn() {
+    Vector2 spawnPos = getPosition();
+    std::shared_ptr<Enemy> enemy = std::make_shared<Arcane_Shell>();
+    enemy->setPosition(spawnPos);
+    enemy->setCurrentTarget(currentTarget);
+    enemies.push_back(std::move(enemy));
+}
+
+void Arcane_Warden::draw() const {
+    DrawCircleV(position, hitboxRadius, PINK);
+    DrawCircleV(position, hitboxRadius - 5, BLACK);
 }

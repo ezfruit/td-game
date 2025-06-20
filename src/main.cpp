@@ -77,6 +77,9 @@ int main() {
 
                 if (GameOver) {
                     state = GAMEOVER;
+                    for (auto& enemy : enemies) {
+                        enemy->unloadFrames(); // Unload the textures for the rest of the enemies if game is over
+                    }
                 } else if (IsWindowMinimized()) {
                     Paused = true;
                 } else if (HomePressed) {

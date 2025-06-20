@@ -1,6 +1,7 @@
 #pragma once
 #include "raylib.h"
 #include <vector>
+#include <string>
 
 namespace ImageHandler {
     extern Texture2D archerIcon;
@@ -12,5 +13,6 @@ namespace ImageHandler {
     extern std::vector<Texture2D> towerIcons;
 
     void InitImages();
+    std::vector<Texture2D> LoadAnimationFrames(const std::string& enemyType, int frameCount);
     void UnloadImages();
 }

@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
+#include "images.h"
 
 class Tower;
 
@@ -23,6 +24,10 @@ class Enemy {
         float nextBurnTick;
         std::weak_ptr<Tower> burnSource;
         bool alive = true;
+        int currentFrame = 0;
+        float animationTimer = 0.0f;
+        float frameSpeed = 0.125f;
+        std::vector<Texture2D> moveFrames;
     public:
         Enemy(int health, float speed, float radius);
 
@@ -57,6 +62,8 @@ class Enemy {
         void setCurrentTarget(int target);
 
         void applyBurn(float delay, float dps, float duration, float slowEffect, std::weak_ptr<Tower> source);
+
+        void unloadFrames();
 
         virtual void draw() const = 0;
 };
@@ -257,6 +264,30 @@ class Obsidian_Behemoth : public Enemy {
         std::string getName() const override;
 
         void takeDamage(int amount, const std::string& type, const std::string& targeting) override;
+
+        void draw() const override;
+};
+
+class Ravager : public Enemy {
+    public:
+        Ravager();
+
+        std::string getName() const override;
+
+        void takeDamage(int amount, const std::string& type, const std::string& targeting) override;
+
+        void draw() const override;
+};
+
+class Arcane_Warden : public SpawnableEnemy {
+    public:
+        Arcane_Warden();
+
+        std::string getName() const override;
+
+        void takeDamage(int amount, const std::string& type, const std::string& targeting) override;
+
+        void spawn() override;
 
         void draw() const override;
 };

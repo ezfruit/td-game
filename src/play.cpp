@@ -131,7 +131,7 @@ void InitPlaying() {
 
 void ResetGame() {
     waveNumber = 0;
-    playerMoney = 600000;
+    playerMoney = 600;
     playerHealth = 100;
     income = 400;
     waveInProgress = false;
@@ -311,6 +311,7 @@ void UpdatePlaying() {
         float distanceToGoal = Vector2Distance(pos, goal);
 
         if (distanceToGoal < 5.0f) {
+            enemies[i]->unloadFrames(); // Unload the texture when they get to the end
             playerHealth -= enemies[i]->getHealth();
 
             if (playerHealth <= 0) {
@@ -387,6 +388,11 @@ void UpdatePlaying() {
                     enemy = std::make_shared<Lava_Golem>();
                 } else if (type == "Obsidian Behemoth") {
                     enemy = std::make_shared<Obsidian_Behemoth>();
+                } else if (type == "Ravager") {
+                    enemy = std::make_shared<Ravager>();
+                } else if (type == "Arcane Warden") {
+                    PlaySound(SoundManager::arcane_warden_spawn);
+                    enemy = std::make_shared<Arcane_Warden>();
                 }
 
                 if (enemy) {

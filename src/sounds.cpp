@@ -12,6 +12,7 @@ namespace SoundManager {
     Sound torcher;
     Sound thunder;
     Sound money;
+    Sound arcane_warden_spawn;
 
     void InitSounds() {
         arrow_fly = LoadSound("assets/sound_effects/arrow_fly.wav");
@@ -30,6 +31,8 @@ namespace SoundManager {
         thunder = LoadSound("assets/sound_effects/thunder.wav");
         SetSoundVolume(thunder, 0.02f);
         money = LoadSound("assets/sound_effects/money.wav");
+        arcane_warden_spawn = LoadSound("assets/sound_effects/arcane_warden.wav");
+        SetSoundVolume(arcane_warden_spawn, 0.5f);
     }
 
     void UnloadSounds() {
@@ -44,5 +47,6 @@ namespace SoundManager {
         UnloadSound(torcher);
         UnloadSound(thunder);
         UnloadSound(money);
+        UnloadSound(arcane_warden_spawn);
     }
 }
