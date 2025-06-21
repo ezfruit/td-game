@@ -19,10 +19,10 @@ namespace ImageHandler {
         
     }
 
-    std::vector<Texture2D> LoadAnimationFrames(const std::string& enemyType, int frameCount) {
+    std::vector<Texture2D> LoadAnimationFrames(const std::string& name, int frameCount) {
         std::vector<Texture2D> frames;
         for (int i = 0; i < frameCount; i++) {
-            std::string path = "assets/" + enemyType + "_" + "animations/" + enemyType + "_" + std::to_string(i) + ".png";
+            std::string path = "assets/" + name + "_" + "animations/" + name + "_" + std::to_string(i) + ".png";
             frames.push_back(LoadTexture(path.c_str()));
         }
         return frames;

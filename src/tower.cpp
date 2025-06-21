@@ -188,6 +188,13 @@ TargetMode Tower::getTargetMode() const {
     return mode;
 }
 
+void Tower::unloadFrames() {
+    for (auto& frame : animationFrames) {
+        UnloadTexture(frame);
+    }
+    animationFrames.clear();
+}
+
 Archer::Archer(Vector2 pos) : Tower(150, 2, 0.8f, "Pierce", 200, pos) {
     name = "Archer";
     type = "Physical";
@@ -195,16 +202,36 @@ Archer::Archer(Vector2 pos) : Tower(150, 2, 0.8f, "Pierce", 200, pos) {
     projectileSpeed = 400.0f;
     projectileRange = 400.0f;
     pierceCount = 2;
+    animationFrames = ImageHandler::LoadAnimationFrames("archer", 2);
 }
 
 void Archer::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, const std::vector<Vector2>& track, std::vector<std::shared_ptr<Projectile>>& projectiles) {
 
     attackCooldown -= deltaTime;
+    shootTimer -= deltaTime; // For shoot vs. idle animation
+
     if (attackCooldown > 0) return;
 
     auto target = EnemyToShoot(mode, enemies, track);
 
     if (target) {
+        Vector2 toTarget = Vector2Subtract(target->getPosition(), position);
+        float angleRad = atan2f(toTarget.y, toTarget.x);
+        float angleDeg = angleRad * RAD2DEG;
+        isShooting = true;
+
+        // Flip based on left/right of tower
+        facingLeft = (toTarget.x < 0);
+
+        // If facing left, flip angle horizontally
+        if (facingLeft) {
+            rotationAngle = angleDeg + 180.0f;
+        } else {
+            rotationAngle = angleDeg;
+        }
+
+        shootTimer = shootFlashDuration;
+
         PlaySound(SoundManager::arrow_fly);
         Vector2 dir = Vector2Subtract(target->getPosition(), getPosition());
 
@@ -214,6 +241,8 @@ void Archer::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemie
         projectiles.emplace_back(std::make_shared<Arrow>(getPosition(), dir, projectileSpeed, actualDamage, type, targeting, shared_from_this(), pierceCount, AoERadius));
         attackCooldown = 1.0f / actualAttackSpeed;
     }
+
+    isShooting = shootTimer > 0.0f; // Sets isShooting to false if timer reaches 0 and goes back to idle position after the next draw
 
 }
 
@@ -255,8 +284,27 @@ void Archer::upgrade(int upgCost) {
 }
 
 void Archer::draw() const {
-    Vector2 pos = getPosition();
-    DrawRectangleV({ pos.x - 20, pos.y - 20 }, { 40, 40 }, DARKGRAY);
+    Texture2D frame = isShooting ? animationFrames[0] : animationFrames[1];
+
+    Rectangle source = {
+        0.0f, 0.0f,
+        static_cast<float>(frame.width) * (facingLeft ? -1.0f : 1.0f),
+        static_cast<float>(frame.height)
+    };
+
+    Rectangle dest = {
+        position.x,
+        position.y,
+        40.0f,
+        40.0f
+    };
+
+    Vector2 origin = {
+        40.0f / 2.0f,
+        40.0f / 2.0f
+    };
+
+    DrawTexturePro(frame, source, dest, origin, rotationAngle, WHITE);
 }
 
 Mage::Mage(Vector2 pos) : Tower(100, 3, 0.5, "Area of Effect", 300, pos) {
@@ -310,7 +358,7 @@ void Mage::upgrade(int upgCost) {
             attackSpeed = 1.0;
             break;
         case 5:
-            damage += 24;
+            damage += 20;
             range += 25;
             attackSpeed = 1.5;
             AoERadius += 25;
@@ -332,12 +380,21 @@ Torcher::Torcher(Vector2 pos) : Tower(75, 1, 1.0, "Single", 700, pos) {
 }
 
 std::shared_ptr<Enemy> Torcher::FindUnburnedTarget(std::vector<std::shared_ptr<Enemy>>& enemies) {
+    std::vector<std::shared_ptr<Enemy>> unburned;
+
+    // Filter unburned enemies
     for (auto& enemy : enemies) {
-        if (!enemy->isBurning() && IsInRange(enemy)) {
-            return enemy;
+        if (!enemy->isBurning()) {
+            unburned.push_back(enemy);
         }
     }
-    return nullptr; // All are burning
+
+    // Apply targeting mode on unburned only
+    if (!unburned.empty()) {
+        return EnemyToShoot(mode, unburned, trackPoints);
+    }
+
+    return nullptr; // No unburned targets found
 }
 
 void Torcher::FireAt(std::shared_ptr<Enemy> enemy, int actualDamage) {
@@ -353,20 +410,21 @@ void Torcher::FireAt(std::shared_ptr<Enemy> enemy, int actualDamage) {
 
 void Torcher::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, const std::vector<Vector2>& track, std::vector<std::shared_ptr<Projectile>>& projectiles) {
 
-    float effectiveCooldown = fireCooldown / attackSpeedMultiplier;
+    attackCooldown -= deltaTime;
 
-    timeSinceLastFire += deltaTime;
+    if (attackCooldown > 0) return;
 
-    if (timeSinceLastFire >= effectiveCooldown) {
-        auto target = FindUnburnedTarget(enemies);
-        if (target) {
-            PlaySound(SoundManager::torcher);
+    auto target = FindUnburnedTarget(enemies);
 
-            int actualDamage = static_cast<int>(std::ceil(damage * damageMultiplier));
+    if (target) {
+        PlaySound(SoundManager::torcher);
 
-            FireAt(target, actualDamage);
-            timeSinceLastFire = 0.0f;
-        }
+        int actualDamage = static_cast<int>(std::ceil(damage * damageMultiplier));
+        float actualAttackSpeed = attackSpeed * attackSpeedMultiplier;
+
+        FireAt(target, actualDamage);
+
+        attackCooldown = 1.0f / actualAttackSpeed;
     }
 }
 
@@ -386,7 +444,7 @@ void Torcher::upgrade(int upgCost) {
             break;
         case 3:
             damage += 3;
-            fireCooldown = 0.75f;
+            attackSpeed = 1.5f;
             slowEffect = 0.8;
             break;
         case 4:
@@ -400,7 +458,7 @@ void Torcher::upgrade(int upgCost) {
             projectileRange = range;
             burnDuration += 2;
             burnDelay = 0.25;
-            fireCooldown = 0.5f;
+            attackSpeed = 2.0f;
             break;
     }
 }

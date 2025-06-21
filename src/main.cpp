@@ -77,6 +77,9 @@ int main() {
 
                 if (GameOver) {
                     state = GAMEOVER;
+                    for (auto& tower : towers) {
+                        tower->unloadFrames(); // Unload the textures for the rest of the towers if game is over
+                    }
                     for (auto& enemy : enemies) {
                         enemy->unloadFrames(); // Unload the textures for the rest of the enemies if game is over
                     }
@@ -85,6 +88,12 @@ int main() {
                 } else if (HomePressed) {
                     state = MENU;
                     HomePressed = false;
+                    for (auto& tower : towers) {
+                        tower->unloadFrames(); // Unload the textures for the rest of the towers if home button is pressed
+                    }
+                    for (auto& enemy : enemies) {
+                        enemy->unloadFrames(); // Unload the textures for the rest of the enemies if home button is pressed
+                    }
                 }
                 break;
             }

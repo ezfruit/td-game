@@ -28,6 +28,12 @@ class Tower : public std::enable_shared_from_this<Tower> {
         int value;
         int level = 1;
         TargetMode mode = FIRST;
+        std::vector<Texture2D> animationFrames;
+        float rotationAngle = 0.0f; // in degrees
+        float shootFlashDuration = 2.0f;
+        float shootTimer = 0.0f;
+        bool isShooting = false;
+        bool facingLeft = false;
     public:
         Tower(int range, int damage, float attack_speed, std::string targeting, int cost, Vector2 pos);
 
@@ -90,6 +96,8 @@ class Tower : public std::enable_shared_from_this<Tower> {
         void setTargetMode(TargetMode newMode);
 
         TargetMode getTargetMode() const;
+
+        void unloadFrames();
 };
 
 class Archer : public Tower {
@@ -116,10 +124,6 @@ class Mage : public Tower {
 
 class Torcher : public Tower {
     private:
-
-        float fireCooldown = 1.0f;
-        float timeSinceLastFire = 0.0f;
-
         float burnDelay = 1.0f;
         float burnDuration = 5.0f;
 

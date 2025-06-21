@@ -138,7 +138,6 @@ void Slime::takeDamage(int amount, const std::string& type, const std::string& t
     if (health <= 0) {
         alive = false;
         health = 0;
-        unloadFrames();
     }
 }
 
@@ -208,7 +207,6 @@ void Knight::takeDamage(int amount, const std::string& type, const std::string& 
     if (health <= 0) {
         alive = false;
         health = 0;
-        unloadFrames();
     }
 }
 
@@ -235,7 +233,6 @@ void Fire_Imp::takeDamage(int amount, const std::string& type, const std::string
     if (health <= 0) {
         alive = false;
         health = 0;
-        unloadFrames();
     }
 }
 
@@ -257,7 +254,6 @@ void Brute::takeDamage(int amount, const std::string& type, const std::string& t
     if (health <= 0) {
         alive = false;
         health = 0;
-        unloadFrames();
     }
 }
 
@@ -320,7 +316,6 @@ void Spider_Queen::takeDamage(int amount, const std::string& type, const std::st
     if (health <= 0) {
         alive = false;
         health = 0;
-        unloadFrames();
     }
 }
 
@@ -346,7 +341,6 @@ void Spiderling::takeDamage(int amount, const std::string& type, const std::stri
     if (health <= 0) {
         alive = false;
         health = 0;
-        unloadFrames();
     }
 }
 
@@ -374,7 +368,6 @@ void Arcane_Shell::takeDamage(int amount, const std::string& type, const std::st
     if (health <= 0) {
         alive = false;
         health = 0;
-        unloadFrames();
     }
 }
 
@@ -417,7 +410,6 @@ void Flux::takeDamage(int amount, const std::string& type, const std::string& ta
     if (health <= 0) {
         alive = false;
         health = 0;
-        unloadFrames();
     }
 }
 
@@ -455,7 +447,6 @@ void Husk::takeDamage(int amount, const std::string& type, const std::string& ta
     if (health <= 0) {
         alive = false;
         health = 0;
-        unloadFrames();
     }
 }
 
@@ -484,7 +475,6 @@ void Exoskeleton::takeDamage(int amount, const std::string& type, const std::str
     if (health <= 0) {
         alive = false;
         health = 0;
-        unloadFrames();
     }
 }
 
@@ -510,7 +500,6 @@ void Goliath::takeDamage(int amount, const std::string& type, const std::string&
     if (health <= 0) {
         alive = false;
         health = 0;
-        unloadFrames();
     }
 }
 
@@ -539,7 +528,6 @@ void Sludge::takeDamage(int amount, const std::string& type, const std::string& 
         alive = false;
         health = 0;
         spawn();
-        unloadFrames();
     }
 }
 
@@ -575,7 +563,6 @@ void Sludge_Mite::takeDamage(int amount, const std::string& type, const std::str
     if (health <= 0) {
         alive = false;
         health = 0;
-        unloadFrames();
     }
 }
 
@@ -602,7 +589,6 @@ void Lava_Golem::takeDamage(int amount, const std::string& type, const std::stri
     if (health <= 0) {
         alive = false;
         health = 0;
-        unloadFrames();
     }
 }
 
@@ -624,7 +610,6 @@ void Obsidian_Behemoth::takeDamage(int amount, const std::string& type, const st
     if (health <= 0) {
         alive = false;
         health = 0;
-        unloadFrames();
     }
 }
 
@@ -650,7 +635,6 @@ void Ravager::takeDamage(int amount, const std::string& type, const std::string&
     if (health <= 0) {
         alive = false;
         health = 0;
-        unloadFrames();
     }
 }
 
@@ -676,7 +660,6 @@ void Arcane_Warden::takeDamage(int amount, const std::string& type, const std::s
     if (health <= 0) {
         alive = false;
         health = 0;
-        unloadFrames();
     }
 }
 

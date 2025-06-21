@@ -9,6 +9,16 @@
 #include "sounds.h"
 #include "images.h"
 
+// TODO: When placing a tower down, make it so that you can't click on an existing tower (so that pressing X doesn't sell and cancel at the same time)
+// TODO: Make the track an actual track
+// TODO: Animations for towers (archer done)
+// TODO: Animations for enemies (slime done)
+// TODO: Add a cooldown between starting the game and wave 1 (10 seconds maybe), also add a visual indicator where enemies will come from
+// TODO: Add messages between rounds (how much income is earned) and any warnings for new/existing enemies
+// TODO: Add a brief description to towers when hovering over their icons (to let players know strengths)
+// TODO: Add upgrade information as well as an image of the upgrade icon
+// TODO: Add a track selector (up to 3)
+
 std::vector<Vector2> trackPoints;
 
 std::vector<std::shared_ptr<Tower>> towers;
@@ -131,7 +141,7 @@ void InitPlaying() {
 
 void ResetGame() {
     waveNumber = 0;
-    playerMoney = 600;
+    playerMoney = 600000;
     playerHealth = 100;
     income = 400;
     waveInProgress = false;
@@ -325,6 +335,7 @@ void UpdatePlaying() {
         if (enemies[i]->isAlive()) {
             allDefeated = false;
         } else {
+            enemies[i]->unloadFrames();
             enemies.erase(enemies.begin() + i);
             continue;
         }
@@ -764,6 +775,7 @@ void DrawPlaying() {
             else if (CheckCollisionPointRec(mouse, sellBtn) || IsKeyPressed(KEY_X)) {
                 PlaySound(SoundManager::sell);
                 playerMoney += selectedTower->getValue();
+                selectedTower->unloadFrames();
                 towers.erase(std::remove_if(towers.begin(), towers.end(),
                     [&](const std::shared_ptr<Tower>& t) { return t.get() == selectedTower; }),
                     towers.end());
