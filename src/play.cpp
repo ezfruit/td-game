@@ -8,8 +8,10 @@
 #include <unordered_map>
 #include "sounds.h"
 #include "images.h"
+#include "messages.h"
 
-// TODO: When placing a tower down, make it so that you can't click on an existing tower (so that pressing X doesn't sell and cancel at the same time)
+
+// TODO: When placing a tower down, make it so that your cursor is shown on the UI portion not on the field.
 // TODO: Make the track an actual track
 // TODO: Animations for towers (archer done)
 // TODO: Animations for enemies (slime done)
@@ -24,6 +26,9 @@ std::vector<Vector2> trackPoints;
 std::vector<std::shared_ptr<Tower>> towers;
 std::vector<std::shared_ptr<Enemy>> enemies;
 std::vector<std::shared_ptr<Projectile>> projectiles;
+
+WaveScriptManager waveScript;
+MessageManager messageManager;
 
 static int waveNumber = 0;
 
@@ -52,6 +57,7 @@ static float spawnTimer = 0.0f;
 static int spawnIndex = 0;
 
 static bool spawning = false;
+static bool waitingToStartNextWave = false;
 
 static Tower* selectedTower = nullptr;
 
@@ -163,6 +169,8 @@ void ResetGame() {
     towers.clear();
     enemies.clear();
     projectiles.clear();
+
+    waveScript.loadFromFile("src/wavescript.json");
 }
 
 // This function checks if the mouse is currently on the track (returns true if so)
@@ -198,7 +206,6 @@ bool IsOnTower(Vector2 pos, const std::vector<std::shared_ptr<Tower>>& towers) {
 
 // This function checks if the mouse is currently within the placeable field bounds (returns true if so)
 bool IsWithinBounds(Vector2 pos) {
-    
     if (pos.y > 40 && pos.y < 560) {
         return true;
     }
@@ -218,14 +225,53 @@ void StartNextWave() {
     waveInProgress = true;
     waveCooldownTimer = 0.0f;
 
-    if (waveNumber > 1) {
-        playerMoney += income;
-        income += 50;
-    }
-
     spawning = true;
 
     std::cout << "Wave " << waveNumber << " started!\n";
+}
+
+std::string replacePlaceholders(const std::string& message, const std::unordered_map<std::string, std::string>& values) {
+    std::string result = message;
+    for (const auto& [key, val] : values) {
+        std::string token = "${" + key + "}";
+        size_t pos = result.find(token);
+        while (pos != std::string::npos) {
+            result.replace(pos, token.length(), val);
+            pos = result.find(token, pos + val.length());
+        }
+    }
+    return result;
+}
+
+void EndWave() {
+
+    waitingToStartNextWave = true; // Set flag to wait
+
+    WaveMessage msg = waveScript.getMessagesForWave(waveNumber);
+
+    std::unordered_map<std::string, std::string> vars = {
+        { "income", std::to_string(income) }
+    };
+
+    //Use for the future for placeholder text
+    //std::string formatted = replacePlaceholders(msg.post, vars);
+
+    if (waveNumber == 0) return;
+
+    std::string incomeText = "Wave " + std::to_string(waveNumber) + " over. You earned $" + std::to_string(income) + ".";
+    messageManager.addMessage(incomeText, 3.0f);
+    playerMoney += income;
+    income += 50;
+
+    if (!msg.pre.empty()) {
+        messageManager.addMessage(msg.pre, 3.0f);
+    }
+    if (!msg.post.empty()) {
+        messageManager.addMessage(msg.post, 3.0f);
+    }
+    if (!msg.warning.empty()) {
+        messageManager.addMessage(msg.warning, 3.0f);
+    }
 }
 
 // Game logic updates
@@ -350,14 +396,21 @@ void UpdatePlaying() {
 
     waveCooldownTimer += GetFrameTime();
 
-    if (!waveInProgress) {
+    if (!waveInProgress && !waitingToStartNextWave) {
         if (waveCooldownTimer >= waveCooldown) {
-            StartNextWave();
+            EndWave();
         }
-    } else if (!spawning) {
+    } else if (!spawning && !waitingToStartNextWave) {
         if (waveCooldownTimer >= waveDuration) {
-            StartNextWave();
+            EndWave();
         }
+    }
+
+    messageManager.update(GetFrameTime());
+
+    if (waitingToStartNextWave && !messageManager.isDisplayingMessage()) {
+        StartNextWave();
+        waitingToStartNextWave = false;
     }
 
     if (spawning && waveNumber <= totalWaves) {
@@ -436,7 +489,7 @@ void UpdatePlaying() {
         }
     }
 
-    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && GetMousePosition().y > 40 && GetMousePosition().y < 560 ) {
+    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && GetMousePosition().y > 40 && GetMousePosition().y < 560 && !isPlacingTower) {
         Vector2 mouse = GetMousePosition();
         selectedTower = nullptr;
         for (auto& tower : towers) {
@@ -685,9 +738,13 @@ void DrawPlaying() {
 
     DrawRectangle(0, 0, GetScreenWidth(), 40, LIGHTGRAY); // Top Gray Rectangle UI
 
+    messageManager.draw();
+
     DrawText(TextFormat("Health: %d", playerHealth), 20, 10, 20, RED);
     DrawText(TextFormat("$ %d", playerMoney), 200, 10, 20, LIME);
-    DrawText(TextFormat("Wave: %d", waveNumber), 600, 10, 20, DARKGRAY);
+    if (!messageManager.isDisplayingMessage()) {
+        DrawText(TextFormat("Wave: %d", waveNumber), 600, 10, 20, DARKGRAY);
+    }
 
     DrawRectangle(0, 560, GetScreenWidth(), 160, LIGHTGRAY); // Bottom Gray Rectangle UI
 

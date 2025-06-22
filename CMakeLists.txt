@@ -19,6 +19,8 @@ add_executable(TowerDefense
     src/projectile.cpp
     src/sounds.cpp
     src/images.cpp
+    src/messages.cpp
 )
 
+target_include_directories(TowerDefense PRIVATE include)
 target_link_libraries(TowerDefense PRIVATE raylib)

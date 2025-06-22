@@ -1,0 +1,18 @@
+[
+  {
+    "wave": 2,
+    "warning": "New enemy incoming!"
+  },
+  {
+    "wave": 5,
+    "warning": "A new enemy approaches.."
+  },
+  {
+    "wave": 7,
+    "warning": "Get ready for a BOSS!"
+  },
+  {
+    "wave": 20,
+    "warning": "Incoming sludge horde!"
+  }
+]
