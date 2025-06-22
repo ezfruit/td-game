@@ -10,13 +10,10 @@
 #include "images.h"
 #include "messages.h"
 
-
-// TODO: When placing a tower down, make it so that your cursor is shown on the UI portion not on the field.
 // TODO: Make the track an actual track
 // TODO: Animations for towers (archer done)
 // TODO: Animations for enemies (slime done)
 // TODO: Add a cooldown between starting the game and wave 1 (10 seconds maybe), also add a visual indicator where enemies will come from
-// TODO: Add messages between rounds (how much income is earned) and any warnings for new/existing enemies
 // TODO: Add a brief description to towers when hovering over their icons (to let players know strengths)
 // TODO: Add upgrade information as well as an image of the upgrade icon
 // TODO: Add a track selector (up to 3)
@@ -35,6 +32,7 @@ static int waveNumber = 0;
 int playerMoney;
 
 static int playerHealth = 100;
+static int baseIncome = 400;
 static int income;
 static bool waveInProgress = false;
 static float waveDuration = 30.0f;
@@ -149,7 +147,7 @@ void ResetGame() {
     waveNumber = 0;
     playerMoney = 600000;
     playerHealth = 100;
-    income = 400;
+    income = baseIncome;
     waveInProgress = false;
     waveDuration = 30.0f;
     waveCooldown = 3.0f;
@@ -162,6 +160,7 @@ void ResetGame() {
     spawnIndex = 0;
     spawnTimer = 0.0f;
 
+    isPlacingTower = false;
     selectedTower = nullptr;
 
     showNotEnoughMoney = false;
@@ -169,8 +168,20 @@ void ResetGame() {
     towers.clear();
     enemies.clear();
     projectiles.clear();
+    explosions.clear();
+    lightningBolts.clear();
+    floatingTexts.clear();
 
     waveScript.loadFromFile("src/wavescript.json");
+}
+
+int getIncomeForWave(int waveNumber) {
+    const float base = baseIncome;
+    const float max = 1500.0f;
+    const float k = 0.05f; // growth rate (higher means faster) (should be float between 0-1)
+
+    float income = base + (max - base) * (1.0f - std::exp(-k * waveNumber));
+    return static_cast<int>(std::round(income));
 }
 
 // This function checks if the mouse is currently on the track (returns true if so)
@@ -261,7 +272,7 @@ void EndWave() {
     std::string incomeText = "Wave " + std::to_string(waveNumber) + " over. You earned $" + std::to_string(income) + ".";
     messageManager.addMessage(incomeText, 3.0f);
     playerMoney += income;
-    income += 50;
+    income = getIncomeForWave(waveNumber);
 
     if (!msg.pre.empty()) {
         messageManager.addMessage(msg.pre, 3.0f);
@@ -555,7 +566,8 @@ void DrawPlaying() {
     // When a tower is currently being placed
     if (isPlacingTower) {
         previewPosition = GetMousePosition();
-        HideCursor();
+        
+        IsWithinBounds(previewPosition) ? HideCursor() : ShowCursor();
 
         int range = 0;
         Texture2D previewIcon;
