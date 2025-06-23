@@ -12,7 +12,33 @@
     "warning": "Get ready for a BOSS!"
   },
   {
+    "wave": 10,
+    "warning": "More fire imps coming!"
+  },
+  {
+    "wave": 12,
+    "warning": "A dangerously FAST enemy incoming..!"
+  },
+  {
+    "wave": 15,
+    "warning": "A strange enemy approaches.."
+  },
+  {
+    "wave": 19,
+    "warning": "Get ready for A HUGE WAVE!",
+    "post": "Survive."
+  },
+  {
     "wave": 20,
+    "pre": "You SURVIVED THAT?! Alright, you haven't seen the end of me..",
     "warning": "Incoming sludge horde!"
+  },
+  {
+    "wave": 23,
+    "warning": "A mystical enemy appears on the horizon.."
+  },
+  {
+    "wave": 24,
+    "warning": "Ravager swarm arriving!"
   }
 ]

@@ -277,11 +277,11 @@ void EndWave() {
     if (!msg.pre.empty()) {
         messageManager.addMessage(msg.pre, 3.0f);
     }
-    if (!msg.post.empty()) {
-        messageManager.addMessage(msg.post, 3.0f);
-    }
     if (!msg.warning.empty()) {
         messageManager.addMessage(msg.warning, 3.0f);
+    }
+    if (!msg.post.empty()) {
+        messageManager.addMessage(msg.post, 3.0f);
     }
 }
 

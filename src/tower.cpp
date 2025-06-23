@@ -242,7 +242,7 @@ void Archer::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemie
         attackCooldown = 1.0f / actualAttackSpeed;
     }
 
-    isShooting = shootTimer > 0.0f; // Sets isShooting to false if timer reaches 0 and goes back to idle position after the next draw
+    isShooting = shootTimer > 0.0f; // Goes back to idle position after a certain time
 
 }
 
@@ -314,16 +314,36 @@ Mage::Mage(Vector2 pos) : Tower(100, 3, 0.5, "Area of Effect", 300, pos) {
     projectileSpeed = 500.0f;
     projectileRange = 500.0f;
     AoERadius = 50.0f;
+    animationFrames = ImageHandler::LoadAnimationFrames("mage", 2);
 }
 
 void Mage::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, const std::vector<Vector2>& track, std::vector<std::shared_ptr<Projectile>>& projectiles) {
 
     attackCooldown -= deltaTime;
+    shootTimer -= deltaTime; // For shoot vs. idle animation
+
     if (attackCooldown > 0) return;
 
     auto target = EnemyToShoot(mode, enemies, track);
 
     if (target) {
+        Vector2 toTarget = Vector2Subtract(target->getPosition(), position);
+        float angleRad = atan2f(toTarget.y, toTarget.x);
+        float angleDeg = angleRad * RAD2DEG;
+        isShooting = true;
+
+        // Flip based on left/right of tower
+        facingLeft = (toTarget.x < 0);
+
+        // If facing left, flip angle horizontally
+        if (facingLeft) {
+            rotationAngle = angleDeg + 180.0f;
+        } else {
+            rotationAngle = angleDeg;
+        }
+
+        shootTimer = shootFlashDuration;
+
         PlaySound(SoundManager::fireball);
         Vector2 dir = Vector2Subtract(target->getPosition(), getPosition());
 
@@ -333,6 +353,8 @@ void Mage::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies,
         projectiles.emplace_back(std::make_shared<Fireball>(getPosition(), dir, projectileSpeed, actualDamage, type, targeting, shared_from_this(), pierceCount, AoERadius));
         attackCooldown = 1.0f / actualAttackSpeed;
     }
+
+    isShooting = shootTimer > 0.0f; // Goes back to idle position after a certain time
 }
 
 void Mage::upgrade(int upgCost) {
@@ -367,8 +389,31 @@ void Mage::upgrade(int upgCost) {
 }
 
 void Mage::draw() const {
-    Vector2 pos = getPosition();
-    DrawRectangleV({ pos.x - 20, pos.y - 20 }, { 40, 40 }, BLUE);
+    // Vector2 pos = getPosition();
+    // DrawRectangleV({ pos.x - 20, pos.y - 20 }, { 40, 40 }, BLUE);
+
+    Texture2D frame = isShooting ? animationFrames[0] : animationFrames[1];
+
+    Rectangle source = {
+        0.0f, 0.0f,
+        static_cast<float>(frame.width) * (facingLeft ? -1.0f : 1.0f),
+        static_cast<float>(frame.height)
+    };
+
+    Rectangle dest = {
+        position.x,
+        position.y,
+        40.0f,
+        40.0f
+    };
+
+    Vector2 origin = {
+        40.0f / 2.0f,
+        40.0f / 2.0f
+    };
+
+    DrawTexturePro(frame, source, dest, origin, rotationAngle, WHITE);
+    
 }
 
 Torcher::Torcher(Vector2 pos) : Tower(75, 1, 1.0, "Single", 700, pos) {

@@ -739,6 +739,34 @@ std::vector<GameWave> waveDefinitions = {
         }
     },
 
+    // Wave 25
+    {
+        {
+            { "Goliath", 0.0f },
+            { "Husk", 1.0f },
+            { "Husk", 0.5f },
+            { "Husk", 0.5f },
+            { "Husk", 0.5f },
+            { "Husk", 0.5f },
+            { "Husk", 0.5f },
+            { "Husk", 0.5f },
+            { "Husk", 0.5f },
+            { "Husk", 0.5f },
+            { "Husk", 0.5f },
+            { "Goliath", 0.5f },
+            { "Ravager", 1.0f },
+            { "Ravager", 1.0f },
+            { "Ravager", 1.0f },
+            { "Ravager", 1.0f },
+            { "Ravager", 1.0f },
+            { "Ravager", 1.0f },
+            { "Ravager", 1.0f },
+            { "Ravager", 1.0f },
+            { "Arcane Warden", 1.0f},
+            { "Arcane Warden", 1.0f},
+        }
+    },
+
 };
 
 const size_t totalWaves = waveDefinitions.size();
