@@ -129,6 +129,10 @@ class Torcher : public Tower {
 
         float slowEffect = 1.0f;
 
+        float shootingFrameTimer = 0.0f;       
+        int currentShootingFrame = 0;
+        float shootingFrameDuration = 0.1f; // 0.1s = 10 FPS
+
         std::shared_ptr<Enemy> FindUnburnedTarget(std::vector<std::shared_ptr<Enemy>>& enemies);
     public:
         Torcher(Vector2 pos);

@@ -223,12 +223,7 @@ void Archer::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemie
         // Flip based on left/right of tower
         facingLeft = (toTarget.x < 0);
 
-        // If facing left, flip angle horizontally
-        if (facingLeft) {
-            rotationAngle = angleDeg + 180.0f;
-        } else {
-            rotationAngle = angleDeg;
-        }
+        rotationAngle = facingLeft ? angleDeg + 180.0f : angleDeg;
 
         shootTimer = shootFlashDuration;
 
@@ -335,12 +330,7 @@ void Mage::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies,
         // Flip based on left/right of tower
         facingLeft = (toTarget.x < 0);
 
-        // If facing left, flip angle horizontally
-        if (facingLeft) {
-            rotationAngle = angleDeg + 180.0f;
-        } else {
-            rotationAngle = angleDeg;
-        }
+        rotationAngle = facingLeft ? angleDeg + 180.0f : angleDeg;
 
         shootTimer = shootFlashDuration;
 
@@ -389,9 +379,6 @@ void Mage::upgrade(int upgCost) {
 }
 
 void Mage::draw() const {
-    // Vector2 pos = getPosition();
-    // DrawRectangleV({ pos.x - 20, pos.y - 20 }, { 40, 40 }, BLUE);
-
     Texture2D frame = isShooting ? animationFrames[0] : animationFrames[1];
 
     Rectangle source = {
@@ -422,6 +409,8 @@ Torcher::Torcher(Vector2 pos) : Tower(75, 1, 1.0, "Single", 700, pos) {
     value = cost / 2;
     projectileSpeed = 1000.0f;
     projectileRange = range;
+    shootFlashDuration = 5.0f;
+    animationFrames = ImageHandler::LoadAnimationFrames("torcher", 6);
 }
 
 std::shared_ptr<Enemy> Torcher::FindUnburnedTarget(std::vector<std::shared_ptr<Enemy>>& enemies) {
@@ -456,12 +445,35 @@ void Torcher::FireAt(std::shared_ptr<Enemy> enemy, int actualDamage) {
 void Torcher::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, const std::vector<Vector2>& track, std::vector<std::shared_ptr<Projectile>>& projectiles) {
 
     attackCooldown -= deltaTime;
+    shootTimer -= deltaTime; // For shoot vs. idle animation
+
+    isShooting = shootTimer > 0.0f;
+    if (isShooting) {
+        shootingFrameTimer += deltaTime;
+        if (shootingFrameTimer >= shootingFrameDuration) {
+            shootingFrameTimer -= shootingFrameDuration;
+            currentShootingFrame = (currentShootingFrame + 1) % 5;
+        }
+    } else {
+        currentShootingFrame = 0;
+        shootingFrameTimer = 0.0f;
+    }
 
     if (attackCooldown > 0) return;
 
     auto target = FindUnburnedTarget(enemies);
 
     if (target) {
+        Vector2 toTarget = Vector2Subtract(target->getPosition(), position);
+        float angleRad = atan2f(toTarget.y, toTarget.x);
+        float angleDeg = angleRad * RAD2DEG;
+
+        isShooting = true;
+        facingLeft = (toTarget.x < 0);
+        rotationAngle = facingLeft ? angleDeg + 180.0f : angleDeg;
+
+        shootTimer = shootFlashDuration;
+
         PlaySound(SoundManager::torcher);
 
         int actualDamage = static_cast<int>(std::ceil(damage * damageMultiplier));
@@ -509,8 +521,34 @@ void Torcher::upgrade(int upgCost) {
 }
 
 void Torcher::draw() const {
-    Vector2 pos = getPosition();
-    DrawRectangleV({ pos.x - 20, pos.y - 20 }, { 40, 40 }, ORANGE);
+
+    Texture2D frame;
+
+    if (isShooting) {
+        frame = animationFrames[currentShootingFrame];
+    } else {
+        frame = animationFrames[5]; // or your idle frame
+    }
+
+    Rectangle source = {
+        0.0f, 0.0f,
+        static_cast<float>(frame.width) * (facingLeft ? -1.0f : 1.0f),
+        static_cast<float>(frame.height)
+    };
+
+    Rectangle dest = {
+        position.x,
+        position.y,
+        40.0f,
+        40.0f
+    };
+
+    Vector2 origin = {
+        40.0f / 2.0f,
+        40.0f / 2.0f
+    };
+
+    DrawTexturePro(frame, source, dest, origin, rotationAngle, WHITE);
 }
 
 Stormshaper::Stormshaper(Vector2 pos) : Tower(300, 30, 0.2f, "Area of Effect", 3000, pos) {
