@@ -551,24 +551,53 @@ void Torcher::draw() const {
     DrawTexturePro(frame, source, dest, origin, rotationAngle, WHITE);
 }
 
-Stormshaper::Stormshaper(Vector2 pos) : Tower(300, 30, 0.2f, "Area of Effect", 3000, pos) {
-    name = "Stormshaper";
+Stormcaller::Stormcaller(Vector2 pos) : Tower(300, 30, 0.2f, "Area of Effect", 3000, pos) {
+    name = "Stormcaller";
     type = "Air";
     value = cost / 2;
     projectileSpeed = 4000.0f;
     projectileRange = range * 2;
     AoERadius = 10.0f;
+    shootFlashDuration = 5.0f;
+    animationFrames = ImageHandler::LoadAnimationFrames("stormcaller", 10);
 }
 
-void Stormshaper::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, const std::vector<Vector2>& track, std::vector<std::shared_ptr<Projectile>>& projectiles) {
+void Stormcaller::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, const std::vector<Vector2>& track, std::vector<std::shared_ptr<Projectile>>& projectiles) {
 
     attackCooldown -= deltaTime;
+    shootTimer -= deltaTime; // For shoot vs. idle animation
+
+    isShooting = shootTimer > 0.0f;
+
+    if (isShooting) {
+        shootingFrameTimer += deltaTime;
+        if (shootingFrameTimer >= shootingFrameDuration) {
+            shootingFrameTimer -= shootingFrameDuration;
+            currentShootingFrame = (currentShootingFrame + 1) % 6;
+        }
+    } else {
+        shootingFrameTimer += deltaTime;
+        if (shootingFrameTimer >= shootingFrameDuration) {
+            shootingFrameTimer -= shootingFrameDuration;
+            currentIdleFrame = ((currentIdleFrame + 1) % 4) + 6;
+        }
+    }
 
     if (attackCooldown > 0) return;
 
     auto target = EnemyToShoot(mode, enemies, track);
 
     if (target) {
+        Vector2 toTarget = Vector2Subtract(target->getPosition(), position);
+        float angleRad = atan2f(toTarget.y, toTarget.x);
+        float angleDeg = angleRad * RAD2DEG;
+
+        isShooting = true;
+        facingLeft = (toTarget.x < 0);
+        rotationAngle = facingLeft ? angleDeg + 180.0f : angleDeg;
+
+        shootTimer = shootFlashDuration;
+
         PlaySound(SoundManager::thunder);
         DrawLightningBolt(target);
 
@@ -581,7 +610,7 @@ void Stormshaper::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& e
     }
 }
 
-void Stormshaper::upgrade(int upgCost) {
+void Stormcaller::upgrade(int upgCost) {
     level += 1;
     if (level > 5) {
         level = 5;
@@ -611,7 +640,7 @@ void Stormshaper::upgrade(int upgCost) {
     }
 }
 
-void Stormshaper::DrawLightningBolt(std::shared_ptr<Enemy> target, int segments, float offset, Color color) {
+void Stormcaller::DrawLightningBolt(std::shared_ptr<Enemy> target, int segments, float offset, Color color) {
     // Create lightning bolt
     LightningBolt bolt;
     bolt.start = position;
@@ -636,9 +665,34 @@ void Stormshaper::DrawLightningBolt(std::shared_ptr<Enemy> target, int segments,
     lightningBolts.push_back(bolt);
 }
 
-void Stormshaper::draw() const {
-    Vector2 pos = getPosition();
-    DrawRectangleV({ pos.x - 20, pos.y - 20 }, { 40, 40 }, PURPLE);
+void Stormcaller::draw() const {
+    Texture2D frame;
+
+    if (isShooting) {
+        frame = animationFrames[currentShootingFrame];
+    } else {
+        frame = animationFrames[currentIdleFrame];
+    }
+
+    Rectangle source = {
+        0.0f, 0.0f,
+        static_cast<float>(frame.width) * (facingLeft ? -1.0f : 1.0f),
+        static_cast<float>(frame.height)
+    };
+
+    Rectangle dest = {
+        position.x,
+        position.y,
+        40.0f,
+        40.0f
+    };
+
+    Vector2 origin = {
+        40.0f / 2.0f,
+        40.0f / 2.0f
+    };
+
+    DrawTexturePro(frame, source, dest, origin, rotationAngle, WHITE);
 }
 
 War_Drummer::War_Drummer(Vector2 pos) : Tower(200, 0, 0.0f, "Towers", 1000, pos) {

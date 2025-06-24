@@ -146,9 +146,16 @@ class Torcher : public Tower {
         void draw() const override;
 };
 
-class Stormshaper : public Tower {
+class Stormcaller : public Tower {
+    private:
+        float shootingFrameTimer = 0.0f;
+        float idleFrameTimer = 0.0f;       
+        int currentShootingFrame = 0;
+        int currentIdleFrame = 0;
+        float shootingFrameDuration = 0.1f; // 0.1s = 10 FPS
+
     public:
-        Stormshaper(Vector2 pos);
+        Stormcaller(Vector2 pos);
 
         void update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, const std::vector<Vector2>& track, std::vector<std::shared_ptr<Projectile>>& projectiles) override;
 

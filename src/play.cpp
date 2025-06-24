@@ -64,7 +64,7 @@ std::vector<std::string> towerNames = {
     "Archer",     
     "Mage",      
     "Torcher",
-    "Stormshaper",
+    "Stormcaller",
     "War Drummer",
     "Gold Mine"
 };
@@ -112,7 +112,7 @@ std::unordered_map<std::string, std::vector<int>> upgradeCosts = {
     {"Archer", {250, 600, 2500, 4500, 0}},
     {"Mage", {300, 800, 3000, 6000, 0}},
     {"Torcher", {300, 1200, 4000, 10000, 0}},
-    {"Stormshaper", {600, 1800, 6000, 15000, 0}},
+    {"Stormcaller", {600, 1800, 6000, 15000, 0}},
     {"War Drummer", {750, 2500, 4500, 12000, 0}},
     {"Gold Mine", {600, 1500, 3000, 6000, 0}}
 };
@@ -538,7 +538,7 @@ void UpdatePlaying() {
                     playerMoney -= costs[3];
                     break;
                 case 4:
-                    towers.push_back(std::make_shared<Stormshaper>(mousePos));
+                    towers.push_back(std::make_shared<Stormcaller>(mousePos));
                     playerMoney -= costs[4];
                     break;
                 case 5:
@@ -577,7 +577,7 @@ void DrawPlaying() {
             case 1: range = 150; previewIcon = ImageHandler::archerIcon; break;
             case 2: range = 100; previewIcon = ImageHandler::mageIcon; break;
             case 3: range = 75;  previewIcon = ImageHandler::torcherIcon; break;
-            case 4: range = 300; previewIcon = ImageHandler::stormshaperIcon; break;
+            case 4: range = 300; previewIcon = ImageHandler::stormcallerIcon; break;
             case 5: range = 200; previewIcon = ImageHandler::wardrummerIcon; break;
             case 6: range = 50;  previewIcon = ImageHandler::goldmineIcon; break;
         }
@@ -632,7 +632,7 @@ void DrawPlaying() {
             case 1: tower = "Archer"; break; // Archer
             case 2: tower = "Mage"; break; // Mage
             case 3: tower = "Torcher"; break; // Torcher
-            case 4: tower = "Stormshaper"; break; // Stormshaper
+            case 4: tower = "Stormcaller"; break; // Stormcaller
             case 5: tower = "War Drummer"; break; // War Drummer
             case 6: tower = "Gold Mine"; break; // Gold Mine
         }
