@@ -11,6 +11,12 @@ namespace ImageHandler {
     extern Texture2D wardrummerIcon;
     extern Texture2D goldmineIcon;
     extern std::vector<Texture2D> towerIcons;
+    extern Texture2D archerPreview;
+    extern Texture2D magePreview;
+    extern Texture2D torcherPreview;
+    extern Texture2D stormcallerPreview;
+    extern Texture2D wardrummerPreview;
+    extern std::vector<Texture2D> previewIcons;
 
     void InitImages();
     std::vector<Texture2D> LoadAnimationFrames(const std::string& enemyType, int frameCount);

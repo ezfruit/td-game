@@ -7,7 +7,14 @@ namespace ImageHandler {
     Texture2D stormcallerIcon;
     Texture2D wardrummerIcon;
     Texture2D goldmineIcon;
+    Texture2D archerPreview;
+    Texture2D magePreview;
+    Texture2D torcherPreview;
+    Texture2D stormcallerPreview;
+    Texture2D wardrummerPreview;
     std::vector<Texture2D> towerIcons;
+    std::vector<Texture2D> previewIcons;
+
     void InitImages() {
         archerIcon = LoadTexture("assets/icons/archer_icon.png");
         mageIcon = LoadTexture("assets/icons/mage_icon.png");
@@ -16,7 +23,12 @@ namespace ImageHandler {
         wardrummerIcon = LoadTexture("assets/icons/wardrummer_icon.png");
         goldmineIcon = LoadTexture("assets/icons/goldmine_icon.png");
         towerIcons = { archerIcon , mageIcon, torcherIcon, stormcallerIcon, wardrummerIcon, goldmineIcon};
-        
+        archerPreview = LoadTexture("assets/archer_animations/archer_1.png");
+        magePreview = LoadTexture("assets/mage_animations/mage_1.png");
+        torcherPreview = LoadTexture("assets/torcher_animations/torcher_5.png");
+        stormcallerPreview = LoadTexture("assets/stormcaller_animations/stormcaller_6.png");
+        wardrummerPreview = LoadTexture("assets/wardrummer_animations/wardrummer_0.png");
+        previewIcons = {archerPreview, magePreview, torcherPreview, stormcallerPreview, wardrummerPreview};
     }
 
     std::vector<Texture2D> LoadAnimationFrames(const std::string& name, int frameCount) {
@@ -29,11 +41,11 @@ namespace ImageHandler {
     }
 
     void UnloadImages() {
-        UnloadTexture(archerIcon);
-        UnloadTexture(mageIcon);
-        UnloadTexture(torcherIcon);
-        UnloadTexture(stormcallerIcon);
-        UnloadTexture(wardrummerIcon);
-        UnloadTexture(goldmineIcon);
+        for (auto& icon : towerIcons) {
+            UnloadTexture(icon);
+        }
+        for (auto& preview : previewIcons) {
+            UnloadTexture(preview);
+        }
     }
 }

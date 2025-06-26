@@ -17,6 +17,8 @@ extern std::vector<Explosion> explosions;
 extern std::vector<LightningBolt> lightningBolts;
 extern std::vector<FloatingText> floatingTexts;
 
+constexpr float TOWER_SIZE = 40.0f;
+
 extern bool GameOver;
 extern bool Paused;
 extern bool HomePressed;

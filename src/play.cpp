@@ -206,10 +206,9 @@ bool IsOnTrack(Vector2 pos, const std::vector<Vector2>& trackPoints) {
 
 // This functions checks if the mouse is currently on a placed tower (returns true if so)
 bool IsOnTower(Vector2 pos, const std::vector<std::shared_ptr<Tower>>& towers) {
-    const float towerSize = 40.0f; // size of each tower's square
 
     for (const auto& tower : towers) {
-        if (Vector2Distance(pos, tower->getPosition()) < towerSize)
+        if (Vector2Distance(pos, tower->getPosition()) < TOWER_SIZE)
             return true;
     }
     return false;
@@ -574,11 +573,11 @@ void DrawPlaying() {
         float desiredSize = 40.0f;
 
         switch (selectedTowerIndex) {
-            case 1: range = 150; previewIcon = ImageHandler::archerIcon; break;
-            case 2: range = 100; previewIcon = ImageHandler::mageIcon; break;
-            case 3: range = 75;  previewIcon = ImageHandler::torcherIcon; break;
-            case 4: range = 300; previewIcon = ImageHandler::stormcallerIcon; break;
-            case 5: range = 200; previewIcon = ImageHandler::wardrummerIcon; break;
+            case 1: range = 150; previewIcon = ImageHandler::previewIcons[0]; break;
+            case 2: range = 100; previewIcon = ImageHandler::previewIcons[1]; break;
+            case 3: range = 75;  previewIcon = ImageHandler::previewIcons[2]; break;
+            case 4: range = 300; previewIcon = ImageHandler::previewIcons[3]; break;
+            case 5: range = 200; previewIcon = ImageHandler::previewIcons[4]; break;
             case 6: range = 50;  previewIcon = ImageHandler::goldmineIcon; break;
         }
 

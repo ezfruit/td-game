@@ -290,13 +290,13 @@ void Archer::draw() const {
     Rectangle dest = {
         position.x,
         position.y,
-        40.0f,
-        40.0f
+        TOWER_SIZE,
+        TOWER_SIZE
     };
 
     Vector2 origin = {
-        40.0f / 2.0f,
-        40.0f / 2.0f
+        TOWER_SIZE / 2.0f,
+        TOWER_SIZE / 2.0f
     };
 
     DrawTexturePro(frame, source, dest, origin, rotationAngle, WHITE);
@@ -390,13 +390,13 @@ void Mage::draw() const {
     Rectangle dest = {
         position.x,
         position.y,
-        40.0f,
-        40.0f
+        TOWER_SIZE,
+        TOWER_SIZE
     };
 
     Vector2 origin = {
-        40.0f / 2.0f,
-        40.0f / 2.0f
+        TOWER_SIZE / 2.0f,
+        TOWER_SIZE / 2.0f
     };
 
     DrawTexturePro(frame, source, dest, origin, rotationAngle, WHITE);
@@ -539,13 +539,13 @@ void Torcher::draw() const {
     Rectangle dest = {
         position.x,
         position.y,
-        40.0f,
-        40.0f
+        TOWER_SIZE,
+        TOWER_SIZE
     };
 
     Vector2 origin = {
-        40.0f / 2.0f,
-        40.0f / 2.0f
+        TOWER_SIZE / 2.0f,
+        TOWER_SIZE / 2.0f
     };
 
     DrawTexturePro(frame, source, dest, origin, rotationAngle, WHITE);
@@ -683,13 +683,13 @@ void Stormcaller::draw() const {
     Rectangle dest = {
         position.x,
         position.y,
-        40.0f,
-        40.0f
+        TOWER_SIZE,
+        TOWER_SIZE
     };
 
     Vector2 origin = {
-        40.0f / 2.0f,
-        40.0f / 2.0f
+        TOWER_SIZE / 2.0f,
+        TOWER_SIZE / 2.0f
     };
 
     DrawTexturePro(frame, source, dest, origin, rotationAngle, WHITE);
@@ -701,7 +701,7 @@ War_Drummer::War_Drummer(Vector2 pos) : Tower(200, 0, 0.0f, "Towers", 1000, pos)
     value = cost / 2;
     damageMultiplier = 1.15f;
     attackSpeedMultiplier = 1.2f;
-    shootFlashDuration = 5.0f;
+    shootFlashDuration = 4.0f;
     animationFrames = ImageHandler::LoadAnimationFrames("wardrummer", 4);
 }
 
@@ -736,21 +736,21 @@ void War_Drummer::upgrade(int upgCost) {
     switch (level) {
         case 2:
             range += 50;
-            shootFlashDuration = 3.0f;
+            shootFlashDuration = 2.0f;
             break;
         case 3:
             damageMultiplier += 0.05f;
-            shootFlashDuration = 2.0f;
+            shootFlashDuration = 1.0f;
             break;
         case 4:
             attackSpeedMultiplier += 0.1f;
-            shootFlashDuration = 1.0f;
+            shootFlashDuration = 0.5f;
             break;
         case 5:
             range += 50;
             damageMultiplier += 0.1f;
             attackSpeedMultiplier += 0.1f;
-            shootFlashDuration = 0.5f;
+            shootFlashDuration = 0.25f;
             break;
     }
 }
@@ -766,15 +766,15 @@ void War_Drummer::draw() const {
     };
 
     Rectangle dest = {
-        position.x,                
-        position.y,                
-        static_cast<float>(frame.width),
-        static_cast<float>(frame.height)
+        position.x,
+        position.y,
+        TOWER_SIZE,
+        TOWER_SIZE
     };
 
     Vector2 origin = {
-        static_cast<float>(frame.width) / 2.0f,
-        static_cast<float>(frame.height) / 2.0f
+        TOWER_SIZE / 2,
+        TOWER_SIZE / 2
     };
 
     DrawTexturePro(frame, source, dest, origin, 0.0f, WHITE);
