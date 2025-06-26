@@ -167,6 +167,8 @@ class Stormcaller : public Tower {
 };
 
 class War_Drummer : public Tower {
+    private:
+        int currentFrame = 0;
     public:
         War_Drummer(Vector2 pos);
 

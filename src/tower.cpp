@@ -701,9 +701,19 @@ War_Drummer::War_Drummer(Vector2 pos) : Tower(200, 0, 0.0f, "Towers", 1000, pos)
     value = cost / 2;
     damageMultiplier = 1.15f;
     attackSpeedMultiplier = 1.2f;
+    shootFlashDuration = 5.0f;
+    animationFrames = ImageHandler::LoadAnimationFrames("wardrummer", 4);
 }
 
 void War_Drummer::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, const std::vector<Vector2>& track, std::vector<std::shared_ptr<Projectile>>& projectiles) {
+
+    shootTimer += deltaTime; // War drummer doesn't shoot, it's just for frame timers
+
+    if (shootTimer >= shootFlashDuration) {
+        currentFrame = GetRandomValue(0, 3);
+        shootTimer = 0.0f;
+    }
+
     for (auto& tower : towers) {
         if (tower.get() == this) continue; // Don't buff self
         float dist = Vector2Distance(this->getPosition(), tower->getPosition());
@@ -726,24 +736,48 @@ void War_Drummer::upgrade(int upgCost) {
     switch (level) {
         case 2:
             range += 50;
+            shootFlashDuration = 3.0f;
             break;
         case 3:
             damageMultiplier += 0.05f;
+            shootFlashDuration = 2.0f;
             break;
         case 4:
             attackSpeedMultiplier += 0.1f;
+            shootFlashDuration = 1.0f;
             break;
         case 5:
             range += 50;
             damageMultiplier += 0.1f;
             attackSpeedMultiplier += 0.1f;
+            shootFlashDuration = 0.5f;
             break;
     }
 }
 
 void War_Drummer::draw() const {
-    Vector2 pos = getPosition();
-    DrawRectangleV({ pos.x - 20, pos.y - 20 }, { 40, 40 }, YELLOW);
+
+    Texture2D frame = animationFrames[currentFrame];
+
+    Rectangle source = {
+        0.0f, 0.0f,
+        static_cast<float>(frame.width),
+        static_cast<float>(frame.height)
+    };
+
+    Rectangle dest = {
+        position.x,                
+        position.y,                
+        static_cast<float>(frame.width),
+        static_cast<float>(frame.height)
+    };
+
+    Vector2 origin = {
+        static_cast<float>(frame.width) / 2.0f,
+        static_cast<float>(frame.height) / 2.0f
+    };
+
+    DrawTexturePro(frame, source, dest, origin, 0.0f, WHITE);
 }
 
 Gold_Mine::Gold_Mine(Vector2 pos) : Tower(50, 0, 0.0f, "Utility", 300, pos) {
