@@ -17,8 +17,11 @@ namespace ImageHandler {
     extern Texture2D stormcallerPreview;
     extern Texture2D wardrummerPreview;
     extern std::vector<Texture2D> previewIcons;
+    extern std::vector<Texture2D> track;
+
+    std::vector<Texture2D> LoadAnimationFrames(const std::string& enemyType, int frameCount);
+    std::vector<Texture2D> LoadFrames(const std::string& name, int frameCount);
 
     void InitImages();
-    std::vector<Texture2D> LoadAnimationFrames(const std::string& enemyType, int frameCount);
     void UnloadImages();
 }

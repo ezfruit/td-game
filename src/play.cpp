@@ -236,8 +236,6 @@ void StartNextWave() {
     waveCooldownTimer = 0.0f;
 
     spawning = true;
-
-    std::cout << "Wave " << waveNumber << " started!\n";
 }
 
 std::string replacePlaceholders(const std::string& message, const std::unordered_map<std::string, std::string>& values) {
@@ -562,6 +560,68 @@ void UpdatePlaying() {
 void DrawPlaying() {
     ClearBackground(RAYWHITE);
 
+    int tileSize = TOWER_SIZE;
+    int frameCycleIndex = 0;
+    int numTrackFrames = 5;
+
+    // Draw the horizontal and vertical tracks
+    for (size_t i = 0; i < trackPoints.size() - 1; i++) {
+        Vector2 start = trackPoints[i];
+        Vector2 end = trackPoints[i + 1];
+        Vector2 dir = Vector2Subtract(end, start);
+
+        float length = Vector2Length(dir);
+        Vector2 unit = Vector2Normalize(dir);
+        int steps = (int)(length / tileSize);
+
+        bool isHorizontal = (dir.y == 0);
+        bool isVertical = (dir.x == 0);
+        float rotation = isVertical ? 90.0f : 0.0f;
+
+        for (int j = 0; j <= steps; j++) {
+            Vector2 tilePos = Vector2Add(start, Vector2Scale(unit, j * tileSize));
+
+            Texture2D frame = ImageHandler::track[frameCycleIndex];
+            frameCycleIndex = (frameCycleIndex + 1) % numTrackFrames;
+
+            Rectangle source = { 0, 0, (float)frame.width, (float)frame.height };
+            Rectangle dest = { tilePos.x, tilePos.y, (float)tileSize, (float)tileSize };
+            Vector2 origin = { tileSize / 2.0f, tileSize / 2.0f };
+
+            DrawTexturePro(frame, source, dest, origin, rotation, WHITE);
+        }
+    }
+
+    // Draw all corners
+    for (size_t i = 0; i < trackPoints.size() - 2; i++) {
+        Vector2 start = trackPoints[i];
+        Vector2 end = trackPoints[i + 1];
+        Vector2 next = trackPoints[i + 2];
+
+        int dx  = (int)(end.x - start.x);
+        int dy  = (int)(end.y - start.y);
+        int ndx = (int)(next.x - end.x);
+        int ndy = (int)(next.y - end.y);
+
+        // Only draw a corner if direction changes
+        if ((dx != ndx) || (dy != ndy)) {
+            Texture2D cornerFrame;
+
+            // Determine corner tile by direction change
+            if ((dx > 0 && ndy > 0) || (dy < 0 && ndx < 0))        cornerFrame = ImageHandler::track[5]; // Top Right
+            else if ((dx > 0 && ndy < 0) || (dy > 0 && ndx < 0))   cornerFrame = ImageHandler::track[6]; // Bottom Right
+            else if ((dx < 0 && ndy > 0) || (dy < 0 && ndx > 0))   cornerFrame = ImageHandler::track[8]; // Top Left
+            else if ((dx < 0 && ndy < 0) || (dy > 0 && ndx > 0))   cornerFrame = ImageHandler::track[7]; // Bottom Left
+            else continue; // no corner
+
+            Rectangle source = { 0, 0, (float)cornerFrame.width, (float)cornerFrame.height };
+            Rectangle dest   = { end.x, end.y, (float)tileSize, (float)tileSize };
+            Vector2 origin = { tileSize / 2.0f, tileSize / 2.0f };
+
+            DrawTexturePro(cornerFrame, source, dest, origin, 0.0f, WHITE);
+        }
+    }
+
     // When a tower is currently being placed
     if (isPlacingTower) {
         previewPosition = GetMousePosition();
@@ -598,6 +658,7 @@ void DrawPlaying() {
         DrawTextureEx(previewIcon, iconPos, 0.0f, scale, WHITE);
     }
 
+    // Error message to show not enough money
     if (showNotEnoughMoney) {
         moneyMsgTimer += GetFrameTime();
 
@@ -617,6 +678,7 @@ void DrawPlaying() {
         }
     }
 
+    // Draw the towers
     for (const auto& tower : towers) {
         tower->draw();
     }
@@ -654,14 +716,6 @@ void DrawPlaying() {
         DrawCircleV(selectedTower->getPosition(), selectedTower->getRange(), Fade(BLUE, 0.3f));
     }
 
-    for (size_t i = 0; i < trackPoints.size() - 1; i++) {
-        DrawLineV(trackPoints[i], trackPoints[i + 1], DARKGRAY);
-    }
-
-    for (const auto& point : trackPoints) {
-        DrawCircleV(point, 6, LIGHTGRAY);
-    }
-
     Vector2 mousePos = GetMousePosition();
 
     for (const auto& enemy : enemies) {
@@ -690,7 +744,7 @@ void DrawPlaying() {
             int textX = enemyPos.x - textWidth / 2;
             int textY = barPos.y - 18;
 
-            DrawText(info.c_str(), textX, textY, fontSize, DARKGRAY);
+            DrawText(info.c_str(), textX, textY, fontSize, RED);
 
         }
 

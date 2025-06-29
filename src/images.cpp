@@ -14,6 +14,25 @@ namespace ImageHandler {
     Texture2D wardrummerPreview;
     std::vector<Texture2D> towerIcons;
     std::vector<Texture2D> previewIcons;
+    std::vector<Texture2D> track;
+
+    std::vector<Texture2D> LoadAnimationFrames(const std::string& name, int frameCount) {
+        std::vector<Texture2D> frames;
+        for (int i = 0; i < frameCount; i++) {
+            std::string path = "assets/" + name + "_" + "animations/" + name + "_" + std::to_string(i) + ".png";
+            frames.push_back(LoadTexture(path.c_str()));
+        }
+        return frames;
+    }
+
+    std::vector<Texture2D> LoadFrames(const std::string& name, int frameCount) {
+        std::vector<Texture2D> frames;
+        for (int i = 0; i < frameCount; i++) {
+            std::string path = "assets/" + name + "/" + name + "_" + std::to_string(i) + ".png";
+            frames.push_back(LoadTexture(path.c_str()));
+        }
+        return frames;
+    }
 
     void InitImages() {
         archerIcon = LoadTexture("assets/icons/archer_icon.png");
@@ -29,15 +48,7 @@ namespace ImageHandler {
         stormcallerPreview = LoadTexture("assets/stormcaller_animations/stormcaller_6.png");
         wardrummerPreview = LoadTexture("assets/wardrummer_animations/wardrummer_0.png");
         previewIcons = {archerPreview, magePreview, torcherPreview, stormcallerPreview, wardrummerPreview};
-    }
-
-    std::vector<Texture2D> LoadAnimationFrames(const std::string& name, int frameCount) {
-        std::vector<Texture2D> frames;
-        for (int i = 0; i < frameCount; i++) {
-            std::string path = "assets/" + name + "_" + "animations/" + name + "_" + std::to_string(i) + ".png";
-            frames.push_back(LoadTexture(path.c_str()));
-        }
-        return frames;
+        track = LoadFrames("track", 9);
     }
 
     void UnloadImages() {
@@ -46,6 +57,9 @@ namespace ImageHandler {
         }
         for (auto& preview : previewIcons) {
             UnloadTexture(preview);
+        }
+        for (auto& tile : track) {
+            UnloadTexture(tile);
         }
     }
 }
