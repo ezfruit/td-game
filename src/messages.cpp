@@ -18,6 +18,13 @@ void MessageManager::update(float deltaTime) {
     }
 }
 
+void MessageManager::clear() {
+    while (!messageQueue.empty()) {
+        messageQueue.pop();
+    }
+    currentMessage.reset();
+}
+
 void MessageManager::draw() const {
     if (currentMessage) {
         int fontSize = 20;

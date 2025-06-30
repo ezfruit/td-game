@@ -18,6 +18,7 @@ namespace ImageHandler {
     extern Texture2D wardrummerPreview;
     extern std::vector<Texture2D> previewIcons;
     extern std::vector<Texture2D> track;
+    extern Texture2D gameBackground;
 
     std::vector<Texture2D> LoadAnimationFrames(const std::string& enemyType, int frameCount);
     std::vector<Texture2D> LoadFrames(const std::string& name, int frameCount);

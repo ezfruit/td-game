@@ -24,6 +24,8 @@ class MessageManager {
 
         void update(float deltaTime);
 
+        void clear();
+
         void draw() const;
 
         bool isDisplayingMessage() const;

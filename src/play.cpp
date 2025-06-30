@@ -172,6 +172,8 @@ void ResetGame() {
     lightningBolts.clear();
     floatingTexts.clear();
 
+    messageManager.clear(); // Clears all the messages in the queue as well as any currently displayed message
+
     waveScript.loadFromFile("src/wavescript.json");
 }
 
@@ -559,6 +561,8 @@ void UpdatePlaying() {
 // Draw the game
 void DrawPlaying() {
     ClearBackground(RAYWHITE);
+
+    DrawTexture(ImageHandler::gameBackground, 0, 0, WHITE); // draws it at top-left of screen
 
     int tileSize = TOWER_SIZE;
     int frameCycleIndex = 0;
