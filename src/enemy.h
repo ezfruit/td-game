@@ -291,3 +291,14 @@ class Arcane_Warden : public SpawnableEnemy {
 
         void draw() const override;
 };
+
+class Null_Imp : public Enemy {
+    public:
+        Null_Imp();
+
+        std::string getName() const override;
+
+        void takeDamage(int amount, const std::string& type, const std::string& targeting) override;
+
+        void draw() const override;
+};

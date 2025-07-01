@@ -40,5 +40,9 @@
   {
     "wave": 24,
     "warning": "Ravager swarm arriving!"
+  },
+  {
+    "wave": 26,
+    "warning": "Get ready for a HUGE swarm!"
   }
 ]

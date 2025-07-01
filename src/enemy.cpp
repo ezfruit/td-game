@@ -675,3 +675,27 @@ void Arcane_Warden::draw() const {
     DrawCircleV(position, hitboxRadius, PINK);
     DrawCircleV(position, hitboxRadius - 5, BLACK);
 }
+
+Null_Imp::Null_Imp() : Enemy(4000, 65.0f, 15.0f) {
+    maxHealth = health;
+}
+
+std::string Null_Imp::getName() const {
+    return "Null Imp";
+}
+
+void Null_Imp::takeDamage(int amount, const std::string& type, const std::string& targeting) {
+    if (type == "Magic") {
+        health -= static_cast<int> (amount * 1.5);
+    } else {
+        health -= amount;
+    }
+    if (health <= 0) {
+        alive = false;
+        health = 0;
+    }
+}
+
+void Null_Imp::draw() const {
+    DrawCircleV(position, hitboxRadius, LIGHTGRAY);
+}

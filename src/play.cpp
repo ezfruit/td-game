@@ -110,7 +110,7 @@ std::unordered_map<int, int> costs = {
 
 std::unordered_map<std::string, std::vector<int>> upgradeCosts = {
     {"Archer", {250, 600, 2500, 4500, 0}},
-    {"Mage", {300, 800, 3000, 6000, 0}},
+    {"Mage", {300, 800, 3000, 8000, 0}},
     {"Torcher", {300, 1200, 4000, 10000, 0}},
     {"Stormcaller", {600, 1800, 6000, 15000, 0}},
     {"War Drummer", {750, 2500, 4500, 12000, 0}},
@@ -145,7 +145,7 @@ void InitPlaying() {
 
 void ResetGame() {
     waveNumber = 0;
-    playerMoney = 600000;
+    playerMoney = 600;
     playerHealth = 100;
     income = baseIncome;
     waveInProgress = false;
@@ -180,7 +180,7 @@ void ResetGame() {
 int getIncomeForWave(int waveNumber) {
     const float base = baseIncome;
     const float max = 1500.0f;
-    const float k = 0.05f; // growth rate (higher means faster) (should be float between 0-1)
+    const float k = 0.03f; // growth rate (higher means faster) (should be float between 0-1)
 
     float income = base + (max - base) * (1.0f - std::exp(-k * waveNumber));
     return static_cast<int>(std::round(income));
@@ -467,6 +467,8 @@ void UpdatePlaying() {
                 } else if (type == "Arcane Warden") {
                     PlaySound(SoundManager::arcane_warden_spawn);
                     enemy = std::make_shared<Arcane_Warden>();
+                } else if (type == "Null Imp") {
+                    enemy = std::make_shared<Null_Imp>();
                 }
 
                 if (enemy) {

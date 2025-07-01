@@ -372,8 +372,8 @@ void Mage::upgrade(int upgCost) {
         case 5:
             damage += 20;
             range += 25;
-            attackSpeed = 1.5;
-            AoERadius += 25;
+            attackSpeed = 1.25;
+            AoERadius += 15;
             break;
     }
 }
