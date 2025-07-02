@@ -26,6 +26,6 @@ struct FloatingText {
     std::string text;
     float timeAlive = 0.0f;
     float duration = 2.0f; // seconds to display
-    Color color = LIME;
+    Color color = GOLD;
     float riseSpeed = 30.0f; // pixels per second
 };

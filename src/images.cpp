@@ -16,6 +16,8 @@ namespace ImageHandler {
     std::vector<Texture2D> previewIcons;
     std::vector<Texture2D> track;
     Texture2D gameBackground;
+    Texture2D health;
+    Texture2D gold;
 
     std::vector<Texture2D> LoadAnimationFrames(const std::string& name, int frameCount) {
         std::vector<Texture2D> frames;
@@ -51,6 +53,8 @@ namespace ImageHandler {
         previewIcons = {archerPreview, magePreview, torcherPreview, stormcallerPreview, wardrummerPreview};
         track = LoadFrames("track", 9);
         gameBackground = LoadTexture("assets/gameplay_background.png");
+        health = LoadTexture("assets/icons/health_icon.png");
+        gold = LoadTexture("assets/icons/gold_icon.png");
     }
 
     void UnloadImages() {
@@ -64,5 +68,7 @@ namespace ImageHandler {
             UnloadTexture(tile);
         }
         UnloadTexture(gameBackground);
+        UnloadTexture(health);
+        UnloadTexture(gold);
     }
 }

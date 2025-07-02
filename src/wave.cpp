@@ -917,6 +917,14 @@ std::vector<GameWave> waveDefinitions = {
         }
     },
 
+    // Wave 31
+    {
+        {
+            { "Null Imp", 0.0f},
+            { "Null Imp", 1.0f},
+        }
+    },
+
 };
 
 const size_t totalWaves = waveDefinitions.size();

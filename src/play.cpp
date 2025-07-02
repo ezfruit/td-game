@@ -268,7 +268,7 @@ void EndWave() {
 
     if (waveNumber == 0) return;
 
-    std::string incomeText = "Wave " + std::to_string(waveNumber) + " over. You earned $" + std::to_string(income) + ".";
+    std::string incomeText = "Wave " + std::to_string(waveNumber) + " over. You earned " + std::to_string(income) + " gold.";
     messageManager.addMessage(incomeText, 3.0f);
     playerMoney += income;
     income = getIncomeForWave(waveNumber);
@@ -664,7 +664,7 @@ void DrawPlaying() {
         DrawTextureEx(previewIcon, iconPos, 0.0f, scale, WHITE);
     }
 
-    // Error message to show not enough money
+    // Error message to show not enough gold
     if (showNotEnoughMoney) {
         moneyMsgTimer += GetFrameTime();
 
@@ -677,7 +677,7 @@ void DrawPlaying() {
 
         // Set color with alpha
         Color fadedRed = {255, 0, 0, (unsigned char)(255 * alpha)};
-        DrawText("Not enough money!", GetScreenWidth() / 2 - 100, 50, 20, fadedRed);
+        DrawText("Not enough gold!", GetScreenWidth() / 2 - 100, 50, 20, fadedRed);
 
         if (moneyMsgTimer > moneyMsgDuration) {
             showNotEnoughMoney = false;
@@ -811,8 +811,40 @@ void DrawPlaying() {
 
     messageManager.draw();
 
-    DrawText(TextFormat("Health: %d", playerHealth), 20, 10, 20, RED);
-    DrawText(TextFormat("$ %d", playerMoney), 200, 10, 20, LIME);
+    //DrawText(TextFormat("Health: %d", playerHealth), 20, 10, 20, RED);
+
+    // -----------------------
+
+    auto healthIcon = ImageHandler::health;
+
+    int fontSize = 20;
+    int textY = 10;
+
+    // Calculate vertical center of text
+    float textCenterY = textY + fontSize / 2.0f;
+
+    // Calculate y so the icon is centered on the text
+    float iconSize = 32.0f;
+    float iconY = textCenterY - iconSize / 2.0f;
+
+    // Draw the icon
+    Vector2 iconPos = { 20, iconY };
+    float healthScale = iconSize / healthIcon.height;
+    DrawTextureEx(healthIcon, iconPos, 0.0f, healthScale, WHITE);
+
+    // Draw the health number in fixed position
+    DrawText(TextFormat("%d", playerHealth), 60, textY, fontSize, RED);
+
+    // ----------------------
+
+    auto goldIcon = ImageHandler::gold;
+
+    iconPos = { 140, iconY };
+    float goldScale = iconSize / goldIcon.height;
+
+    DrawTextureEx(goldIcon, iconPos, 0.0f, healthScale, WHITE);
+
+    DrawText(TextFormat("%d", playerMoney), 180, 10, 20, GOLD);
     if (!messageManager.isDisplayingMessage()) {
         DrawText(TextFormat("Wave: %d", waveNumber), 600, 10, 20, DARKGRAY);
     }
@@ -845,7 +877,7 @@ void DrawPlaying() {
         DrawText(selectedTower->getName().c_str(), infoX + 10, infoY + 10, 24, DARKGRAY);
         DrawText(TextFormat("Level: %d", selectedTower->getLevel()), infoX + 10, infoY + 45, 20, DARKGRAY);
         if (auto goldGen = dynamic_cast<Gold_Mine*>(selectedTower)) {
-            DrawText(TextFormat("Money Generated: %d", goldGen->getTotalMoneyGenerated()), infoX + 10, infoY + 75, 20, DARKGRAY);
+            DrawText(TextFormat("Gold Generated: %d", goldGen->getTotalMoneyGenerated()), infoX + 10, infoY + 75, 20, DARKGRAY);
         } else {
             DrawText(TextFormat("Damage Dealt: %d", selectedTower->getTotalDamageDealt()), infoX + 10, infoY + 75, 20, DARKGRAY);
         }
@@ -862,7 +894,7 @@ void DrawPlaying() {
         int upgradeCost = upgradeCosts[selectedTower->getName()][selectedTower->getLevel() - 1];
         int fontSize = 20;
 
-        std::string costStr = TextFormat("$%d", upgradeCost);
+        std::string costStr = TextFormat("%d", upgradeCost);
         int textWidth = MeasureText(costStr.c_str(), fontSize);
 
         // Center horizontally
@@ -871,7 +903,7 @@ void DrawPlaying() {
 
         DrawText(costStr.c_str(), x, y, fontSize, WHITE);
 
-        std::string sellValueStr = TextFormat("$%d", selectedTower->getValue());
+        std::string sellValueStr = TextFormat("%d", selectedTower->getValue());
         textWidth = MeasureText(sellValueStr.c_str(), fontSize);
 
         x = sellBtn.x + 55 - (textWidth / 2);
@@ -947,16 +979,35 @@ void DrawPlaying() {
         DrawTextureEx(icon, { iconX, iconY }, 0.0f, scale.x, WHITE);
 
         // Draw cost underneath the slot
-        std::string costText = "$" + std::to_string(costs.at(i + 1));
+        std::string costText = std::to_string(costs.at(i + 1));
         int costFontSize = 20;
         int costTextWidth = MeasureText(costText.c_str(), costFontSize);
 
+        int goldSpacing = 4;
+
+        // Total width = icon + spacing + number
+        int totalWidth = iconSize + goldSpacing + costTextWidth;
+        
+        int centerX = slotRect.x + slotSize / 2;
+
+        // Icon position
+        Vector2 iconPos = {
+            (float) (centerX - totalWidth / 2),
+            (float) (slotRect.y + slotSize + 4)
+        };
+
+        int iconSize = 28;
+
+        float iconScale = iconSize / (float)goldIcon.height;
+
+        DrawTextureEx(goldIcon, iconPos, 0.0f, iconScale, WHITE);
+
         DrawText(
             costText.c_str(),
-            (int)(slotRect.x + slotSize / 2 - costTextWidth / 2),
-            (int)(slotRect.y + slotSize + 4), // a bit below the square
+            (int)(iconPos.x + iconSize + goldSpacing),
+            (int)(iconPos.y + 5),
             costFontSize,
-            LIME
+            GOLD
         );
 
         if (CheckCollisionPointRec(mousePos, slotRect)) {
