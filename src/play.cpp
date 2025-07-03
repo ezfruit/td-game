@@ -723,7 +723,7 @@ void DrawPlaying() {
         // Center horizontally
         int x = GetScreenWidth() / 2 - textWidth / 2;
 
-        DrawText(placingText.c_str(), x, 50, fontSize, BLUE);
+        DrawText(placingText.c_str(), x, 50, fontSize, WHITE);
 
         DrawText("Press X to cancel", GetScreenWidth() / 2 - 100, GetScreenHeight() - 190, 20, RED);
     }
@@ -817,11 +817,9 @@ void DrawPlaying() {
         DrawText(text.text.c_str(), (int)drawPos.x, (int)drawPos.y, fontSize, faded);
     }
 
-    DrawRectangle(0, 0, GetScreenWidth(), 40, LIGHTGRAY); // Top Gray Rectangle UI
+    DrawTexture(ImageHandler::topUIBackground, 0, 0, WHITE); // Top Stone Wall Background
 
     messageManager.draw();
-
-    //DrawText(TextFormat("Health: %d", playerHealth), 20, 10, 20, RED);
 
     // -----------------------
 
@@ -856,10 +854,10 @@ void DrawPlaying() {
 
     DrawText(TextFormat("%d", playerMoney), 180, 10, 20, GOLD);
     if (!messageManager.isDisplayingMessage()) {
-        DrawText(TextFormat("Wave: %d", waveNumber), 600, 10, 20, DARKGRAY);
+        DrawText(TextFormat("Wave: %d", waveNumber), 600, 10, 20, WHITE);
     }
 
-    DrawRectangle(0, 560, GetScreenWidth(), 160, LIGHTGRAY); // Bottom Gray Rectangle UI
+    DrawTexture(ImageHandler::bottomUIBackground, 0, 560, WHITE); // Bottom Stone Wall Background
 
     // When a tower is selected (clicked on in the field)
     if (selectedTower) {
@@ -883,13 +881,13 @@ void DrawPlaying() {
 
         int infoX = GetScreenWidth() / 2 + 25;
         int infoY = GetScreenHeight() - 160;
-        DrawRectangle(infoX, infoY, 200, 160, LIGHTGRAY);
-        DrawText(selectedTower->getName().c_str(), infoX + 10, infoY + 10, 24, DARKGRAY);
-        DrawText(TextFormat("Level: %d", selectedTower->getLevel()), infoX + 10, infoY + 45, 20, DARKGRAY);
+        //DrawRectangle(infoX, infoY, 200, 160, LIGHTGRAY);
+        DrawText(selectedTower->getName().c_str(), infoX + 10, infoY + 10, 24, WHITE);
+        DrawText(TextFormat("Level: %d", selectedTower->getLevel()), infoX + 10, infoY + 45, 20, WHITE);
         if (auto goldGen = dynamic_cast<Gold_Mine*>(selectedTower)) {
-            DrawText(TextFormat("Gold Generated: %d", goldGen->getTotalMoneyGenerated()), infoX + 10, infoY + 75, 20, DARKGRAY);
+            DrawText(TextFormat("Gold Generated: %d", goldGen->getTotalMoneyGenerated()), infoX + 10, infoY + 75, 20, WHITE);
         } else {
-            DrawText(TextFormat("Damage Dealt: %d", selectedTower->getTotalDamageDealt()), infoX + 10, infoY + 75, 20, DARKGRAY);
+            DrawText(TextFormat("Damage Dealt: %d", selectedTower->getTotalDamageDealt()), infoX + 10, infoY + 75, 20, WHITE);
         }
 
         Rectangle upgradeBtn = { (float)(infoX + 10), (float)(infoY + 100), 110, 50 };
@@ -1149,6 +1147,4 @@ void DrawPlaying() {
     if (CheckCollisionPointRec(GetMousePosition(), homeButton) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         HomePressed = true;
     }
-
-    DrawLineV({640, 560}, {640, 720}, DARKGRAY);
 }

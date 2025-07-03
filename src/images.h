@@ -19,6 +19,8 @@ namespace ImageHandler {
     extern std::vector<Texture2D> previewIcons;
     extern std::vector<Texture2D> track;
     extern Texture2D gameBackground;
+    extern Texture2D topUIBackground;
+    extern Texture2D bottomUIBackground;
     extern Texture2D health;
     extern Texture2D gold;
 

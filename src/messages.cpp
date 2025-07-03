@@ -30,7 +30,7 @@ void MessageManager::draw() const {
         int fontSize = 20;
         int screenWidth = GetScreenWidth();
         int textWidth = MeasureText(currentMessage->text.c_str(), fontSize);
-        DrawText(currentMessage->text.c_str(), (screenWidth - textWidth) / 2, 10, fontSize, DARKGRAY);
+        DrawText(currentMessage->text.c_str(), (screenWidth - textWidth) / 2, 10, fontSize, WHITE);
     }
 }
 
