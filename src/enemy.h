@@ -302,3 +302,62 @@ class Null_Imp : public Enemy {
 
         void draw() const override;
 };
+
+class The_Host : public SpawnableEnemy {
+    public:
+        The_Host();
+
+        std::string getName() const override;
+
+        void takeDamage(int amount, const std::string& type, const std::string& targeting) override;
+
+        void spawn() override;
+
+        void draw() const override;
+};
+
+class Bulwark : public Enemy {
+    public:
+        Bulwark();
+
+        std::string getName() const override;
+
+        void takeDamage(int amount, const std::string& type, const std::string& targeting) override;
+
+        void draw() const override;
+};
+
+class Prime_Sludge : public Enemy {
+    public:
+        Prime_Sludge();
+
+        std::string getName() const override;
+
+        void takeDamage(int amount, const std::string& type, const std::string& targeting) override;
+
+        void spawn();
+
+        void draw() const override;
+};
+
+class Big_Slime : public Enemy {
+    public:
+        Big_Slime();
+
+        std::string getName() const override;
+
+        void takeDamage(int amount, const std::string& type, const std::string& targeting) override;
+
+        void draw() const override;
+};
+
+class Fractured_King : public Enemy {
+    public:
+        Fractured_King();
+
+        std::string getName() const override;
+
+        void takeDamage(int amount, const std::string& type, const std::string& targeting) override;
+
+        void draw() const override;
+};

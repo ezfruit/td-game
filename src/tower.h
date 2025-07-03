@@ -182,7 +182,7 @@ class War_Drummer : public Tower {
 class Gold_Mine : public Tower {
     private:
         int totalGoldGenerated = 0;
-        int goldPerRound = 100;
+        int goldPerRound = 75;
     public:
         Gold_Mine(Vector2 pos);
 

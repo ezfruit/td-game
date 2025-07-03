@@ -6,7 +6,7 @@
 #include <memory>
 #include "tower.h"
 
-Enemy::Enemy(int health, float speed, float radius) : health(health), speed(speed), baseSpeed(speed), hitboxRadius(radius) {}
+Enemy::Enemy(int health, float speed, float radius) : health(health), maxHealth(health), speed(speed), baseSpeed(speed), hitboxRadius(radius) {}
 
 std::vector<std::shared_ptr<Enemy>> deathSpawns;
 
@@ -124,8 +124,7 @@ void Enemy::unloadFrames() {
     moveFrames.clear();
 }
 
-Slime::Slime() : Enemy(4, 50.0f, 10.0f) { // 50 speed for normal
-    maxHealth = health;
+Slime::Slime() : Enemy(4, 50.0f, 10.0f) {
     moveFrames = ImageHandler::LoadAnimationFrames("slime", 8);
 } 
 
@@ -188,9 +187,7 @@ void Slime::draw() const {
     DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
 }
 
-Knight::Knight() : Enemy(10, 40.0f, 10.0f) { // 40 speed for normal
-    maxHealth = health;
-}
+Knight::Knight() : Enemy(10, 40.0f, 10.0f) {}
 
 std::string Knight::getName() const {
     return "Knight";
@@ -214,9 +211,7 @@ void Knight::draw() const {
     DrawCircleV(position, hitboxRadius, GRAY);
 }
 
-Fire_Imp::Fire_Imp() : Enemy(25, 100.0f, 10.0f) { // 100 speed for normal
-    maxHealth = health;
-}
+Fire_Imp::Fire_Imp() : Enemy(25, 100.0f, 10.0f) {}
 
 std::string Fire_Imp::getName() const {
     return "Fire Imp";
@@ -241,9 +236,7 @@ void Fire_Imp::draw() const {
 }
 
 
-Brute::Brute() : Enemy(50, 25.0f, 30.0f) { // 25 speed for normal
-    maxHealth = health;
-}
+Brute::Brute() : Enemy(50, 25.0f, 30.0f) {}
 
 std::string Brute::getName() const {
     return "Brute";
@@ -290,9 +283,7 @@ void SpawnableEnemy::update(float deltaTime, const std::vector<Vector2>& track) 
     }
 }
 
-Spider_Queen::Spider_Queen() : SpawnableEnemy(300, 25.0f, 20.0f, 1.0f, 5.0f, 3) { // 25 speed for normal
-    maxHealth = health;
-}
+Spider_Queen::Spider_Queen() : SpawnableEnemy(300, 25.0f, 20.0f, 1.0f, 5.0f, 3) {}
 
 void Spider_Queen::spawn() {
     Vector2 spawnPos = getPosition();
@@ -323,9 +314,7 @@ void Spider_Queen::draw() const {
     DrawCircleV(position, hitboxRadius, BLACK);
 }
 
-Spiderling::Spiderling() : Enemy(10, 80.0f, 5.0f) {
-    maxHealth = health;
-}
+Spiderling::Spiderling() : Enemy(10, 80.0f, 5.0f) {}
 
 std::string Spiderling::getName() const {
     return "Spiderling";
@@ -348,9 +337,7 @@ void Spiderling::draw() const {
     DrawCircleV(position, hitboxRadius, BLACK);
 }
 
-Arcane_Shell::Arcane_Shell() : Enemy(100, 60.0f, 15.0f) {
-    maxHealth = health;
-}
+Arcane_Shell::Arcane_Shell() : Enemy(100, 60.0f, 15.0f) {}
 
 std::string Arcane_Shell::getName() const {
     return "Arcane Shell";
@@ -375,9 +362,7 @@ void Arcane_Shell::draw() const {
     DrawCircleV(position, hitboxRadius, PINK);
 }
 
-Flux::Flux() : Enemy(250, 30.0f, 14.0f) {
-    maxHealth = health;
-}
+Flux::Flux() : Enemy(250, 30.0f, 14.0f) {}
 
 void Flux::update(float deltaTime, const std::vector<Vector2>& track) {
     
@@ -429,9 +414,7 @@ std::string Flux::getShield() const {
     return shield;
 }
 
-Husk::Husk() : Enemy(75, 150.0f, 20.0f) {
-    maxHealth = health;
-}
+Husk::Husk() : Enemy(75, 150.0f, 20.0f) {}
 
 std::string Husk::getName() const {
     return "Husk";
@@ -454,9 +437,7 @@ void Husk::draw() const {
     DrawCircleV(position, hitboxRadius, DARKGRAY);
 }
 
-Exoskeleton::Exoskeleton() : Enemy(500, 35.0f, 12.0f) {
-    maxHealth = health;
-}
+Exoskeleton::Exoskeleton() : Enemy(500, 35.0f, 12.0f) {}
 
 std::string Exoskeleton::getName() const {
     return "Exoskeleton";
@@ -482,9 +463,7 @@ void Exoskeleton::draw() const {
     DrawCircleV(position, hitboxRadius, LIGHTGRAY);
 }
 
-Goliath::Goliath() : Enemy(1200, 20.0f, 20.0f) {
-    maxHealth = health;
-}
+Goliath::Goliath() : Enemy(1200, 20.0f, 20.0f) {}
 
 std::string Goliath::getName() const {
     return "Goliath";
@@ -507,9 +486,7 @@ void Goliath::draw() const {
     DrawCircleV(position, hitboxRadius, DARKPURPLE);
 }
 
-Sludge::Sludge() : Enemy(350, 60.0f, 15.0f) {
-    maxHealth = health;
-}
+Sludge::Sludge() : Enemy(350, 60.0f, 15.0f) {}
 
 std::string Sludge::getName() const {
     return "Sludge";
@@ -543,9 +520,7 @@ void Sludge::draw() const {
     DrawCircleV(position, hitboxRadius, DARKBROWN);
 }
 
-Sludge_Mite::Sludge_Mite() : Enemy(100, 40.0f, 10.0f) {
-    maxHealth = health;
-}
+Sludge_Mite::Sludge_Mite() : Enemy(100, 40.0f, 10.0f) {}
 
 std::string Sludge_Mite::getName() const {
     return "Sludge Mite";
@@ -570,9 +545,7 @@ void Sludge_Mite::draw() const {
     DrawCircleV(position, hitboxRadius, DARKBROWN);
 }
 
-Lava_Golem::Lava_Golem() : Enemy(600, 30.0f, 25.0f) {
-    maxHealth = health;
-}
+Lava_Golem::Lava_Golem() : Enemy(600, 30.0f, 25.0f) {}
 
 std::string Lava_Golem::getName() const {
     return "Lava Golem";
@@ -596,9 +569,7 @@ void Lava_Golem::draw() const {
     DrawCircleV(position, hitboxRadius, ORANGE);
 }
 
-Obsidian_Behemoth::Obsidian_Behemoth() : Enemy(2500, 20.0f, 30.0f) {
-    maxHealth = health;
-}
+Obsidian_Behemoth::Obsidian_Behemoth() : Enemy(2500, 20.0f, 30.0f) {}
 
 std::string Obsidian_Behemoth::getName() const {
     return "Obsidian Behemoth";
@@ -617,9 +588,7 @@ void Obsidian_Behemoth::draw() const {
     DrawCircleV(position, hitboxRadius, BLACK);
 }
 
-Ravager::Ravager() : Enemy(800, 75.0f, 35.0f) {
-    maxHealth = health;
-}
+Ravager::Ravager() : Enemy(800, 75.0f, 35.0f) {}
 
 std::string Ravager::getName() const {
     return "Ravager";
@@ -642,9 +611,7 @@ void Ravager::draw() const {
     DrawCircleV(position, hitboxRadius, DARKBLUE);
 }
 
-Arcane_Warden::Arcane_Warden() : SpawnableEnemy(1500, 30.0f, 25.0f, 0.5f, 6.0f, 4) {
-    maxHealth = health;
-}
+Arcane_Warden::Arcane_Warden() : SpawnableEnemy(1500, 30.0f, 25.0f, 0.5f, 6.0f, 4) {}
 
 std::string Arcane_Warden::getName() const {
     return "Arcane Warden";
@@ -676,9 +643,7 @@ void Arcane_Warden::draw() const {
     DrawCircleV(position, hitboxRadius - 5, BLACK);
 }
 
-Null_Imp::Null_Imp() : Enemy(4000, 65.0f, 15.0f) {
-    maxHealth = health;
-}
+Null_Imp::Null_Imp() : Enemy(4000, 65.0f, 15.0f) {}
 
 std::string Null_Imp::getName() const {
     return "Null Imp";
@@ -698,4 +663,183 @@ void Null_Imp::takeDamage(int amount, const std::string& type, const std::string
 
 void Null_Imp::draw() const {
     DrawCircleV(position, hitboxRadius, LIGHTGRAY);
+}
+
+The_Host::The_Host() : SpawnableEnemy(12000, 40.0f, 30.0f, 1.0f, 4.0f, 3) {}
+
+std::string The_Host::getName() const {
+    return "The Host";
+}
+
+void The_Host::takeDamage(int amount, const std::string& type, const std::string& targeting) {
+
+    revertSpeed();
+    health -= amount;
+
+    if (health <= 0) {
+        alive = false;
+        health = 0;
+    }
+}
+
+void The_Host::spawn() {
+
+    Vector2 spawnPos = getPosition();
+    int random = GetRandomValue(1, 10);
+
+    std::shared_ptr<Enemy> enemy;
+
+    if (random <= 2) {
+        enemy = std::make_shared<Null_Imp>();
+    } else if (random <= 5) {
+        enemy = std::make_shared<Ravager>();
+    } else {
+        enemy = std::make_shared<Husk>();
+    }
+
+    enemy->setPosition(spawnPos);
+    enemy->setCurrentTarget(currentTarget);
+    enemies.push_back(std::move(enemy));
+}
+
+void The_Host::draw() const {
+    DrawCircleV(position, hitboxRadius, MAGENTA);
+}
+
+Bulwark::Bulwark() : Enemy(10000, 30.0f, 25.0f) {}
+
+std::string Bulwark::getName() const {
+    return "Bulwark";
+}
+
+void Bulwark::takeDamage(int amount, const std::string& type, const std::string& targeting) {
+    if (targeting == "Area of Effect") {
+        health -= static_cast<int> (amount * 0.5);
+    } else {
+        health -= amount;
+    }
+
+    if (health <= 0) {
+        alive = false;
+        health = 0;
+    }
+}
+
+void Bulwark::draw() const {
+    DrawCircleV(position, hitboxRadius, WHITE);
+}
+
+Prime_Sludge::Prime_Sludge() : Enemy(6000, 100.0f, 20.0f) {}
+
+std::string Prime_Sludge::getName() const {
+    return "Prime Sludge";
+}
+
+void Prime_Sludge::takeDamage(int amount, const std::string& type, const std::string& targeting) {
+    if (type == "Fire") {
+        health -= static_cast<int> (amount * 4);
+    } else if (type == "Physical" || targeting == "Pierce") {
+        return;
+    } else {
+        health -= amount;
+    }
+
+    if (health <= 0) {
+        alive = false;
+        health = 0;
+        spawn();
+    }
+}
+
+void Prime_Sludge::spawn() {
+    Vector2 spawnPos = getPosition();
+    std::shared_ptr<Enemy> enemy = std::make_shared<Sludge>();
+    enemy->setPosition(spawnPos);
+    enemy->setCurrentTarget(currentTarget);
+    deathSpawns.push_back(std::move(enemy));
+}
+
+void Prime_Sludge::draw() const {
+    DrawCircleV(position, hitboxRadius, DARKBROWN);
+}
+
+Big_Slime::Big_Slime() : Enemy(50000, 25.0f, 40.0f) {
+    moveFrames = ImageHandler::LoadAnimationFrames("slime", 8);
+}
+
+std::string Big_Slime::getName() const {
+    return "Big Slime";
+}
+
+void Big_Slime::takeDamage(int amount, const std::string& type, const std::string& targeting) {
+    health -= amount;
+    if (health <= 0) {
+        alive = false;
+        health = 0;
+    }
+}
+
+void Big_Slime::draw() const {
+    Texture2D frame = moveFrames[currentFrame];
+    float diameter = hitboxRadius * 2.0f;
+
+    Rectangle dest = {
+        position.x,
+        position.y,
+        diameter,
+        diameter
+    };
+
+    Vector2 origin = {
+        diameter / 2.0f,
+        diameter / 2.0f
+    };
+
+    float angleDeg = 0.0f;
+
+    if (currentTarget < trackPoints.size()) {
+        Vector2 dir = Vector2Subtract(trackPoints[currentTarget], position);
+        float angleRad = atan2f(dir.y, dir.x);
+        angleDeg = angleRad * (180.0f / PI);
+
+        // Flip horizontally when moving left
+        if (angleDeg > 90.0f || angleDeg < -90.0f) {
+            angleDeg += 180.0f;
+            // Flip source rect too
+            Rectangle source = {
+                0.0f, 0.0f,
+                (float)-frame.width, // flip horizontally
+                (float)frame.height
+            };
+            DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
+            return;
+        }
+    }
+
+    // Default source rect (not flipped)
+    Rectangle source = {
+        0.0f, 0.0f,
+        (float)frame.width,
+        (float)frame.height
+    };
+
+    DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
+}
+
+Fractured_King::Fractured_King() : Enemy(800000, 20.0f, 30.0f) {}
+
+std::string Fractured_King::getName() const {
+    return "Fractured King";
+}
+
+void Fractured_King::takeDamage(int amount, const std::string& type, const std::string& targeting) {
+    health -= amount;
+    if (health <= 0) {
+        alive = false;
+        health = 0;
+    }
+}
+
+void Fractured_King::draw() const {
+    DrawCircleV(position, hitboxRadius, RED);
 }

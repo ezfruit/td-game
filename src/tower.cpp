@@ -263,14 +263,14 @@ void Archer::upgrade(int upgCost) {
             break;
         case 4:
             damage += 10;
-            attackSpeed = 1.5f;
+            attackSpeed = 1.25f;
             projectileSpeed += 200;
             projectileRange += 500;
             break;
         case 5:
             damage += 25;
             range += 25;
-            attackSpeed = 1.75f;
+            attackSpeed = 1.5f;
             pierceCount = 4;
             projectileSpeed += 200;
             projectileRange += 500;
@@ -373,7 +373,7 @@ void Mage::upgrade(int upgCost) {
             damage += 20;
             range += 25;
             attackSpeed = 1.25;
-            AoERadius += 15;
+            AoERadius += 10;
             break;
     }
 }
@@ -502,7 +502,7 @@ void Torcher::upgrade(int upgCost) {
         case 3:
             damage += 3;
             attackSpeed = 1.5f;
-            slowEffect = 0.8;
+            slowEffect = 0.9;
             break;
         case 4:
             burnDuration += 2;
@@ -510,7 +510,7 @@ void Torcher::upgrade(int upgCost) {
             break;
         case 5:
             damage += 15;
-            slowEffect = 0.6;
+            slowEffect = 0.75;
             range += 25;
             projectileRange = range;
             burnDuration += 2;

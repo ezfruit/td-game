@@ -30,7 +30,7 @@
   },
   {
     "wave": 20,
-    "pre": "You SURVIVED THAT?! Alright, you haven't seen the end of me..",
+    "pre": "You SURVIVED THAT?! Wow.. I'm impressed.",
     "warning": "Incoming sludge horde!"
   },
   {
@@ -44,5 +44,37 @@
   {
     "wave": 26,
     "warning": "Get ready for a HUGE swarm!"
+  },
+  {
+    "wave": 29,
+    "warning": "A DANGEROUS unstable enemy awaits.."
+  },
+  {
+    "wave": 32,
+    "warning": "You feel a wave of unstable energy approaching.."
+  },
+  {
+    "wave": 35,
+    "warning": "You thought sludges were annoying?"
+  },
+  {
+    "wave": 36,
+    "pre": "Prepare everything you've got.",
+    "warning": "This next wave might just be the death of you.",
+    "post": "Good luck."
+  },
+  {
+    "wave": 37,
+    "warning": "A familiar enemy returns with their brother.."
+  },
+  {
+    "wave": 38,
+    "warning": "The penultimate wave. Let's take a trip down memory lane!"
+  },
+  {
+    "wave": 39,
+    "pre": "Well...",
+    "warning": "This is it. The final wave. Your entire journey has led up to this moment.",
+    "post": "I really hope you make it."
   }
 ]

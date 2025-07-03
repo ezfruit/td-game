@@ -10,10 +10,10 @@
 #include "images.h"
 #include "messages.h"
 
-// TODO: Make the track an actual track
-// TODO: Animations for towers (archer done)
+// TODO: Animations for towers (all except gold mine done)
 // TODO: Animations for enemies (slime done)
 // TODO: Add a cooldown between starting the game and wave 1 (10 seconds maybe), also add a visual indicator where enemies will come from
+// TODO: Fix the bug where after game over, the cooldown doesn't start and the game instantly starts
 // TODO: Add a brief description to towers when hovering over their icons (to let players know strengths)
 // TODO: Add upgrade information as well as an image of the upgrade icon
 // TODO: Add a track selector (up to 3)
@@ -109,12 +109,12 @@ std::unordered_map<int, int> costs = {
 };
 
 std::unordered_map<std::string, std::vector<int>> upgradeCosts = {
-    {"Archer", {250, 600, 2500, 4500, 0}},
+    {"Archer", {250, 600, 2500, 6000, 0}},
     {"Mage", {300, 800, 3000, 8000, 0}},
-    {"Torcher", {300, 1200, 4000, 10000, 0}},
+    {"Torcher", {300, 1200, 5000, 12500, 0}},
     {"Stormcaller", {600, 1800, 6000, 15000, 0}},
     {"War Drummer", {750, 2500, 4500, 12000, 0}},
-    {"Gold Mine", {600, 1500, 3000, 6000, 0}}
+    {"Gold Mine", {800, 2000, 4000, 8000, 0}}
 };
 
 TargetMode currentTargetMode = FIRST;
@@ -469,6 +469,16 @@ void UpdatePlaying() {
                     enemy = std::make_shared<Arcane_Warden>();
                 } else if (type == "Null Imp") {
                     enemy = std::make_shared<Null_Imp>();
+                } else if (type == "The Host") {
+                    enemy = std::make_shared<The_Host>();
+                } else if (type == "Bulwark") {
+                    enemy = std::make_shared<Bulwark>();
+                } else if (type == "Prime Sludge") {
+                    enemy = std::make_shared<Prime_Sludge>();
+                } else if (type == "Big Slime") {
+                    enemy = std::make_shared<Big_Slime>();
+                } else if (type == "Fractured King") {
+                    enemy = std::make_shared<Fractured_King>();
                 }
 
                 if (enemy) {
