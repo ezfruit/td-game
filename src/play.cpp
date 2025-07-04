@@ -15,7 +15,7 @@
 // TODO: Add a cooldown between starting the game and wave 1 (10 seconds maybe), also add a visual indicator where enemies will come from
 // TODO: Fix the bug where after game over, the cooldown doesn't start and the game instantly starts
 // TODO: Add a brief description to towers when hovering over their icons (to let players know strengths)
-// TODO: Add upgrade information as well as an image of the upgrade icon
+// TODO: Add image of the current tower icon to the upgrade info
 // TODO: Add a track selector (up to 3)
 
 std::vector<Vector2> trackPoints;
@@ -145,7 +145,7 @@ void InitPlaying() {
 
 void ResetGame() {
     waveNumber = 0;
-    playerMoney = 600;
+    playerMoney = 600000;
     playerHealth = 100;
     income = baseIncome;
     waveInProgress = false;
@@ -881,7 +881,7 @@ void DrawPlaying() {
 
         int infoX = GetScreenWidth() / 2 + 25;
         int infoY = GetScreenHeight() - 160;
-        //DrawRectangle(infoX, infoY, 200, 160, LIGHTGRAY);
+        
         DrawText(selectedTower->getName().c_str(), infoX + 10, infoY + 10, 24, WHITE);
         DrawText(TextFormat("Level: %d", selectedTower->getLevel()), infoX + 10, infoY + 45, 20, WHITE);
         if (auto goldGen = dynamic_cast<Gold_Mine*>(selectedTower)) {
@@ -917,6 +917,8 @@ void DrawPlaying() {
         x = sellBtn.x + 55 - (textWidth / 2);
 
         DrawText(sellValueStr.c_str(), x, y, fontSize, WHITE);
+
+        selectedTower->showUpgradeInfo();
 
         // Targeting mode button
         Rectangle targetBtn = { (float)GetScreenWidth() - 160, (float)GetScreenHeight() - 40, 150, 35 };

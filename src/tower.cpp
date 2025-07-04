@@ -202,7 +202,7 @@ Archer::Archer(Vector2 pos) : Tower(150, 2, 0.8f, "Pierce", 200, pos) {
     projectileSpeed = 400.0f;
     projectileRange = 400.0f;
     pierceCount = 2;
-    animationFrames = ImageHandler::LoadAnimationFrames("archer", 2);
+    animationFrames = ImageHandler::LoadAnimationFrames("archer", 10);
 }
 
 void Archer::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, const std::vector<Vector2>& track, std::vector<std::shared_ptr<Projectile>>& projectiles) {
@@ -254,18 +254,21 @@ void Archer::upgrade(int upgCost) {
             range += 25;
             attackSpeed = 1.0f;
             projectileSpeed += 100;
+            shootFrame += 2;
             break;
         case 3:
             damage += 3;
             pierceCount = 3;
             projectileSpeed += 100;
             projectileRange += 250;
+            shootFrame += 2;
             break;
         case 4:
             damage += 10;
             attackSpeed = 1.25f;
             projectileSpeed += 200;
             projectileRange += 500;
+            shootFrame += 2;
             break;
         case 5:
             damage += 25;
@@ -274,12 +277,13 @@ void Archer::upgrade(int upgCost) {
             pierceCount = 4;
             projectileSpeed += 200;
             projectileRange += 500;
+            shootFrame += 2;
             break;
     }
 }
 
 void Archer::draw() const {
-    Texture2D frame = isShooting ? animationFrames[0] : animationFrames[1];
+    Texture2D frame = isShooting ? animationFrames[shootFrame] : animationFrames[shootFrame + 1];
 
     Rectangle source = {
         0.0f, 0.0f,
@@ -300,6 +304,45 @@ void Archer::draw() const {
     };
 
     DrawTexturePro(frame, source, dest, origin, rotationAngle, WHITE);
+}
+
+void Archer::showUpgradeInfo() const {
+
+    int infoX = GetScreenWidth() / 2 + 270;
+    int infoY = GetScreenHeight() - 160;
+
+    int name_font_size = 20;
+    int stat_font_size = 18;
+
+    switch (level) {
+        case 1:
+            DrawText("Training", infoX + 10, infoY + 10, name_font_size, WHITE);
+            DrawText("+ Range", infoX + 10, infoY + 40, stat_font_size, WHITE);
+            DrawText("+ Attack Speed", infoX + 10, infoY + 70, stat_font_size, WHITE);
+            DrawText("+ Arrow Speed", infoX + 10, infoY + 100, stat_font_size, WHITE);
+            break;
+        case 2:
+            DrawText("Enhanced Pierce", infoX + 10, infoY + 10, name_font_size, WHITE);
+            DrawText("+ Damage", infoX + 10, infoY + 40, stat_font_size, WHITE);
+            DrawText("+ Pierce Count", infoX + 10, infoY + 70, stat_font_size, WHITE);
+            DrawText("+ Arrow Speed", infoX + 10, infoY + 100, stat_font_size, WHITE);
+            DrawText("+ Arrow Range", infoX + 10, infoY + 130, stat_font_size, WHITE);
+            break;
+        case 3:
+            DrawText("Barbed Volley", infoX + 10, infoY + 10, name_font_size, WHITE);
+            DrawText("+ Damage", infoX + 10, infoY + 40, stat_font_size, WHITE);
+            DrawText("+ Attack Speed", infoX + 10, infoY + 70, stat_font_size, WHITE);
+            DrawText("+ Arrow Speed", infoX + 10, infoY + 100, stat_font_size, WHITE);
+            DrawText("+ Arrow Range", infoX + 10, infoY + 130, stat_font_size, WHITE);
+            break;
+        case 4:
+            DrawText("Arrowstorm", infoX + 10, infoY + 10, name_font_size, WHITE);
+            DrawText("+ ALL Stats", infoX + 10, infoY + 40, stat_font_size,  WHITE);
+            break;
+        case 5:
+            DrawText("Maxed", infoX + 10, infoY + 10, name_font_size, WHITE);
+            break;
+    }
 }
 
 Mage::Mage(Vector2 pos) : Tower(100, 3, 0.5, "Area of Effect", 300, pos) {
@@ -401,6 +444,44 @@ void Mage::draw() const {
 
     DrawTexturePro(frame, source, dest, origin, rotationAngle, WHITE);
     
+}
+
+void Mage::showUpgradeInfo() const {
+    
+    int infoX = GetScreenWidth() / 2 + 270;
+    int infoY = GetScreenHeight() - 160;
+
+    int name_font_size = 20;
+    int stat_font_size = 18;
+
+    switch (level) {
+        case 1:
+            DrawText("Mystic Focus", infoX + 10, infoY + 10, name_font_size, WHITE);
+            DrawText("+ Damage", infoX + 10, infoY + 40, stat_font_size, WHITE);
+            DrawText("+ Range", infoX + 10, infoY + 70, stat_font_size, WHITE);
+            break;
+        case 2:
+            DrawText("Bigger Fireballs", infoX + 10, infoY + 10, name_font_size, WHITE);
+            DrawText("+ Damage", infoX + 10, infoY + 40, stat_font_size, WHITE);
+            DrawText("+ AoE Radius", infoX + 10, infoY + 70, stat_font_size, WHITE);
+            break;
+        case 3:
+            DrawText("Mana Channel", infoX + 10, infoY + 10, name_font_size, WHITE);
+            DrawText("+ Damage", infoX + 10, infoY + 40, stat_font_size, WHITE);
+            DrawText("+ Range", infoX + 10, infoY + 70, stat_font_size, WHITE);
+            DrawText("+ Attack Speed", infoX + 10, infoY + 100, stat_font_size, WHITE);
+            break;
+        case 4:
+            DrawText("Pyroclasm Obelisk", infoX + 10, infoY + 10, name_font_size, WHITE);
+            DrawText("+ Damage", infoX + 10, infoY + 40, stat_font_size,  WHITE);
+            DrawText("+ Range", infoX + 10, infoY + 70, stat_font_size, WHITE);
+            DrawText("+ Attack Speed", infoX + 10, infoY + 100, stat_font_size, WHITE);
+            DrawText("+ AoE Radius", infoX + 10, infoY + 130, stat_font_size, WHITE);
+            break;
+        case 5:
+            DrawText("Maxed", infoX + 10, infoY + 10, name_font_size, WHITE);
+            break;
+    }
 }
 
 Torcher::Torcher(Vector2 pos) : Tower(75, 1, 1.0, "Single", 700, pos) {
@@ -551,6 +632,41 @@ void Torcher::draw() const {
     DrawTexturePro(frame, source, dest, origin, rotationAngle, WHITE);
 }
 
+void Torcher::showUpgradeInfo() const {
+    
+    int infoX = GetScreenWidth() / 2 + 270;
+    int infoY = GetScreenHeight() - 160;
+
+    int name_font_size = 20;
+    int stat_font_size = 18;
+
+    switch (level) {
+        case 1:
+            DrawText("Sharp Sight", infoX + 10, infoY + 10, name_font_size, WHITE);
+            DrawText("+ Damage", infoX + 10, infoY + 40, stat_font_size, WHITE);
+            DrawText("+ Range", infoX + 10, infoY + 70, stat_font_size, WHITE);
+            break;
+        case 2:
+            DrawText("Pyric Conduit", infoX + 10, infoY + 10, name_font_size, WHITE);
+            DrawText("+ Damage", infoX + 10, infoY + 40, stat_font_size, WHITE);
+            DrawText("+ Attack Speed", infoX + 10, infoY + 70, stat_font_size, WHITE);
+            DrawText("NEW: Flame Slows", infoX + 10, infoY + 100, stat_font_size, WHITE);
+            break;
+        case 3:
+            DrawText("Increased Fuel", infoX + 10, infoY + 10, name_font_size, WHITE);
+            DrawText("+ Burn Duration", infoX + 10, infoY + 40, stat_font_size, WHITE);
+            DrawText("+ Burn Ticks", infoX + 10, infoY + 70, stat_font_size, WHITE);
+            break;
+        case 4:
+            DrawText("Flamecaller", infoX + 10, infoY + 10, name_font_size, WHITE);
+            DrawText("+ ALL stats", infoX + 10, infoY + 40, stat_font_size,  WHITE);
+            break;
+        case 5:
+            DrawText("Maxed", infoX + 10, infoY + 10, name_font_size, WHITE);
+            break;
+    }
+}
+
 Stormcaller::Stormcaller(Vector2 pos) : Tower(300, 30, 0.2f, "Area of Effect", 3000, pos) {
     name = "Stormcaller";
     type = "Air";
@@ -695,6 +811,40 @@ void Stormcaller::draw() const {
     DrawTexturePro(frame, source, dest, origin, rotationAngle, WHITE);
 }
 
+void Stormcaller::showUpgradeInfo() const {
+    
+    int infoX = GetScreenWidth() / 2 + 270;
+    int infoY = GetScreenHeight() - 160;
+
+    int name_font_size = 20;
+    int stat_font_size = 18;
+
+    switch (level) {
+        case 1:
+            DrawText("Faster Channeling", infoX + 10, infoY + 10, name_font_size, WHITE);
+            DrawText("+ Attack Speed", infoX + 10, infoY + 40, stat_font_size, WHITE);
+            break;
+        case 2:
+            DrawText("Stormpulse", infoX + 10, infoY + 10, name_font_size, WHITE);
+            DrawText("+ Damage", infoX + 10, infoY + 40, stat_font_size, WHITE);
+            DrawText("+ Range", infoX + 10, infoY + 70, stat_font_size, WHITE);
+            break;
+        case 3:
+            DrawText("Thundercrash", infoX + 10, infoY + 10, name_font_size, WHITE);
+            DrawText("+ Damage", infoX + 10, infoY + 40, stat_font_size, WHITE);
+            DrawText("+ Attack Speed", infoX + 10, infoY + 70, stat_font_size, WHITE);
+            DrawText("+ AoE Radius", infoX + 10, infoY + 100, stat_font_size, WHITE);
+            break;
+        case 4:
+            DrawText("Eye of the Storm", infoX + 10, infoY + 10, name_font_size, WHITE);
+            DrawText("+ ALL stats", infoX + 10, infoY + 40, stat_font_size,  WHITE);
+            break;
+        case 5:
+            DrawText("Maxed", infoX + 10, infoY + 10, name_font_size, WHITE);
+            break;
+    }
+}
+
 War_Drummer::War_Drummer(Vector2 pos) : Tower(200, 0, 0.0f, "Towers", 1000, pos) {
     name = "War Drummer";
     type = "None";
@@ -780,6 +930,36 @@ void War_Drummer::draw() const {
     DrawTexturePro(frame, source, dest, origin, 0.0f, WHITE);
 }
 
+void War_Drummer::showUpgradeInfo() const {
+    int infoX = GetScreenWidth() / 2 + 270;
+    int infoY = GetScreenHeight() - 160;
+
+    int name_font_size = 20;
+    int stat_font_size = 18;
+
+    switch (level) {
+        case 1:
+            DrawText("Bigger Drums", infoX + 10, infoY + 10, name_font_size, WHITE);
+            DrawText("+ Range", infoX + 10, infoY + 40, stat_font_size, WHITE);
+            break;
+        case 2:
+            DrawText("Drum of Might", infoX + 10, infoY + 10, name_font_size, WHITE);
+            DrawText("+ Damage Multiplier", infoX + 10, infoY + 40, stat_font_size, WHITE);
+            break;
+        case 3:
+            DrawText("Drum of Fury", infoX + 10, infoY + 10, name_font_size, WHITE);
+            DrawText("+ Attack Speed Multiplier", infoX + 10, infoY + 40, 16, WHITE);
+            break;
+        case 4:
+            DrawText("Eternal War Drum", infoX + 10, infoY + 10, name_font_size, WHITE);
+            DrawText("+ ALL stats", infoX + 10, infoY + 40, stat_font_size,  WHITE);
+            break;
+        case 5:
+            DrawText("Maxed", infoX + 10, infoY + 10, name_font_size, WHITE);
+            break;
+    }
+}
+
 Gold_Mine::Gold_Mine(Vector2 pos) : Tower(50, 0, 0.0f, "Utility", 300, pos) {
     name = "Gold Mine";
     type = "None";
@@ -845,4 +1025,35 @@ void Gold_Mine::draw() const {
     };
 
     DrawTextureEx(icon, topLeft, 0.0f, scale, WHITE);
+}
+
+void Gold_Mine::showUpgradeInfo() const {
+
+    int infoX = GetScreenWidth() / 2 + 270;
+    int infoY = GetScreenHeight() - 160;
+
+    int name_font_size = 20;
+    int stat_font_size = 18;
+
+    switch (level) {
+        case 1:
+            DrawText("Refined Shaft", infoX + 10, infoY + 10, name_font_size, WHITE);
+            DrawText("+ Income Per Round", infoX + 10, infoY + 40, stat_font_size, WHITE);
+            break;
+        case 2:
+            DrawText("Bigger Carts", infoX + 10, infoY + 10, name_font_size, WHITE);
+            DrawText("+ Income Per Round", infoX + 10, infoY + 40, stat_font_size, WHITE);
+            break;
+        case 3:
+            DrawText("Reinforced Tunnels", infoX + 10, infoY + 10, name_font_size, WHITE);
+            DrawText("+ Income Per Round", infoX + 10, infoY + 40, stat_font_size, WHITE);
+            break;
+        case 4:
+            DrawText("Automated Drills", infoX + 10, infoY + 10, name_font_size, WHITE);
+            DrawText("+ Income Per Round", infoX + 10, infoY + 40, stat_font_size, WHITE);
+            break;
+        case 5:
+            DrawText("Maxed", infoX + 10, infoY + 10, name_font_size, WHITE);
+            break;
+    }
 }
