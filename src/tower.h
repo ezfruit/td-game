@@ -103,7 +103,8 @@ class Tower : public std::enable_shared_from_this<Tower> {
 };
 
 class Archer : public Tower {
-    int shootFrame = 0;
+    private:
+        int shootFrame = 0;
     public:
         Archer(Vector2 pos);
 
@@ -117,6 +118,8 @@ class Archer : public Tower {
 };
 
 class Mage : public Tower {
+    private:
+        int shootFrame = 0;
     public:
         Mage(Vector2 pos);
 

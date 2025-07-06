@@ -352,7 +352,7 @@ Mage::Mage(Vector2 pos) : Tower(100, 3, 0.5, "Area of Effect", 300, pos) {
     projectileSpeed = 500.0f;
     projectileRange = 500.0f;
     AoERadius = 50.0f;
-    animationFrames = ImageHandler::LoadAnimationFrames("mage", 2);
+    animationFrames = ImageHandler::LoadAnimationFrames("mage", 10);
 }
 
 void Mage::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, const std::vector<Vector2>& track, std::vector<std::shared_ptr<Projectile>>& projectiles) {
@@ -402,27 +402,31 @@ void Mage::upgrade(int upgCost) {
         case 2:
             damage += 1;
             range += 25;
+            shootFrame += 2;
             break;
         case 3:
             damage += 3;
             AoERadius += 10;
+            shootFrame += 2;
             break;
         case 4:
             damage += 8;
             range += 25;
             attackSpeed = 1.0;
+            shootFrame += 2;
             break;
         case 5:
             damage += 20;
             range += 25;
             attackSpeed = 1.25;
             AoERadius += 10;
+            shootFrame += 2;
             break;
     }
 }
 
 void Mage::draw() const {
-    Texture2D frame = isShooting ? animationFrames[0] : animationFrames[1];
+    Texture2D frame = isShooting ? animationFrames[shootFrame] : animationFrames[shootFrame + 1];
 
     Rectangle source = {
         0.0f, 0.0f,
