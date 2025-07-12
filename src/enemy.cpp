@@ -826,7 +826,7 @@ void Big_Slime::draw() const {
     DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
 }
 
-Fractured_King::Fractured_King() : Enemy(800000, 20.0f, 30.0f) {}
+Fractured_King::Fractured_King() : Enemy(600000, 20.0f, 30.0f) {}
 
 std::string Fractured_King::getName() const {
     return "Fractured King";

@@ -495,7 +495,7 @@ Torcher::Torcher(Vector2 pos) : Tower(75, 1, 1.0, "Single", 700, pos) {
     projectileSpeed = 1000.0f;
     projectileRange = range;
     shootFlashDuration = 5.0f;
-    animationFrames = ImageHandler::LoadAnimationFrames("torcher", 6);
+    animationFrames = ImageHandler::LoadAnimationFrames("torcher", 30);
 }
 
 std::shared_ptr<Enemy> Torcher::FindUnburnedTarget(std::vector<std::shared_ptr<Enemy>>& enemies) {
@@ -537,10 +537,11 @@ void Torcher::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemi
         shootingFrameTimer += deltaTime;
         if (shootingFrameTimer >= shootingFrameDuration) {
             shootingFrameTimer -= shootingFrameDuration;
-            currentShootingFrame = (currentShootingFrame + 1) % 5;
+            shootingIndex = (shootingIndex + 1) % 5;
+            currentShootingFrame = shootingIndex + (currentIdleFrame - 5);
         }
     } else {
-        currentShootingFrame = 0;
+        currentShootingFrame = currentIdleFrame - 5;
         shootingFrameTimer = 0.0f;
     }
 
@@ -578,6 +579,9 @@ void Torcher::upgrade(int upgCost) {
     } else {
         value += (upgCost / 2);
     }
+
+    currentIdleFrame += 6;
+
     switch (level) {
         case 2:
             damage += 1;
@@ -612,7 +616,7 @@ void Torcher::draw() const {
     if (isShooting) {
         frame = animationFrames[currentShootingFrame];
     } else {
-        frame = animationFrames[5]; // or your idle frame
+        frame = animationFrames[currentIdleFrame];
     }
 
     Rectangle source = {
@@ -679,7 +683,7 @@ Stormcaller::Stormcaller(Vector2 pos) : Tower(300, 30, 0.2f, "Area of Effect", 3
     projectileRange = range * 2;
     AoERadius = 10.0f;
     shootFlashDuration = 5.0f;
-    animationFrames = ImageHandler::LoadAnimationFrames("stormcaller", 10);
+    animationFrames = ImageHandler::LoadAnimationFrames("stormcaller", 50);
 }
 
 void Stormcaller::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemies, const std::vector<Vector2>& track, std::vector<std::shared_ptr<Projectile>>& projectiles) {
@@ -693,13 +697,17 @@ void Stormcaller::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& e
         shootingFrameTimer += deltaTime;
         if (shootingFrameTimer >= shootingFrameDuration) {
             shootingFrameTimer -= shootingFrameDuration;
-            currentShootingFrame = (currentShootingFrame + 1) % 6;
+            shootingIndex = (shootingIndex + 1) % 6;
+            currentShootingFrame = frameIndex + shootingIndex;
+            //currentShootingFrame = (currentShootingFrame + 1) % 6;
         }
     } else {
         shootingFrameTimer += deltaTime;
         if (shootingFrameTimer >= shootingFrameDuration) {
             shootingFrameTimer -= shootingFrameDuration;
-            currentIdleFrame = ((currentIdleFrame + 1) % 4) + 6;
+            idleIndex = (idleIndex + 1) % 4;
+            currentIdleFrame = frameIndex + 6 + idleIndex;
+            //currentIdleFrame = ((currentIdleFrame + 1) % 4) + 6;
         }
     }
 
@@ -738,6 +746,9 @@ void Stormcaller::upgrade(int upgCost) {
     } else {
         value += (upgCost / 2);
     }
+
+    frameIndex += 10;
+
     switch (level) {
         case 2:
             attackSpeed = 0.4;
@@ -766,7 +777,13 @@ void Stormcaller::DrawLightningBolt(std::shared_ptr<Enemy> target, int segments,
     bolt.start = position;
     bolt.end = target->getPosition();
 
-    level <= 3 ? bolt.color = SKYBLUE : bolt.color = PURPLE;
+    if (level <= 3) {
+        bolt.color = SKYBLUE;
+    } else if (level == 4) {
+        bolt.color = PURPLE;
+    } else {
+        bolt.color = YELLOW;
+    }
 
     // Generate bolt shape
     Vector2 lastPoint = bolt.start;
