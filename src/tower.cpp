@@ -985,6 +985,7 @@ Gold_Mine::Gold_Mine(Vector2 pos) : Tower(50, 0, 0.0f, "Utility", 300, pos) {
     name = "Gold Mine";
     type = "None";
     value = cost / 2;
+    animationFrames = ImageHandler::LoadAnimationFrames("goldmine", 5);
 }
 
 int Gold_Mine::getTotalMoneyGenerated() const {
@@ -1014,6 +1015,9 @@ void Gold_Mine::upgrade(int upgCost) {
     } else {
         value += (upgCost / 2);
     }
+
+    frame += 1;
+
     switch (level) {
         case 2:
             goldPerRound = 200;
@@ -1032,7 +1036,7 @@ void Gold_Mine::upgrade(int upgCost) {
 
 void Gold_Mine::draw() const {
     Vector2 center = getPosition();  // center of the tower
-    Texture2D icon = ImageHandler::goldmineIcon;
+    Texture2D icon = animationFrames[frame];
 
     float desiredSize = 40.0f;
     float scale = desiredSize / icon.width;

@@ -2,6 +2,8 @@
 #include "raylib.h"
 #include <vector>
 #include <string>
+#include <unordered_map>
+#include "play.h"
 
 namespace ImageHandler {
     extern Texture2D archerIcon;
@@ -16,7 +18,9 @@ namespace ImageHandler {
     extern Texture2D torcherPreview;
     extern Texture2D stormcallerPreview;
     extern Texture2D wardrummerPreview;
+    extern Texture2D goldminePreview;
     extern std::vector<Texture2D> previewIcons;
+    extern std::unordered_map<int, std::vector<Texture2D>> upgrades;
     extern std::vector<Texture2D> track;
     extern Texture2D gameBackground;
     extern Texture2D topUIBackground;

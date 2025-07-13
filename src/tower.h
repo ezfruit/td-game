@@ -204,6 +204,7 @@ class Gold_Mine : public Tower {
     private:
         int totalGoldGenerated = 0;
         int goldPerRound = 75;
+        int frame = 0;
     public:
         Gold_Mine(Vector2 pos);
 

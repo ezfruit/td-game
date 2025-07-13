@@ -10,13 +10,11 @@
 #include "images.h"
 #include "messages.h"
 
-// TODO: Animations for towers (all except gold mine done)
 // TODO: Animations for enemies (slime done)
 // TODO: Add a cooldown between starting the game and wave 1 (10 seconds maybe), also add a visual indicator where enemies will come from
 // TODO: Fix the bug where after game over, the cooldown doesn't start and the game instantly starts
-// TODO: Add a brief description to towers when hovering over their icons (to let players know strengths)
-// TODO: Add image of the current tower icon to the upgrade info
-// TODO: Add a track selector (up to 3)
+// TODO: Polish up the menu
+// TODO: Make the options page
 
 std::vector<Vector2> trackPoints;
 
@@ -59,8 +57,7 @@ static bool waitingToStartNextWave = false;
 
 static Tower* selectedTower = nullptr;
 
-std::vector<std::string> towerNames = {
-    "None",       
+std::vector<std::string> towerNames = {       
     "Archer",     
     "Mage",      
     "Torcher",
@@ -69,8 +66,16 @@ std::vector<std::string> towerNames = {
     "Gold Mine"
 };
 
+std::unordered_map<std::string, int> towerIndices = {
+    {"Archer", 1},
+    {"Mage", 2},
+    {"Torcher", 3},
+    {"Stormcaller", 4},
+    {"War Drummer", 5},
+    {"Gold Mine", 6}
+};
+
 std::vector<std::string> towerTypes = {
-    "None",
     "Physical",
     "Magic",
     "Fire",
@@ -80,7 +85,6 @@ std::vector<std::string> towerTypes = {
 };
 
 std::vector<std::string> towerRanges = {
-    "None",
     "Medium",
     "Low",
     "Very Low",
@@ -90,7 +94,6 @@ std::vector<std::string> towerRanges = {
 };
 
 std::vector<std::string> towerTargetings = {
-    "None",
     "Pierce",
     "Area of Effect",
     "Single",
@@ -145,7 +148,7 @@ void InitPlaying() {
 
 void ResetGame() {
     waveNumber = 0;
-    playerMoney = 600000;
+    playerMoney = 1000000;
     playerHealth = 100;
     income = baseIncome;
     waveInProgress = false;
@@ -522,7 +525,7 @@ void UpdatePlaying() {
         }
     }
 
-    if (selectedTowerIndex != -1 && IsKeyPressed(KEY_X)) {
+    if (selectedTowerIndex != -1 && (IsKeyPressed(KEY_X) || IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))) {
         selectedTowerIndex = -1;
         isPlacingTower = false;
         ShowCursor();
@@ -566,6 +569,10 @@ void UpdatePlaying() {
             isPlacingTower = false;
             ShowCursor();
         }
+    }
+
+    if (playerMoney >= 999999) {
+        playerMoney = 999999;
     }
 
 }
@@ -654,7 +661,7 @@ void DrawPlaying() {
             case 3: range = 75;  previewIcon = ImageHandler::previewIcons[2]; break;
             case 4: range = 300; previewIcon = ImageHandler::previewIcons[3]; break;
             case 5: range = 200; previewIcon = ImageHandler::previewIcons[4]; break;
-            case 6: range = 50;  previewIcon = ImageHandler::goldmineIcon; break;
+            case 6: range = 50;  previewIcon = ImageHandler::previewIcons[5]; break;
         }
 
         bool invalidPlacement = IsOnTrack(previewPosition, trackPoints) || IsOnTower(previewPosition, towers) || !IsWithinBounds(previewPosition);
@@ -920,6 +927,28 @@ void DrawPlaying() {
 
         selectedTower->showUpgradeInfo();
 
+        Texture2D upgradeImage = ImageHandler::upgrades[towerIndices[selectedTower->getName()]][selectedTower->getLevel() - 1];
+
+        float imageScale = 3.5f;
+
+        // Get the actual (unscaled) width and height of the image
+        float scaledWidth = upgradeImage.width * imageScale;
+        float scaledHeight = upgradeImage.height * imageScale;
+
+        // Desired center position on screen (for example, bottom-right corner offset)
+        Vector2 centerPos = {
+            (float)GetScreenWidth() - 85,
+            (float)GetScreenHeight() - 95
+        };
+
+        // Adjust position to draw image centered at centerPos
+        Vector2 imagePos = {
+            centerPos.x - scaledWidth / 2.0f,
+            centerPos.y - scaledHeight / 2.0f
+        };
+
+        DrawTextureEx(upgradeImage, imagePos, 0.0f, imageScale, WHITE);
+
         // Targeting mode button
         Rectangle targetBtn = { (float)GetScreenWidth() - 160, (float)GetScreenHeight() - 40, 150, 35 };
         DrawRectangleRec(targetBtn, DARKGRAY);
@@ -1048,10 +1077,10 @@ void DrawPlaying() {
         const int padding = 12;
         const int fontSize = 20;
 
-        std::string name = towerNames[hoveredTowerIndex];
-        std::string type = towerTypes[hoveredTowerIndex];
-        std::string range = towerRanges[hoveredTowerIndex];
-        std::string targeting = towerTargetings[hoveredTowerIndex];
+        std::string name = towerNames[hoveredTowerIndex-1];
+        std::string type = towerTypes[hoveredTowerIndex-1];
+        std::string range = towerRanges[hoveredTowerIndex-1];
+        std::string targeting = towerTargetings[hoveredTowerIndex-1];
         int cost = costs[hoveredTowerIndex];
 
         std::string line1 = "Tower: " + name;
@@ -1068,6 +1097,28 @@ void DrawPlaying() {
         DrawText(line3.c_str(), textX, textY + 2 * (fontSize + padding), fontSize, WHITE);
         DrawText(line4.c_str(), textX, textY + 3 * (fontSize + padding), fontSize, WHITE);
         DrawText(line5.c_str(), textX, textY + 4 * (fontSize + padding), fontSize, WHITE);
+
+        Texture2D previewImage = ImageHandler::previewIcons[hoveredTowerIndex-1];
+
+        float imageScale = 5.0f;
+
+        // Get the actual (unscaled) width and height of the image
+        float scaledWidth = previewImage.width * imageScale;
+        float scaledHeight = previewImage.height * imageScale;
+
+        // Desired center position on screen (for example, bottom-right corner offset)
+        Vector2 centerPos = {
+            (float)GetScreenWidth() - 160,
+            (float)GetScreenHeight() - 80
+        };
+
+        // Adjust position to draw image centered at centerPos
+        Vector2 imagePos = {
+            centerPos.x - scaledWidth / 2.0f,
+            centerPos.y - scaledHeight / 2.0f
+        };
+
+        DrawTextureEx(previewImage, imagePos, 0.0f, imageScale, WHITE);
     }
 
     // Pause button
