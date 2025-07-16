@@ -76,5 +76,10 @@
     "pre": "Well...",
     "warning": "This is it. The final wave. Your entire journey has led up to this moment.",
     "post": "I really hope you make it."
+  },
+  {
+    "wave": 40,
+    "pre": "You..",
+    "warning": "You actually DID IT! You beat the final wave."
   }
 ]

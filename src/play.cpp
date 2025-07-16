@@ -11,10 +11,12 @@
 #include "messages.h"
 
 // TODO: Animations for enemies (slime done)
-// TODO: Add a cooldown between starting the game and wave 1 (10 seconds maybe), also add a visual indicator where enemies will come from
+// TODO: Add a visual indicator where enemies will come from
 // TODO: Fix the bug where after game over, the cooldown doesn't start and the game instantly starts
 // TODO: Polish up the menu
 // TODO: Make the options page
+// TODO: Separate ALL update from drawing when pausing
+// TODO: Fix multiple War Drummer bug (keep highest buff)
 
 std::vector<Vector2> trackPoints;
 
@@ -35,6 +37,8 @@ static int income;
 static bool waveInProgress = false;
 static float waveDuration = 30.0f;
 static float waveCooldown = 3.0f;
+static float gracePeriod = 16.0f;
+static float countdown = gracePeriod;
 static float waveCooldownTimer = 0.0f;
 static int selectedTowerIndex = -1;
 
@@ -48,6 +52,9 @@ static Vector2 previewPosition;
 bool GameOver = false;
 bool Paused = false;
 bool HomePressed = false;
+
+static bool grace = true;
+static bool GameWon = false;
 
 static float spawnTimer = 0.0f;
 static int spawnIndex = 0;
@@ -148,7 +155,7 @@ void InitPlaying() {
 
 void ResetGame() {
     waveNumber = 0;
-    playerMoney = 1000000;
+    playerMoney = 300000;
     playerHealth = 100;
     income = baseIncome;
     waveInProgress = false;
@@ -157,7 +164,12 @@ void ResetGame() {
     waveCooldownTimer = 0.0f;
     selectedTowerIndex = -1;
 
+    grace = true;
+    gracePeriod = 16.0f;
+    countdown = gracePeriod;
+
     Paused = false;
+    GameWon = false;
 
     spawning = false;
     spawnIndex = 0;
@@ -287,6 +299,10 @@ void EndWave() {
     }
 }
 
+void GameWin() {
+    GameWon = true;
+}
+
 // Game logic updates
 void UpdatePlaying() {
 
@@ -408,12 +424,17 @@ void UpdatePlaying() {
     }
 
     waveCooldownTimer += GetFrameTime();
+    countdown -= GetFrameTime();
 
-    if (!waveInProgress && !waitingToStartNextWave) {
+    if (waveCooldownTimer >= gracePeriod && grace) {
+        grace = false;
+        EndWave();
+    } else if (!waveInProgress && !waitingToStartNextWave && !grace) {
         if (waveCooldownTimer >= waveCooldown) {
+            std::cout << "Started Wave" << '\n';
             EndWave();
         }
-    } else if (!spawning && !waitingToStartNextWave) {
+    } else if (!spawning && !waitingToStartNextWave && waveNumber != totalWaves && !grace) {
         if (waveCooldownTimer >= waveDuration) {
             EndWave();
         }
@@ -573,6 +594,10 @@ void UpdatePlaying() {
 
     if (playerMoney >= 999999) {
         playerMoney = 999999;
+    }
+
+    if (waveNumber > totalWaves) {
+        GameWin();
     }
 
 }
@@ -860,7 +885,11 @@ void DrawPlaying() {
     DrawTextureEx(goldIcon, iconPos, 0.0f, healthScale, WHITE);
 
     DrawText(TextFormat("%d", playerMoney), 180, 10, 20, GOLD);
-    if (!messageManager.isDisplayingMessage()) {
+    if (grace) {
+        DrawText(std::to_string((int)countdown).c_str(), 625, 10, 20, WHITE);
+    } else if (GameWon) {
+        DrawText("Thanks for playing!", 550, 10, 20, WHITE);
+    } else if (!messageManager.isDisplayingMessage()) {
         DrawText(TextFormat("Wave: %d", waveNumber), 600, 10, 20, WHITE);
     }
 
@@ -1199,5 +1228,32 @@ void DrawPlaying() {
 
     if (CheckCollisionPointRec(GetMousePosition(), homeButton) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         HomePressed = true;
+    }
+
+    if (GameWon) {
+        const int screenWidthMid = GetScreenWidth() / 2;
+        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(DARKGRAY, 0.6f));
+        DrawText("YOU WIN!", GetScreenWidth() / 3 + 75, 150, 60, GOLD);
+        Rectangle playBtn = { (float) screenWidthMid - 180, 325, 140, 40 };
+        Rectangle exitBtn = { (float) screenWidthMid + 35, 325, 170, 40 };
+
+        DrawRectangleRec(playBtn, DARKGRAY);
+        DrawRectangleRec(exitBtn, DARKGRAY);
+
+        DrawText("Play Again", playBtn.x + 10, playBtn.y + 10, 24, WHITE);
+        DrawText("Exit to Menu", exitBtn.x + 10, exitBtn.y + 10, 24, WHITE);
+
+        Vector2 mousePos = GetMousePosition();
+
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+            if (CheckCollisionPointRec(mousePos, playBtn)) {
+                GameWon = false;
+                ResetGame();
+            }
+            else if (CheckCollisionPointRec(mousePos, exitBtn)) {
+                HomePressed = true;
+            }
+        }
+
     }
 }

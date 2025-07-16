@@ -12,6 +12,7 @@ std::vector<GameWave> waveDefinitions = {
             { "Slime", 1.0f },
         }
     },
+    
     // Wave 2
     {
         {
@@ -27,6 +28,7 @@ std::vector<GameWave> waveDefinitions = {
             { "Slime", 1.0f },
         }
     },
+
     // Wave 3
     {
         {
