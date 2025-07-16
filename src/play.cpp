@@ -11,11 +11,8 @@
 #include "messages.h"
 
 // TODO: Animations for enemies (slime done)
-// TODO: Add a visual indicator where enemies will come from
-// TODO: Fix the bug where after game over, the cooldown doesn't start and the game instantly starts
 // TODO: Polish up the menu
 // TODO: Make the options page
-// TODO: Separate ALL update from drawing when pausing
 // TODO: Fix multiple War Drummer bug (keep highest buff)
 
 std::vector<Vector2> trackPoints;
@@ -55,6 +52,12 @@ bool HomePressed = false;
 
 static bool grace = true;
 static bool GameWon = false;
+
+static float pathProgress = 0.0f; // 0.0 to 1.0
+static float shineSpeed = 0.2f; // Speed of the shine
+
+std::deque<Vector2> shineTrail;
+int maxTrailLength = 25; // Number of trail segments
 
 static float spawnTimer = 0.0f;
 static int spawnIndex = 0;
@@ -155,16 +158,18 @@ void InitPlaying() {
 
 void ResetGame() {
     waveNumber = 0;
-    playerMoney = 300000;
+    playerMoney = 600;
     playerHealth = 100;
     income = baseIncome;
     waveInProgress = false;
+    waitingToStartNextWave = false;
     waveDuration = 30.0f;
     waveCooldown = 3.0f;
     waveCooldownTimer = 0.0f;
     selectedTowerIndex = -1;
 
     grace = true;
+    pathProgress = 0.0f;
     gracePeriod = 16.0f;
     countdown = gracePeriod;
 
@@ -180,6 +185,7 @@ void ResetGame() {
 
     showNotEnoughMoney = false;
 
+    shineTrail.clear();
     towers.clear();
     enemies.clear();
     projectiles.clear();
@@ -301,6 +307,53 @@ void EndWave() {
 
 void GameWin() {
     GameWon = true;
+}
+
+Vector2 GetPositionAlongPath(const std::vector<Vector2>& path, float progress) {
+    if (path.size() < 2) return {0, 0};
+
+    float totalLength = 0;
+    std::vector<float> segmentLengths;
+
+    // First, calculate total path length
+    for (size_t i = 0; i < path.size() - 1; i++) {
+        float len = Vector2Distance(path[i], path[i + 1]);
+        segmentLengths.push_back(len);
+        totalLength += len;
+    }
+
+    float targetLength = progress * totalLength;
+    float accumulated = 0;
+
+    // Find the segment
+    for (size_t i = 0; i < segmentLengths.size(); i++) {
+        if (accumulated + segmentLengths[i] >= targetLength) {
+            float segProgress = (targetLength - accumulated) / segmentLengths[i];
+            return Vector2Lerp(path[i], path[i + 1], segProgress);
+        }
+        accumulated += segmentLengths[i];
+    }
+
+    return path.back();
+}
+
+void UpdateShine(float deltaTime, const std::vector<Vector2>& path) {
+    pathProgress += shineSpeed * deltaTime;
+    if (pathProgress > 1.0f) pathProgress = 0.0f;
+
+    Vector2 currentPos = GetPositionAlongPath(path, pathProgress);
+    shineTrail.push_front(currentPos);
+    if (shineTrail.size() > maxTrailLength)
+        shineTrail.pop_back();
+}
+
+void DrawShineTrail() {
+    for (size_t i = 0; i < shineTrail.size(); i++) {
+        float alpha = 0.5f - (float)i / maxTrailLength;
+        float size = 10.0f * alpha;  // Head is largest
+
+        DrawCircleV(shineTrail[i], size, Fade(WHITE, alpha * 0.8f));
+    }
 }
 
 // Game logic updates
@@ -431,7 +484,6 @@ void UpdatePlaying() {
         EndWave();
     } else if (!waveInProgress && !waitingToStartNextWave && !grace) {
         if (waveCooldownTimer >= waveCooldown) {
-            std::cout << "Started Wave" << '\n';
             EndWave();
         }
     } else if (!spawning && !waitingToStartNextWave && waveNumber != totalWaves && !grace) {
@@ -448,7 +500,7 @@ void UpdatePlaying() {
     }
 
     if (spawning && waveNumber <= totalWaves) {
-
+        
         const GameWave& currentWave = waveDefinitions[waveNumber - 1];
 
         if (spawnIndex < currentWave.enemies.size()) {
@@ -592,12 +644,100 @@ void UpdatePlaying() {
         }
     }
 
+    if (showNotEnoughMoney) {
+        moneyMsgTimer += GetFrameTime();
+    }
+
+    if (selectedTower) {
+        Vector2 mouse = GetMousePosition();
+
+        int upgradeCost = upgradeCosts[selectedTower->getName()][selectedTower->getLevel() - 1];
+
+        int infoX = GetScreenWidth() / 2 + 25;
+        int infoY = GetScreenHeight() - 160;
+
+        Rectangle upgradeBtn = { (float)(infoX + 10), (float)(infoY + 100), 110, 50 };
+        Rectangle sellBtn = { (float)(infoX + 130), (float)(infoY + 100), 110, 50 };
+        Rectangle targetBtn = { (float)GetScreenWidth() - 160, (float)GetScreenHeight() - 40, 150, 35 };
+
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) || IsKeyPressed(KEY_X) || IsKeyPressed(KEY_E)) {
+
+            if (IsKeyPressed(KEY_E) || CheckCollisionPointRec(mouse, upgradeBtn)) {
+                if (upgradeCost <= playerMoney) {
+                    PlaySound(SoundManager::upgrade);
+                    selectedTower->upgrade(upgradeCost);
+                    playerMoney -= upgradeCost;
+                } else {
+                    PlaySound(SoundManager::error);
+                    showNotEnoughMoney = true;
+                    moneyMsgTimer = 0.0f;
+                }
+            }
+            else if (CheckCollisionPointRec(mouse, sellBtn) || IsKeyPressed(KEY_X)) {
+                PlaySound(SoundManager::sell);
+                playerMoney += selectedTower->getValue();
+                selectedTower->unloadFrames();
+                towers.erase(std::remove_if(towers.begin(), towers.end(),
+                    [&](const std::shared_ptr<Tower>& t) { return t.get() == selectedTower; }),
+                    towers.end());
+                selectedTower = nullptr;
+            }
+            else if (CheckCollisionPointRec(mouse, targetBtn)) {
+                currentTargetMode = static_cast<TargetMode>((selectedTower->getTargetMode() + 1) % 4);
+                selectedTower->setTargetMode(currentTargetMode);
+            }
+        }
+    }
+
+    int numSlots = 6;
+    int slotSize = 80; 
+    int spacing = 20;
+    int startX = 20;
+    int y = 600;
+
+    int hoveredTowerIndex = -1;
+
+    for (int i = 0; i < numSlots; i++) {
+        int x = startX + i * (slotSize + spacing);
+
+        Rectangle slotRect = { (float)x, (float)y, (float)slotSize, (float)slotSize };
+
+        Vector2 mousePos = GetMousePosition();
+
+        if (CheckCollisionPointRec(mousePos, slotRect)) {
+            hoveredTowerIndex = i + 1; // Save which one is hovered
+            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                if (costs[i+1] <= playerMoney) {
+                    selectedTowerIndex = i + 1;
+                    isPlacingTower = true;
+                    selectedTower = nullptr;
+                    HideCursor();
+                } else {
+                    PlaySound(SoundManager::error);
+                    showNotEnoughMoney = true;
+                    moneyMsgTimer = 0.0f;
+                }
+            }
+        }
+    }
+    
     if (playerMoney >= 999999) {
         playerMoney = 999999;
     }
 
     if (waveNumber > totalWaves) {
         GameWin();
+    }
+
+    // Home button
+    Rectangle homeButton = { GetScreenWidth() - 50.0f, 0.0f, 40.0f, 40.0f };
+
+    if (CheckCollisionPointRec(GetMousePosition(), homeButton) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        HomePressed = true;
+    }
+
+    if (grace) {
+        UpdateShine(GetFrameTime(), trackPoints);
     }
 
 }
@@ -708,8 +848,6 @@ void DrawPlaying() {
 
     // Error message to show not enough gold
     if (showNotEnoughMoney) {
-        moneyMsgTimer += GetFrameTime();
-
         // Calculate alpha for fade-out effect (starts fading after 1.5s)
         float alpha = 1.0f;
         if (moneyMsgTimer > 1.5f) {
@@ -853,8 +991,6 @@ void DrawPlaying() {
 
     messageManager.draw();
 
-    // -----------------------
-
     auto healthIcon = ImageHandler::health;
 
     int fontSize = 20;
@@ -875,8 +1011,6 @@ void DrawPlaying() {
     // Draw the health number in fixed position
     DrawText(TextFormat("%d", playerHealth), 60, textY, fontSize, RED);
 
-    // ----------------------
-
     auto goldIcon = ImageHandler::gold;
 
     iconPos = { 140, iconY };
@@ -885,8 +1019,10 @@ void DrawPlaying() {
     DrawTextureEx(goldIcon, iconPos, 0.0f, healthScale, WHITE);
 
     DrawText(TextFormat("%d", playerMoney), 180, 10, 20, GOLD);
+
     if (grace) {
         DrawText(std::to_string((int)countdown).c_str(), 625, 10, 20, WHITE);
+        DrawShineTrail();
     } else if (GameWon) {
         DrawText("Thanks for playing!", 550, 10, 20, WHITE);
     } else if (!messageManager.isDisplayingMessage()) {
@@ -985,35 +1121,6 @@ void DrawPlaying() {
         std::string targetText = TextFormat("Targets: %s", targetModeNames[selectedTower->getTargetMode()]);
         textWidth = MeasureText(targetText.c_str(), 18);
         DrawText(targetText.c_str(), targetBtn.x + (targetBtn.width - textWidth) / 2, targetBtn.y + 10, 18, WHITE);
-
-        Vector2 mouse = GetMousePosition();
-        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) || IsKeyPressed(KEY_X) || IsKeyPressed(KEY_E)) {
-
-            if (IsKeyPressed(KEY_E) || CheckCollisionPointRec(mouse, upgradeBtn)) {
-                if (upgradeCost <= playerMoney) {
-                    PlaySound(SoundManager::upgrade);
-                    selectedTower->upgrade(upgradeCost);
-                    playerMoney -= upgradeCost;
-                } else {
-                    PlaySound(SoundManager::error);
-                    showNotEnoughMoney = true;
-                    moneyMsgTimer = 0.0f;
-                }
-            }
-            else if (CheckCollisionPointRec(mouse, sellBtn) || IsKeyPressed(KEY_X)) {
-                PlaySound(SoundManager::sell);
-                playerMoney += selectedTower->getValue();
-                selectedTower->unloadFrames();
-                towers.erase(std::remove_if(towers.begin(), towers.end(),
-                    [&](const std::shared_ptr<Tower>& t) { return t.get() == selectedTower; }),
-                    towers.end());
-                selectedTower = nullptr;
-            }
-            else if (CheckCollisionPointRec(mouse, targetBtn)) {
-                currentTargetMode = static_cast<TargetMode>((selectedTower->getTargetMode() + 1) % 4);
-                selectedTower->setTargetMode(currentTargetMode);
-            }
-        }
     }
 
     int numSlots = 6;
@@ -1082,19 +1189,6 @@ void DrawPlaying() {
             hoveredTowerIndex = i + 1; // Save which one is hovered
             Color borderColor = (selectedTowerIndex == i + 1) ? RED : GOLD;
             DrawRectangleLinesEx(slotRect, 3, borderColor);
-
-            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-                if (costs[i+1] <= playerMoney) {
-                    selectedTowerIndex = i + 1;
-                    isPlacingTower = true;
-                    selectedTower = nullptr;
-                    HideCursor();
-                } else {
-                    PlaySound(SoundManager::error);
-                    showNotEnoughMoney = true;
-                    moneyMsgTimer = 0.0f;
-                }
-            }
         }
     }
 
@@ -1225,10 +1319,6 @@ void DrawPlaying() {
     float baseWidth = scaledButton.width - 20 * scale;
     float baseHeight = scaledButton.height / 2.0f - 5 * scale;
     DrawRectangle(baseX, baseY, baseWidth, baseHeight, DARKGRAY);
-
-    if (CheckCollisionPointRec(GetMousePosition(), homeButton) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-        HomePressed = true;
-    }
 
     if (GameWon) {
         const int screenWidthMid = GetScreenWidth() / 2;
