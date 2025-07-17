@@ -30,9 +30,17 @@ void Tower::setDamageMultiplier(float multiplier) {
     damageMultiplier = multiplier;
 }
 
+float Tower::getDamageMultiplier() const {
+    return damageMultiplier;
+}
+
 void Tower::setAttackSpeedMultiplier(float multiplier) {
     attackSpeedMultiplier = multiplier;
 }
+
+float Tower::getAttackSpeedMultiplier() const {
+    return attackSpeedMultiplier;
+} 
 
 std::string Tower::getTargeting() const {
     return targeting;
@@ -886,12 +894,27 @@ void War_Drummer::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& e
     }
 
     for (auto& tower : towers) {
-        if (tower.get() == this) continue; // Don't buff self
+        if (tower.get() == this || tower->getName() == "War Drummer") continue; // Don't buff self or other War Drummers
         float dist = Vector2Distance(this->getPosition(), tower->getPosition());
         if (dist <= this->getRange()) {
-            tower->setWarDrummerBuff();
-            tower->setDamageMultiplier(damageMultiplier);
-            tower->setAttackSpeedMultiplier(attackSpeedMultiplier);
+            float currentTowerDmgMult = tower->getDamageMultiplier();
+            float currentTowerAtkSpdMult = tower->getAttackSpeedMultiplier();
+            if (!tower->getWarDrummerBuff()) {
+                tower->setWarDrummerBuff();
+                tower->setDamageMultiplier(damageMultiplier);
+                tower->setAttackSpeedMultiplier(attackSpeedMultiplier);
+                continue;
+            } 
+            
+            // Should change this code if in the future create more towers that buff these two stats
+            // But for now, this should work with only War Drummer as the stat boosting tower
+            if (currentTowerDmgMult < damageMultiplier) {
+                tower->setDamageMultiplier(damageMultiplier);
+            }
+
+            if (currentTowerAtkSpdMult < attackSpeedMultiplier) {
+                tower->setAttackSpeedMultiplier(attackSpeedMultiplier);
+            }
         }
     }
 }

@@ -13,7 +13,7 @@
 // TODO: Animations for enemies (slime done)
 // TODO: Polish up the menu
 // TODO: Make the options page
-// TODO: Fix multiple War Drummer bug (keep highest buff)
+// TODO: Add Fractured King Abilities
 
 std::vector<Vector2> trackPoints;
 
@@ -158,7 +158,7 @@ void InitPlaying() {
 
 void ResetGame() {
     waveNumber = 0;
-    playerMoney = 600;
+    playerMoney = 600000;
     playerHealth = 100;
     income = baseIncome;
     waveInProgress = false;

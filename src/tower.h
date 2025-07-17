@@ -59,7 +59,11 @@ class Tower : public std::enable_shared_from_this<Tower> {
 
         void setDamageMultiplier(float multiplier);
 
+        float getDamageMultiplier() const;
+
         void setAttackSpeedMultiplier(float multiplier);
+
+        float getAttackSpeedMultiplier() const;
 
         void setWarDrummerBuff();
 
