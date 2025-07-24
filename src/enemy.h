@@ -352,12 +352,33 @@ class Big_Slime : public Enemy {
 };
 
 class Fractured_King : public Enemy {
+    private:
+        float shieldChangeTimer = 0.0f;
+        float shieldChangeCooldown = 10.0f;
+        float shieldDuration = 10.0f;
+        std::string shield = "None";
+        Color shieldColor;
+        int shieldAmount = 5000;
+        int currentShieldAmount = shieldAmount;
+        float stunTimer = 0.0f;
+        float stunDuration = 5.0f;
+        bool stunned = false;
     public:
         Fractured_King();
+
+        void update(float deltaTime, const std::vector<Vector2>& track);
 
         std::string getName() const override;
 
         void takeDamage(int amount, const std::string& type, const std::string& targeting) override;
 
         void draw() const override;
+
+        std::string getShield() const;
+
+        int getTotalShield() const;
+
+        int getShieldAmount() const;
+
+        Color getShieldColor() const;
 };

@@ -33,36 +33,78 @@ int main() {
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
+        DrawTexture(ImageHandler::menuBackground, 0, 0, WHITE);
+
         switch (state) {
             case MENU: {
-
-                Rectangle playBtn = { screenWidthMid - 65, 290, 120, 40 };
-                Rectangle optionsBtn = { screenWidthMid - 85, 390, 160, 40 };
-                Rectangle exitBtn = { screenWidthMid - 65, 490, 120, 40 };
-
-                DrawRectangleRec(playBtn, LIGHTGRAY);
-                DrawRectangleRec(optionsBtn, LIGHTGRAY);
-                DrawRectangleRec(exitBtn, LIGHTGRAY);
-
+                const int screenWidthMid = GetScreenWidth() / 2;
                 Vector2 mousePos = GetMousePosition();
 
+                const float buttonWidth = 160.0f;
+                const float buttonHeight = 40.0f;
+                const float hoverScale = 1.1f;
+
+                const int normalFontSize = 24;
+                const int hoverFontSize = 28;
+
+                struct Button {
+                    Rectangle rect;
+                    const char* text;
+                };
+
+                Button buttons[] = {
+                    { { screenWidthMid - buttonWidth / 2, 290, buttonWidth, buttonHeight }, "Play" },
+                    { { screenWidthMid - buttonWidth / 2, 390, buttonWidth, buttonHeight }, "Options" },
+                    { { screenWidthMid - buttonWidth / 2, 490, buttonWidth, buttonHeight }, "Exit" }
+                };
+
+                for (int i = 0; i < 3; i++) {
+                    Rectangle btn = buttons[i].rect;
+                    const char* label = buttons[i].text;
+
+                    bool hovered = CheckCollisionPointRec(mousePos, btn);
+                    Rectangle drawRect = btn;
+                    int fontSize = normalFontSize;
+
+                    if (hovered) {
+                        drawRect.width *= hoverScale;
+                        drawRect.height *= hoverScale;
+                        drawRect.x -= (drawRect.width - btn.width) / 2;
+                        drawRect.y -= (drawRect.height - btn.height) / 2;
+                        fontSize = hoverFontSize;
+
+                        DrawRectangleRec(drawRect, DARKGRAY);
+                    } else {
+                        DrawRectangleRec(drawRect, DARKGRAY);
+                    }
+
+                    int textWidth = MeasureText(label, fontSize);
+                    DrawText(
+                        label,
+                        drawRect.x + drawRect.width / 2 - textWidth / 2,
+                        drawRect.y + drawRect.height / 2 - fontSize / 2,
+                        fontSize,
+                        WHITE
+                    );
+                }
+
                 if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-                    if (CheckCollisionPointRec(mousePos, playBtn)) {
+                    if (CheckCollisionPointRec(mousePos, buttons[0].rect)) {
                         state = PLAYING;
                         ResetGame();
                     }
-                    else if (CheckCollisionPointRec(mousePos, optionsBtn)) {
+                    else if (CheckCollisionPointRec(mousePos, buttons[1].rect)) {
                         state = OPTIONS;
+                        BackPressed = false;
                     }
-                    else if (CheckCollisionPointRec(mousePos, exitBtn)) {
+                    else if (CheckCollisionPointRec(mousePos, buttons[2].rect)) {
                         state = EXIT;
                     }
                 }
 
-                DrawText("Rampart Defenders", screenWidthMid - 275, 150, 60, DARKGRAY);
-                DrawText("Play", screenWidthMid - 30, 300, 24, DARKGRAY);
-                DrawText("Options", screenWidthMid - 50, 400, 24, DARKGRAY);
-                DrawText("Exit", screenWidthMid - 30, 500, 24, DARKGRAY);
+                const char* title = "Rampart Defenders";
+                DrawText(title, screenWidthMid - MeasureText(title, 60) / 2, 150, 60, DARKGRAY);
+
                 break;
             }
             case PLAYING: {
@@ -126,6 +168,10 @@ int main() {
             case OPTIONS:
                 UpdateOptions();
                 DrawOptions();
+
+                if (BackPressed) {
+                    state = MENU;
+                }
                 break;
             case EXIT:
                 break;

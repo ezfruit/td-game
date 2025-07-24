@@ -25,6 +25,7 @@ namespace ImageHandler {
     extern Texture2D gameBackground;
     extern Texture2D topUIBackground;
     extern Texture2D bottomUIBackground;
+    extern Texture2D menuBackground;
     extern Texture2D health;
     extern Texture2D gold;
 

@@ -283,7 +283,7 @@ void SpawnableEnemy::update(float deltaTime, const std::vector<Vector2>& track) 
     }
 }
 
-Spider_Queen::Spider_Queen() : SpawnableEnemy(300, 25.0f, 20.0f, 1.0f, 5.0f, 3) {}
+Spider_Queen::Spider_Queen() : SpawnableEnemy(300, 25.0f, 20.0f, 1.0f, 8.0f, 3) {}
 
 void Spider_Queen::spawn() {
     Vector2 spawnPos = getPosition();
@@ -828,12 +828,76 @@ void Big_Slime::draw() const {
 
 Fractured_King::Fractured_King() : Enemy(600000, 20.0f, 30.0f) {}
 
+void Fractured_King::update(float deltaTime, const std::vector<Vector2>& track) {
+    
+    shieldChangeTimer += GetFrameTime();
+
+    if (!stunned) {
+        Enemy::update(deltaTime, track); // Might have to change this to ensure enemy still gets burned when stunned
+    } else if (stunned) {
+        stunTimer += deltaTime;
+        if (stunTimer >= stunDuration) {
+            stunned = false;
+            stunTimer = 0.0f;
+            shieldChangeTimer = 0.0f;
+        }
+        return;
+    }
+
+    if (shield == "None" && shieldChangeTimer >= shieldChangeCooldown) {
+        int val = GetRandomValue(1, 4);
+        switch (val) {
+            case 1:
+                shield = "Physical";
+                shieldColor = GRAY;
+                break;
+            case 2:
+                shield = "Magic";
+                shieldColor = PINK;
+                break;
+            case 3:
+                shield = "Fire";
+                shieldColor = ORANGE;
+                break;
+            case 4:
+                shield = "Air";
+                shieldColor = WHITE;
+                break;
+        }
+        shieldChangeTimer = 0.0f;
+        currentShieldAmount = shieldAmount;
+    }
+
+    if (shield != "None" && shieldChangeTimer >= shieldDuration) {
+        shield = "None";
+        shieldChangeTimer = 0.0f;
+        speed += 5;
+    }
+
+}
+
 std::string Fractured_King::getName() const {
     return "Fractured King";
 }
 
 void Fractured_King::takeDamage(int amount, const std::string& type, const std::string& targeting) {
-    health -= amount;
+    if (shield == "None") {
+        if (stunned) {
+            health -= static_cast<int> (amount * 2);
+        } else {
+            health -= static_cast<int> (amount * 0.75);
+        }
+    }
+    if (shield != "None") {
+        if (shield == type) {
+            currentShieldAmount -= amount;
+            if (currentShieldAmount <= 0) {
+                stunned = true;
+                shield = "None";
+            }
+        }
+        health -= static_cast<int> (amount * 0.5);
+    } 
     if (health <= 0) {
         alive = false;
         health = 0;
@@ -842,4 +906,23 @@ void Fractured_King::takeDamage(int amount, const std::string& type, const std::
 
 void Fractured_King::draw() const {
     DrawCircleV(position, hitboxRadius, RED);
+    if (shield != "None") {
+        DrawCircleLinesV(position, hitboxRadius, shieldColor);
+    }
+}
+
+std::string Fractured_King::getShield() const {
+    return shield;
+}
+
+int Fractured_King::getTotalShield() const {
+    return shieldAmount;
+}
+
+int Fractured_King::getShieldAmount() const {
+    return currentShieldAmount;
+}
+
+Color Fractured_King::getShieldColor() const {
+    return shieldColor;
 }

@@ -4,7 +4,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 1
     {
         {
-            { "Slime", 0.0f },
+            { "Slime", 1.0f },
             { "Slime", 1.0f },
             { "Slime", 1.0f },
             { "Slime", 1.0f },
@@ -16,7 +16,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 2
     {
         {
-            { "Slime", 0.0f },
+            { "Slime", 1.0f },
             { "Slime", 1.0f },
             { "Slime", 1.0f },
             { "Slime", 1.0f },
@@ -32,7 +32,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 3
     {
         {
-            { "Slime", 0.0f },
+            { "Slime", 1.0f },
             { "Slime", 1.0f },
             { "Slime", 1.0f },
             { "Slime", 1.0f },
@@ -48,7 +48,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 4
     {
         {
-            { "Slime", 0.0f },
+            { "Slime", 1.0f },
             { "Slime", 1.0f },
             { "Knight", 1.0f },
             { "Knight", 1.0f },
@@ -64,7 +64,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 5
     {
         {
-            { "Knight", 0.0f },
+            { "Knight", 1.0f },
             { "Knight", 1.0f },
             { "Knight", 1.0f },
             { "Knight", 1.0f },
@@ -83,7 +83,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 6
     {
         {
-            { "Slime", 0.0f },
+            { "Slime", 1.0f },
             { "Slime", 1.0f },
             { "Slime", 1.0f },
             { "Slime", 1.0f },
@@ -98,7 +98,6 @@ std::vector<GameWave> waveDefinitions = {
             { "Knight", 1.0f },
             { "Knight", 1.0f },
             { "Knight", 1.0f },
-            { "Fire Imp", 1.0f },
             { "Fire Imp", 1.0f },
             { "Fire Imp", 1.0f },
             { "Fire Imp", 1.0f },
@@ -108,7 +107,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 7
     {
         {
-            { "Brute", 0.0f},
+            { "Brute", 1.0f},
             { "Brute", 3.0f},
             { "Knight", 0.5f },
             { "Knight", 0.5f },
@@ -143,7 +142,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 8
     {
         {
-            { "Slime", 0.0f },
+            { "Slime", 1.0f },
             { "Slime", 1.0f },
             { "Slime", 1.0f },
             { "Slime", 1.0f },
@@ -176,7 +175,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 9
     {
         {
-            { "Fire Imp", 0.0f },
+            { "Fire Imp", 1.0f },
             { "Fire Imp", 1.0f },
             { "Knight", 1.0f },
             { "Knight", 1.0f },
@@ -223,7 +222,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 11
     {
         {
-            { "Fire Imp", 0.0f },
+            { "Fire Imp", 1.0f },
             { "Fire Imp", 1.0f },
             { "Fire Imp", 1.0f },
             { "Fire Imp", 1.0f },
@@ -249,7 +248,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 12
     {
         {
-            { "Knight", 0.0f },
+            { "Knight", 1.0f },
             { "Knight", 1.0f },
             { "Knight", 1.0f },
             { "Knight", 1.0f },
@@ -283,7 +282,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 13
     {
         {
-            { "Fire Imp", 0.0f },
+            { "Fire Imp", 1.0f },
             { "Fire Imp", 1.0f },
             { "Fire Imp", 1.0f },
             { "Arcane Shell", 1.0f },
@@ -312,7 +311,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 14
     {
         {
-            { "Brute", 0.0f },
+            { "Brute", 1.0f },
             { "Brute", 0.5f },
             { "Brute", 0.5f },
             { "Brute", 0.5f },
@@ -339,7 +338,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 15
     {
         {
-            { "Husk", 0.0f },
+            { "Husk", 1.0f },
             { "Husk", 1.0f },
             { "Husk", 1.0f },
             { "Exoskeleton", 1.0f },
@@ -368,7 +367,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 16
     {
         {
-            { "Flux", 0.0f },
+            { "Flux", 1.0f },
             { "Flux", 2.0f },
             { "Flux", 2.0f },
             { "Flux", 2.0f },
@@ -398,7 +397,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 17
     {
         {
-            { "Arcane Shell", 0.0f },
+            { "Arcane Shell", 1.0f },
             { "Arcane Shell", 0.5f },
             { "Arcane Shell", 0.5f },
             { "Arcane Shell", 0.5f },
@@ -425,7 +424,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 18
     {
         {
-            { "Slime", 0.0f },
+            { "Slime", 1.0f },
             { "Slime", 0.25f },
             { "Slime", 0.25f },
             { "Slime", 0.25f },
@@ -501,7 +500,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 19
     {
         {
-            { "Flux", 0.0f },
+            { "Flux", 1.0f },
             { "Husk", 0.25f },
             { "Flux", 0.5f },
             { "Husk", 0.25f },
@@ -543,7 +542,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 20
     {
         {
-            { "Exoskeleton", 0.0f },
+            { "Exoskeleton", 1.0f },
             { "Husk", 0.25f },
             { "Exoskeleton", 0.25f },
             { "Husk", 0.25f },
@@ -608,7 +607,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 21
     {
         {
-            { "Sludge", 0.0f },
+            { "Sludge", 1.0f },
             { "Sludge", 0.5f },
             { "Sludge", 0.5f },
             { "Sludge", 0.5f },
@@ -634,7 +633,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 22
     {
         {
-            { "Lava Golem", 0.0f },
+            { "Lava Golem", 1.0f },
             { "Lava Golem", 1.0f },
             { "Lava Golem", 1.0f },
             { "Flux", 0.5f },
@@ -662,7 +661,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 23
     {
         {
-            { "Sludge", 0.0f },
+            { "Sludge", 1.0f },
             { "Sludge", 0.25f },
             { "Sludge", 0.25f },
             { "Sludge", 0.25f },
@@ -695,7 +694,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 24
     {
         {
-            { "Obsidian Behemoth", 0.0f},
+            { "Obsidian Behemoth", 1.0f},
             { "Sludge", 0.25f },
             { "Sludge", 0.25f },
             { "Sludge", 0.25f },
@@ -724,7 +723,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 25
     {
         {
-            { "Goliath", 0.0f },
+            { "Goliath", 1.0f },
             { "Husk", 1.0f },
             { "Husk", 0.5f },
             { "Husk", 0.5f },
@@ -752,7 +751,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 26
     {
         {
-            { "Exoskeleton", 0.0f },
+            { "Exoskeleton", 1.0f },
             { "Sludge", 0.1f },
             { "Exoskeleton", 0.5f },
             { "Sludge", 0.1f },
@@ -793,7 +792,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 27
     {
         {
-            { "Goliath", 0.0f },
+            { "Goliath", 1.0f },
             { "Flux", 0.5f },
             { "Flux", 0.5f },
             { "Flux", 0.5f },
@@ -815,7 +814,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 28
     {
         {
-            { "Flux", 0.0f },
+            { "Flux", 1.0f },
             { "Arcane Shell", 0.1f },
             { "Flux", 0.1f },
             { "Arcane Shell", 0.1f },
@@ -851,7 +850,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 29
     {
         {
-            { "Lava Golem", 0.0f },
+            { "Lava Golem", 1.0f },
             { "Lava Golem", 0.25f },
             { "Lava Golem", 0.25f },
             { "Lava Golem", 0.25f },
@@ -888,7 +887,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 30
     {
         {
-            { "Sludge", 0.0f },
+            { "Sludge", 1.0f },
             { "Flux", 0.25f },
             { "Sludge", 0.25f },
             { "Flux", 0.25f },
@@ -922,7 +921,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 31
     {
         {
-            { "Ravager", 0.0f },
+            { "Ravager", 1.0f },
             { "Ravager", 0.5f },
             { "Ravager", 0.5f },
             { "Ravager", 0.5f },
@@ -956,7 +955,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 32
     {
         {
-            { "Null Imp", 0.0f},
+            { "Null Imp", 1.0f},
             { "Null Imp", 1.0f},
             { "Null Imp", 1.0f},
             { "Null Imp", 1.0f},
@@ -967,7 +966,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 33
     {
         {
-            { "Sludge", 0.0f },
+            { "Sludge", 1.0f },
             { "Sludge", 0.5f },
             { "Sludge", 0.5f },
             { "Sludge", 0.5f },
@@ -1015,7 +1014,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 34
     {
         {
-            { "Null Imp", 0.0f},
+            { "Null Imp", 1.0f},
             { "Null Imp", 1.0f},
             { "Null Imp", 1.0f},
             { "Null Imp", 1.0f},
@@ -1035,7 +1034,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 35
     {
         {
-            { "Null Imp", 0.0f},
+            { "Null Imp", 1.0f},
             { "Bulwark", 0.5f},
             { "Null Imp", 1.0f},
             { "Null Imp", 1.0f},
@@ -1059,7 +1058,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 36
     {
         {
-            { "Null Imp", 0.0f},
+            { "Null Imp", 1.0f},
             { "Null Imp", 1.0f},
             { "Null Imp", 1.0f},
             { "Prime Sludge", 1.0f },
@@ -1083,7 +1082,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 37
     {
         {
-            { "Null Imp", 0.0f},
+            { "Null Imp", 1.0f},
             { "Null Imp", 0.75f},
             { "Null Imp", 0.75f},
             { "Null Imp", 0.75f},
@@ -1109,7 +1108,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 38
     {
         {
-            { "Bulwark", 0.0f},
+            { "Bulwark", 1.0f},
             { "Prime Sludge", 0.25f },
             { "Prime Sludge", 0.25f },
             { "Prime Sludge", 0.25f },
@@ -1135,7 +1134,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 39
     {
         {
-            { "Slime", 0.0f },
+            { "Slime", 1.0f },
             { "Knight", 1.0f },
             { "Fire Imp", 1.0f },
             { "Brute", 1.0f },
@@ -1171,7 +1170,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 40
     {
         {
-            { "Exoskeleton", 0.0f },
+            { "Exoskeleton", 1.0f },
             { "Exoskeleton", 0.25f },
             { "Exoskeleton", 0.25f },
             { "Exoskeleton", 0.25f },

@@ -9,11 +9,11 @@
 #include "sounds.h"
 #include "images.h"
 #include "messages.h"
+#include "options.h"
 
 // TODO: Animations for enemies (slime done)
 // TODO: Polish up the menu
-// TODO: Make the options page
-// TODO: Add Fractured King Abilities
+// TODO: Make enemy health bar (and name) appear on top of enemy not hidden behind it
 
 std::vector<Vector2> trackPoints;
 
@@ -34,8 +34,8 @@ static int income;
 static bool waveInProgress = false;
 static float waveDuration = 30.0f;
 static float waveCooldown = 3.0f;
-static float gracePeriod = 16.0f;
-static float countdown = gracePeriod;
+static float gracePeriod;
+static float countdown;
 static float waveCooldownTimer = 0.0f;
 static int selectedTowerIndex = -1;
 
@@ -51,6 +51,7 @@ bool Paused = false;
 bool HomePressed = false;
 
 static bool grace = true;
+static bool finalboss = false;
 static bool GameWon = false;
 
 static float pathProgress = 0.0f; // 0.0 to 1.0
@@ -66,6 +67,7 @@ static bool spawning = false;
 static bool waitingToStartNextWave = false;
 
 static Tower* selectedTower = nullptr;
+static std::shared_ptr<Enemy> finalBossEnemy = nullptr;
 
 std::vector<std::string> towerNames = {       
     "Archer",     
@@ -158,7 +160,8 @@ void InitPlaying() {
 
 void ResetGame() {
     waveNumber = 0;
-    playerMoney = 600000;
+
+    playerMoney = InfiniteGold ? 999999 : 600;
     playerHealth = 100;
     income = baseIncome;
     waveInProgress = false;
@@ -182,6 +185,7 @@ void ResetGame() {
 
     isPlacingTower = false;
     selectedTower = nullptr;
+    finalBossEnemy = nullptr;
 
     showNotEnoughMoney = false;
 
@@ -454,6 +458,7 @@ void UpdatePlaying() {
 
             if (playerHealth <= 0) {
                 GameOver = true;
+                ShowCursor();
             }
 
             enemies.erase(enemies.begin() + i);
@@ -555,6 +560,8 @@ void UpdatePlaying() {
                     enemy = std::make_shared<Big_Slime>();
                 } else if (type == "Fractured King") {
                     enemy = std::make_shared<Fractured_King>();
+                    finalboss = true;
+                    finalBossEnemy = enemy;
                 }
 
                 if (enemy) {
@@ -746,7 +753,7 @@ void UpdatePlaying() {
 void DrawPlaying() {
     ClearBackground(RAYWHITE);
 
-    DrawTexture(ImageHandler::gameBackground, 0, 0, WHITE); // draws it at top-left of screen
+    DrawTexture(ImageHandler::gameBackground, 0, 0, WHITE);
 
     int tileSize = TOWER_SIZE;
     int frameCycleIndex = 0;
@@ -908,7 +915,7 @@ void DrawPlaying() {
 
         Vector2 enemyPos = enemy->getPosition();
 
-        float hoverDistance = 15.0f;
+        float hoverDistance = enemy->getRadius();
 
         enemy->draw();
 
@@ -954,8 +961,8 @@ void DrawPlaying() {
     }
 
     for (auto& exp : explosions) {
-        float alpha = 1.0f - (exp.timeAlive / exp.duration); // fade out
-        alpha = Clamp(alpha, 0.0f, 1.0f);
+        float alpha = 0.8f - (exp.timeAlive / exp.duration); // fade out
+        alpha = Clamp(alpha, 0.0f, 0.8f);
         Color color = Fade(ORANGE, alpha);
         DrawCircleV(exp.position, exp.radius, color);
     }
@@ -1244,47 +1251,89 @@ void DrawPlaying() {
         DrawTextureEx(previewImage, imagePos, 0.0f, imageScale, WHITE);
     }
 
-    // Pause button
-    Rectangle pauseButton = {GetScreenWidth() - 100.0f, 0.0f, 40.0f, 40.0f};
+    if (finalBossEnemy && hoveredTowerIndex == -1 && !selectedTower ) {
+        float healthBarWidth = 400.0f;
+        float healthBarHeight = 25.0f;
+        float healthPercent = static_cast<float>(finalBossEnemy->getHealth()) / finalBossEnemy->getMaxHealth();
 
-    // Hover effect for pause button
-    bool pauseHovered = CheckCollisionPointRec(GetMousePosition(), pauseButton);
-    float scale = pauseHovered ? 1.2f : 1.0f;
+        Vector2 barPos = { (float) GetScreenWidth() - 525, (float) GetScreenHeight() - 75 };
+        DrawRectangle(barPos.x, barPos.y, healthBarWidth, healthBarHeight, LIGHTGRAY); // background
+        DrawRectangle(barPos.x, barPos.y, healthBarWidth * healthPercent, healthBarHeight, RED); // health
 
-    float scaledWidth = pauseButton.width * scale;
-    float scaledHeight = pauseButton.height * scale;
-    float offsetX = (scaledWidth - pauseButton.width) / 2.0f;
-    float offsetY = (scaledHeight - pauseButton.height) / 2.0f;
+        // Draw enemy name and health as text
+        std::string info = finalBossEnemy->getName() + ": " + std::to_string(finalBossEnemy->getHealth());
+        
+        int fontSize = 24;
+        int textWidth = MeasureText(info.c_str(), fontSize);
+        int textX = barPos.x + (healthBarWidth / 2) - (textWidth / 2);
+        int textY = barPos.y - healthBarHeight - 20;
 
-    Rectangle scaledPauseButton = {
-        pauseButton.x - offsetX,
-        pauseButton.y - offsetY,
-        scaledWidth,
-        scaledHeight
-    };
+        DrawText(info.c_str(), textX, textY, fontSize, MAGENTA);
 
-    // Detect button click
-    if ((IsKeyPressed(KEY_P)) || (CheckCollisionPointRec(GetMousePosition(), pauseButton) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))) {
-        Paused = !Paused;
+        auto boss = std::dynamic_pointer_cast<Fractured_King>(finalBossEnemy);
+
+        if (boss->getShield() != "None") {
+            Vector2 shieldBarPos = { barPos.x + 100, barPos.y + 35 };
+
+            float shieldBarWidth = 200.0f;
+            float shieldBarHeight = 15.0f;
+            float shieldPercent = static_cast<float>(boss->getShieldAmount()) / boss->getTotalShield();
+
+            DrawRectangle(shieldBarPos.x, shieldBarPos.y, shieldBarWidth, shieldBarHeight, LIGHTGRAY); // background
+            DrawRectangle(shieldBarPos.x, shieldBarPos.y, shieldBarWidth * shieldPercent, shieldBarHeight, boss->getShieldColor()); // shield
+
+            int secFontSize = 16.0f;
+            std::string shieldInfo = std::to_string(boss->getShieldAmount());
+            int shieldAmountWidth = MeasureText(std::to_string(boss->getShieldAmount()).c_str(), secFontSize);
+            textX = shieldBarPos.x + (shieldBarWidth / 2) - (shieldAmountWidth / 2);
+            textY = shieldBarPos.y - shieldBarHeight + 35;
+            DrawText(shieldInfo.c_str(), textX, textY, secFontSize, boss->getShieldColor());
+        }
     }
 
-    if (!Paused) {
-        // Draw pause icon (two vertical bars)
-        float barWidth = 5.0f * scale;
-        float gap = 10.0f * scale;
+    if (AllowPausing) {
+        // Pause button
+        Rectangle pauseButton = {GetScreenWidth() - 100.0f, 0.0f, 40.0f, 40.0f};
 
-        DrawRectangle(scaledPauseButton.x + gap, scaledPauseButton.y + 6 * scale, barWidth, scaledPauseButton.height - 12 * scale, DARKGRAY);
-        DrawRectangle(scaledPauseButton.x + gap + barWidth + gap, scaledPauseButton.y + 6 * scale, barWidth, scaledPauseButton.height - 12 * scale, DARKGRAY);
-    } else {
-        
-        Vector2 center = { scaledPauseButton.x + scaledPauseButton.width / 2.0f, scaledPauseButton.y + scaledPauseButton.height / 2.0f };
-        float size = 12.0f * scale;
+        // Hover effect for pause button
+        bool pauseHovered = CheckCollisionPointRec(GetMousePosition(), pauseButton);
+        float scale = pauseHovered ? 1.2f : 1.0f;
 
-        Vector2 p1 = { center.x - (size / 1.5f), center.y - size }; // top point
-        Vector2 p2 = { center.x - (size / 1.5f), center.y + size }; // bottom point
-        Vector2 p3 = { center.x + size, center.y };                 // right point
+        float scaledWidth = pauseButton.width * scale;
+        float scaledHeight = pauseButton.height * scale;
+        float offsetX = (scaledWidth - pauseButton.width) / 2.0f;
+        float offsetY = (scaledHeight - pauseButton.height) / 2.0f;
 
-        DrawTriangle(p1, p2, p3, DARKGRAY);
+        Rectangle scaledPauseButton = {
+            pauseButton.x - offsetX,
+            pauseButton.y - offsetY,
+            scaledWidth,
+            scaledHeight
+        };
+
+        // Detect button click
+        if ((IsKeyPressed(KEY_P)) || (CheckCollisionPointRec(GetMousePosition(), pauseButton) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))) {
+            Paused = !Paused;
+        }
+
+        if (!Paused) {
+            // Draw pause icon (two vertical bars)
+            float barWidth = 5.0f * scale;
+            float gap = 10.0f * scale;
+
+            DrawRectangle(scaledPauseButton.x + gap, scaledPauseButton.y + 6 * scale, barWidth, scaledPauseButton.height - 12 * scale, DARKGRAY);
+            DrawRectangle(scaledPauseButton.x + gap + barWidth + gap, scaledPauseButton.y + 6 * scale, barWidth, scaledPauseButton.height - 12 * scale, DARKGRAY);
+        } else {
+            
+            Vector2 center = { scaledPauseButton.x + scaledPauseButton.width / 2.0f, scaledPauseButton.y + scaledPauseButton.height / 2.0f };
+            float size = 12.0f * scale;
+
+            Vector2 p1 = { center.x - (size / 1.5f), center.y - size }; // top point
+            Vector2 p2 = { center.x - (size / 1.5f), center.y + size }; // bottom point
+            Vector2 p3 = { center.x + size, center.y };                 // right point
+
+            DrawTriangle(p1, p2, p3, DARKGRAY);
+        }
     }
 
     // Home button
@@ -1294,11 +1343,11 @@ void DrawPlaying() {
     bool isHovered = CheckCollisionPointRec(GetMousePosition(), homeButton);
 
     // Enlarge the button if hovered
-    scale = isHovered ? 1.2f : 1.0f;
-    scaledWidth = homeButton.width * scale;
-    scaledHeight = homeButton.height * scale;
-    offsetX = (scaledWidth - homeButton.width) / 2.0f;
-    offsetY = (scaledHeight - homeButton.height) / 2.0f;
+    float scale = isHovered ? 1.2f : 1.0f;
+    float scaledWidth = homeButton.width * scale;
+    float scaledHeight = homeButton.height * scale;
+    float offsetX = (scaledWidth - homeButton.width) / 2.0f;
+    float offsetY = (scaledHeight - homeButton.height) / 2.0f;
 
     Rectangle scaledButton = {
         homeButton.x - offsetX,
