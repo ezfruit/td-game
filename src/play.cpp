@@ -12,8 +12,7 @@
 #include "options.h"
 
 // TODO: Animations for enemies (slime done)
-// TODO: Polish up the menu
-// TODO: Make enemy health bar (and name) appear on top of enemy not hidden behind it
+// TODO: Polish up the menu (background image)
 
 std::vector<Vector2> trackPoints;
 
@@ -911,13 +910,31 @@ void DrawPlaying() {
 
     Vector2 mousePos = GetMousePosition();
 
-    for (const auto& enemy : enemies) {
+    for (const auto& enemy : enemies) { // Draw the enemies first
 
         Vector2 enemyPos = enemy->getPosition();
 
-        float hoverDistance = enemy->getRadius();
-
         enemy->draw();
+
+        if (enemy->isBurning()) {
+            // Position flame slightly above the enemy
+            Vector2 flamePos = { enemyPos.x, enemyPos.y - 20 };
+
+            // Optional: Flicker size with sine wave
+            float flicker = 2.0f + 2.0f * sin(GetTime() * 10.0f);
+
+            // Draw flickering fire circles
+            DrawCircleV(flamePos, 6 + flicker * 0.3f, RED);
+            DrawCircleV({flamePos.x + 2, flamePos.y - 4}, 4 + flicker * 0.2f, ORANGE);
+            DrawCircleV({flamePos.x - 3, flamePos.y - 2}, 3 + flicker * 0.2f, YELLOW);
+        }
+
+    }
+
+    for (const auto& enemy : enemies) { // Draw the enemies' health bars second
+
+        Vector2 enemyPos = enemy->getPosition();
+        float hoverDistance = enemy->getRadius();
 
         if (Vector2Distance(mousePos, enemyPos) <= hoverDistance) {
             // Draw enemy health bar
@@ -938,22 +955,7 @@ void DrawPlaying() {
             int textY = barPos.y - 18;
 
             DrawText(info.c_str(), textX, textY, fontSize, RED);
-
         }
-
-        if (enemy->isBurning()) {
-            // Position flame slightly above the enemy
-            Vector2 flamePos = { enemyPos.x, enemyPos.y - 20 };
-
-            // Optional: Flicker size with sine wave
-            float flicker = 2.0f + 2.0f * sin(GetTime() * 10.0f);
-
-            // Draw flickering fire circles
-            DrawCircleV(flamePos, 6 + flicker * 0.3f, RED);
-            DrawCircleV({flamePos.x + 2, flamePos.y - 4}, 4 + flicker * 0.2f, ORANGE);
-            DrawCircleV({flamePos.x - 3, flamePos.y - 2}, 3 + flicker * 0.2f, YELLOW);
-        }
-
     }
 
     for (auto& proj : projectiles) {

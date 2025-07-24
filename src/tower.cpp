@@ -235,7 +235,7 @@ void Archer::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemie
 
         shootTimer = shootFlashDuration;
 
-        PlaySound(SoundManager::arrow_fly);
+        PlaySound(SoundManager::arrow);
         Vector2 dir = Vector2Subtract(target->getPosition(), getPosition());
 
         int actualDamage = static_cast<int>(std::ceil(damage * damageMultiplier));
@@ -568,7 +568,7 @@ void Torcher::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& enemi
 
         shootTimer = shootFlashDuration;
 
-        PlaySound(SoundManager::torcher);
+        PlaySound(SoundManager::fire_ignite);
 
         int actualDamage = static_cast<int>(std::ceil(damage * damageMultiplier));
         float actualAttackSpeed = attackSpeed * attackSpeedMultiplier;
@@ -734,7 +734,7 @@ void Stormcaller::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& e
 
         shootTimer = shootFlashDuration;
 
-        PlaySound(SoundManager::thunder);
+        PlaySound(SoundManager::thunder_flash);
         DrawLightningBolt(target);
 
         int actualDamage = static_cast<int>(std::ceil(damage * damageMultiplier));

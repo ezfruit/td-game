@@ -2,7 +2,7 @@
 #include "raylib.h"
 
 namespace SoundManager {
-    extern Sound arrow_fly;
+    extern Sound arrow;
     extern Sound explosion;
     extern Sound upgrade;
     extern Sound sell;
@@ -10,8 +10,8 @@ namespace SoundManager {
     extern Sound place;
     extern Sound fireball;
     extern Sound spider_spawn;
-    extern Sound torcher;
-    extern Sound thunder;
+    extern Sound fire_ignite;
+    extern Sound thunder_flash;
     extern Sound money;
     extern Sound arcane_warden_spawn;
 
