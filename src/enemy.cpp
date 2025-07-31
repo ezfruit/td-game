@@ -414,7 +414,7 @@ std::string Flux::getShield() const {
     return shield;
 }
 
-Husk::Husk() : Enemy(75, 300.0f, 20.0f) {} // 150 is normal
+Husk::Husk() : Enemy(75, 150.0f, 20.0f) {} // 150 is normal
 
 std::string Husk::getName() const {
     return "Husk";
