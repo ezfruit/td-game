@@ -25,7 +25,7 @@ int main() {
 
     SetTargetFPS(60);
 
-    enum gameState {MENU, PLAYING, GAMEOVER, OPTIONS, EXIT};
+    enum gameState {MENU, PLAYING, OPTIONS, EXIT};
 
     gameState state = MENU;
 
@@ -53,9 +53,9 @@ int main() {
                 };
 
                 Button buttons[] = {
-                    { { screenWidthMid - buttonWidth / 2, 290, buttonWidth, buttonHeight }, "Play" },
-                    { { screenWidthMid - buttonWidth / 2, 390, buttonWidth, buttonHeight }, "Options" },
-                    { { screenWidthMid - buttonWidth / 2, 490, buttonWidth, buttonHeight }, "Exit" }
+                    { { screenWidthMid - buttonWidth / 2, 325, buttonWidth, buttonHeight }, "Play" },
+                    { { screenWidthMid - buttonWidth / 2, 425, buttonWidth, buttonHeight }, "Options" },
+                    { { screenWidthMid - buttonWidth / 2, 525, buttonWidth, buttonHeight }, "Exit" }
                 };
 
                 for (int i = 0; i < 3; i++) {
@@ -103,7 +103,8 @@ int main() {
                 }
 
                 const char* title = "Rampart Defenders";
-                DrawText(title, screenWidthMid - MeasureText(title, 60) / 2, 150, 60, DARKGRAY);
+                int titleFontSize = 75;
+                DrawText(title, screenWidthMid - MeasureText(title, titleFontSize) / 2, 125, titleFontSize, DARKGRAY);
 
                 break;
             }
@@ -117,15 +118,7 @@ int main() {
                 UpdatePlaying();
                 DrawPlaying();
 
-                if (GameOver) {
-                    state = GAMEOVER;
-                    for (auto& tower : towers) {
-                        tower->unloadFrames(); // Unload the textures for the rest of the towers if game is over
-                    }
-                    for (auto& enemy : enemies) {
-                        enemy->unloadFrames(); // Unload the textures for the rest of the enemies if game is over
-                    }
-                } else if (IsWindowMinimized()) {
+                if (IsWindowMinimized()) {
                     Paused = true;
                 } else if (HomePressed) {
                     state = MENU;
@@ -137,32 +130,6 @@ int main() {
                         enemy->unloadFrames(); // Unload the textures for the rest of the enemies if home button is pressed
                     }
                 }
-                break;
-            }
-            case GAMEOVER: {
-
-                Rectangle menuBtn = { screenWidthMid - 110, 340, 210, 40 };
-                Rectangle exitBtn = { screenWidthMid - 70, 440, 120, 40 };
-
-                DrawRectangleRec(menuBtn, LIGHTGRAY);
-                DrawRectangleRec(exitBtn, LIGHTGRAY);
-
-                Vector2 mousePos = GetMousePosition();
-
-                if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-                    if (CheckCollisionPointRec(mousePos, menuBtn)) {
-                        state = MENU;
-                        GameOver = false;
-                    }
-                    else if (CheckCollisionPointRec(mousePos, exitBtn)) {
-                        state = EXIT;
-                    }
-                }
-
-                DrawText("GAME OVER!", screenWidthMid - 180, 150, 60, DARKGRAY);
-                DrawText("The enemies slipped past your lines.", screenWidthMid - 340, 250, 40, DARKGRAY);
-                DrawText("Return to Menu", screenWidthMid - 100, 350, 24, DARKGRAY);
-                DrawText("Exit", screenWidthMid - 30, 450, 24, DARKGRAY);
                 break;
             }
             case OPTIONS:

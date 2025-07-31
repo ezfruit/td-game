@@ -1,6 +1,6 @@
 #include "options.h"
 
-float volume = 0.5f; // Initial volume [0.0f - 1.0f]
+float volume = 1.0f; // Initial volume [0.0f - 1.0f]
 
 bool BackPressed = false;
 bool InfiniteGold = false;
@@ -132,7 +132,7 @@ void DrawOptions() {
 
     int backTextFontSize = 24;
 
-    Rectangle backBtn = { screenWidthMid - buttonWidth / 2, 600, buttonWidth, buttonHeight };
+    Rectangle backBtn = { screenWidthMid - buttonWidth / 2, 625, buttonWidth, buttonHeight };
 
     bool hovered = CheckCollisionPointRec(mousePos, backBtn);
     Rectangle drawRect = backBtn;

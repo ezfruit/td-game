@@ -176,6 +176,7 @@ void ResetGame() {
     countdown = gracePeriod;
 
     Paused = false;
+    GameOver = false;
     GameWon = false;
 
     spawning = false;
@@ -362,6 +363,10 @@ void DrawShineTrail() {
 // Game logic updates
 void UpdatePlaying() {
 
+    if (GameOver) {
+        return;
+    }
+
     bool allDefeated = true;
     float deltaTime = GetFrameTime();
 
@@ -455,8 +460,10 @@ void UpdatePlaying() {
             enemies[i]->unloadFrames(); // Unload the texture when they get to the end
             playerHealth -= enemies[i]->getHealth();
 
-            if (playerHealth <= 0) {
+            if (playerHealth <= 0) { // Logic once player loses
+                playerHealth = 0;
                 GameOver = true;
+                isPlacingTower = false;
                 ShowCursor();
             }
 
@@ -1371,30 +1378,75 @@ void DrawPlaying() {
     float baseHeight = scaledButton.height / 2.0f - 5 * scale;
     DrawRectangle(baseX, baseY, baseWidth, baseHeight, DARKGRAY);
 
-    if (GameWon) {
+    if (GameOver || GameWon) {
+
         const int screenWidthMid = GetScreenWidth() / 2;
         DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(DARKGRAY, 0.6f));
-        DrawText("YOU WIN!", GetScreenWidth() / 3 + 75, 150, 60, GOLD);
-        Rectangle playBtn = { (float) screenWidthMid - 180, 325, 140, 40 };
-        Rectangle exitBtn = { (float) screenWidthMid + 35, 325, 170, 40 };
 
-        DrawRectangleRec(playBtn, DARKGRAY);
-        DrawRectangleRec(exitBtn, DARKGRAY);
+        if (GameOver) {
+            const char* gameOverText = "GAME OVER";
+            int gameOverTextFontSize = 60;
+            DrawText(gameOverText, screenWidthMid - MeasureText(gameOverText, gameOverTextFontSize) / 2, 150, gameOverTextFontSize, RED);
+            const char* gameOverMsg = "The enemies slipped past your lines.";
+            int gameOverMsgFontSize = 40;
+            DrawText(gameOverMsg, screenWidthMid - MeasureText(gameOverMsg, gameOverMsgFontSize) / 2, 250, gameOverMsgFontSize, WHITE);
+        } else if (GameWon) {
+            const char* winMsg = "YOU WIN!";
+            int winFontSize = 75;
+            DrawText(winMsg, screenWidthMid - MeasureText(winMsg, winFontSize) / 2, 150, winFontSize, GOLD);
+        }
 
-        DrawText("Play Again", playBtn.x + 10, playBtn.y + 10, 24, WHITE);
-        DrawText("Exit to Menu", exitBtn.x + 10, exitBtn.y + 10, 24, WHITE);
+        const float buttonWidth = 180.0f;
+        const float buttonHeight = 40.0f;
+
+        Rectangle playBtn = { screenWidthMid - buttonWidth / 2, 340, buttonWidth, buttonHeight };
+        Rectangle exitBtn = { screenWidthMid - buttonWidth / 2, 440, buttonWidth, buttonHeight };
+
+        const float hoverScale = 1.1f;
+
+        int playFontSize = 24;
+        bool playHovered = CheckCollisionPointRec(mousePos, playBtn);
+        Rectangle bigPlayRect = playBtn;
+
+        if (playHovered) {
+            bigPlayRect.width *= hoverScale;
+            bigPlayRect.height *= hoverScale;
+            bigPlayRect.x -= (bigPlayRect.width - playBtn.width) / 2;
+            bigPlayRect.y -= (bigPlayRect.height - playBtn.height) / 2;
+            playFontSize = 28;
+        } 
+        DrawRectangleRec(bigPlayRect, DARKGRAY);
+
+        int playTextWidth = MeasureText("Play Again", playFontSize);
+
+        int exitFontSize = 24;
+        bool exitHovered = CheckCollisionPointRec(mousePos, exitBtn);
+        Rectangle bigExitRect = exitBtn;
+
+        if (exitHovered) {
+            bigExitRect.width *= hoverScale;
+            bigExitRect.height *= hoverScale;
+            bigExitRect.x -= (bigExitRect.width - exitBtn.width) / 2;
+            bigExitRect.y -= (bigExitRect.height - exitBtn.height) / 2;
+            exitFontSize = 28;
+        } 
+        DrawRectangleRec(bigExitRect, DARKGRAY);
+
+        int exitTextWidth = MeasureText("Exit to Menu", exitFontSize);
+
+        DrawText("Play Again", playBtn.x + playBtn.width / 2 - playTextWidth / 2, playBtn.y + playBtn.height / 2 - playFontSize / 2, playFontSize, WHITE);
+        DrawText("Exit to Menu", exitBtn.x + exitBtn.width / 2 - exitTextWidth / 2, exitBtn.y + exitBtn.height / 2 - exitFontSize / 2, exitFontSize, WHITE);
 
         Vector2 mousePos = GetMousePosition();
 
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
             if (CheckCollisionPointRec(mousePos, playBtn)) {
-                GameWon = false;
+                GameOver = false;
                 ResetGame();
             }
             else if (CheckCollisionPointRec(mousePos, exitBtn)) {
                 HomePressed = true;
             }
         }
-
     }
 }
