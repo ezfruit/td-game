@@ -211,7 +211,10 @@ void Knight::draw() const {
     DrawCircleV(position, hitboxRadius, GRAY);
 }
 
-Fire_Imp::Fire_Imp() : Enemy(25, 100.0f, 10.0f) {}
+Fire_Imp::Fire_Imp() : Enemy(25, 100.0f, 15.0f) {
+    moveFrames = ImageHandler::LoadAnimationFrames("fire_imp", 4);
+    frameSpeed = 0.1f;
+}
 
 std::string Fire_Imp::getName() const {
     return "Fire Imp";
@@ -232,7 +235,50 @@ void Fire_Imp::takeDamage(int amount, const std::string& type, const std::string
 }
 
 void Fire_Imp::draw() const {
-    DrawCircleV(position, hitboxRadius, ORANGE);
+    Texture2D frame = moveFrames[currentFrame];
+    float diameter = hitboxRadius * 2.0f;
+
+    Rectangle dest = {
+        position.x,
+        position.y,
+        diameter,
+        diameter
+    };
+
+    Vector2 origin = {
+        diameter / 2.0f,
+        diameter / 2.0f
+    };
+
+    float angleDeg = 0.0f;
+
+    if (currentTarget < trackPoints.size()) {
+        Vector2 dir = Vector2Subtract(trackPoints[currentTarget], position);
+        float angleRad = atan2f(dir.y, dir.x);
+        angleDeg = angleRad * (180.0f / PI);
+
+        // Flip horizontally when moving left
+        if (angleDeg > 90.0f || angleDeg < -90.0f) {
+            angleDeg += 180.0f;
+            // Flip source rect too
+            Rectangle source = {
+                0.0f, 0.0f,
+                (float)-frame.width, // flip horizontally
+                (float)frame.height
+            };
+            DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
+            return;
+        }
+    }
+
+    // Default source rect (not flipped)
+    Rectangle source = {
+        0.0f, 0.0f,
+        (float)frame.width,
+        (float)frame.height
+    };
+
+    DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
 }
 
 
