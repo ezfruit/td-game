@@ -383,7 +383,9 @@ void Spiderling::draw() const {
     DrawCircleV(position, hitboxRadius, BLACK);
 }
 
-Arcane_Shell::Arcane_Shell() : Enemy(100, 60.0f, 15.0f) {}
+Arcane_Shell::Arcane_Shell() : Enemy(100, 60.0f, 15.0f) {
+    moveFrames = ImageHandler::LoadAnimationFrames("arcane_shell", 8);
+}
 
 std::string Arcane_Shell::getName() const {
     return "Arcane Shell";
@@ -405,7 +407,31 @@ void Arcane_Shell::takeDamage(int amount, const std::string& type, const std::st
 }
 
 void Arcane_Shell::draw() const {
-    DrawCircleV(position, hitboxRadius, PINK);
+    Texture2D frame = moveFrames[currentFrame];
+    float diameter = hitboxRadius * 2.0f;
+
+    Rectangle dest = {
+        position.x,
+        position.y,
+        diameter,
+        diameter
+    };
+
+    Vector2 origin = {
+        diameter / 2.0f,
+        diameter / 2.0f
+    };
+
+    float angleDeg = 0.0f;
+
+    // Default source rect (not flipped)
+    Rectangle source = {
+        0.0f, 0.0f,
+        (float)frame.width,
+        (float)frame.height
+    };
+
+    DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
 }
 
 Flux::Flux() : Enemy(250, 30.0f, 14.0f) {}
