@@ -13,7 +13,7 @@ std::vector<GameWave> waveDefinitions = {
         }
     },
     
-    // Wave 2x
+    // Wave 2
     {
         {
             { "Slime", 1.0f },
