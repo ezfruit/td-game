@@ -939,7 +939,10 @@ void Bulwark::draw() const {
     DrawCircleV(position, hitboxRadius, WHITE);
 }
 
-Prime_Sludge::Prime_Sludge() : Enemy(6000, 100.0f, 20.0f) {}
+Prime_Sludge::Prime_Sludge() : Enemy(6000, 100.0f, 20.0f) {
+    frameSpeed = 0.33f;
+    moveFrames = ImageHandler::LoadAnimationFrames("prime_sludge", 2);
+}
 
 std::string Prime_Sludge::getName() const {
     return "Prime Sludge";
@@ -970,7 +973,51 @@ void Prime_Sludge::spawn() {
 }
 
 void Prime_Sludge::draw() const {
-    DrawCircleV(position, hitboxRadius, DARKBROWN);
+    // DrawCircleV(position, hitboxRadius, DARKBROWN);
+    Texture2D frame = moveFrames[currentFrame];
+    float diameter = hitboxRadius * 2.0f;
+
+    Rectangle dest = {
+        position.x,
+        position.y,
+        diameter,
+        diameter
+    };
+
+    Vector2 origin = {
+        diameter / 2.0f,
+        diameter / 2.0f
+    };
+
+    float angleDeg = 0.0f;
+
+    if (currentTarget < trackPoints.size()) {
+        Vector2 dir = Vector2Subtract(trackPoints[currentTarget], position);
+        float angleRad = atan2f(dir.y, dir.x);
+        angleDeg = angleRad * (180.0f / PI);
+
+        // Flip horizontally when moving left
+        if (angleDeg > 90.0f || angleDeg < -90.0f) {
+            angleDeg += 180.0f;
+            // Flip source rect too
+            Rectangle source = {
+                0.0f, 0.0f,
+                (float)-frame.width, // flip horizontally
+                (float)frame.height
+            };
+            DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
+            return;
+        }
+    }
+
+    // Default source rect (not flipped)
+    Rectangle source = {
+        0.0f, 0.0f,
+        (float)frame.width,
+        (float)frame.height
+    };
+
+    DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
 }
 
 Big_Slime::Big_Slime() : Enemy(50000, 25.0f, 40.0f) {
