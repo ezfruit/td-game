@@ -172,6 +172,7 @@ class Flux : public Enemy {
         float shieldChangeTimer = 0.0f;
         float shieldChangeCooldown = 5.0f;
         std::string shield = "Physical";
+        int shieldFrameIndex = 0;
     public:
         Flux();
 

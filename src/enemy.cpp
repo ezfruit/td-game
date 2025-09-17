@@ -434,19 +434,63 @@ void Arcane_Shell::draw() const {
     DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
 }
 
-Flux::Flux() : Enemy(250, 30.0f, 14.0f) {}
+Flux::Flux() : Enemy(250, 30.0f, 14.0f) {
+    moveFrames = ImageHandler::LoadAnimationFrames("flux", 4);
+    frameSpeed = 0.25f;
+}
 
 void Flux::update(float deltaTime, const std::vector<Vector2>& track) {
     
-    Enemy::update(deltaTime, track);
+    if (currentTarget >= track.size()) return;
 
+    if (deltaTime > 0.05f) deltaTime = 0.05f;
+
+    float currentTime = GetTime();
+
+    animationTimer += deltaTime;
+
+    if (!moveFrames.empty()) {
+        if (animationTimer >= frameSpeed) {
+            animationTimer = 0.0f;
+            int currentFrameIndex = (currentFrame + 1) % 2;
+            currentFrame = shieldFrameIndex + currentFrameIndex;
+        }
+    }
+
+    if (burning) {
+        if (currentTime >= burnEndTime) {
+            burning = false;
+            revertSpeed();
+        } else if (currentTime >= nextBurnTick) {
+            int prevHealth = getHealth();
+            takeDamage(burnDamage, "Fire", "Single");
+            int curHealth = getHealth();
+            int damageDealt = prevHealth - curHealth;
+            if (auto tower = burnSource.lock()) {
+                tower->setTotalDamageDealt(damageDealt);
+            }
+            playerMoney += damageDealt;
+            nextBurnTick += burnDelay;
+        }
+    }
+
+    Vector2 target = track[currentTarget];
+    Vector2 direction = Vector2Normalize(Vector2Subtract(target, position));
+    position = Vector2Add(position, Vector2Scale(direction, speed * deltaTime));
+
+    if (Vector2Distance(position, target) < 1.0f) {
+        currentTarget++;
+    }
+    
     shieldChangeTimer += GetFrameTime();
 
     if (shieldChangeTimer >= shieldChangeCooldown) {
         if (shield == "Physical") {
             shield = "Magic";
+            shieldFrameIndex = 2;
         } else {
             shield = "Physical";
+            shieldFrameIndex = 0;
         }
         shieldChangeTimer = 0.0f;
     }
@@ -471,11 +515,31 @@ void Flux::takeDamage(int amount, const std::string& type, const std::string& ta
 }
 
 void Flux::draw() const {
-    Color ringColor = (shield == "Physical") ? GRAY : PINK;
-    // Draw outer ring for the shield
-    DrawCircleLinesV(position, hitboxRadius, ringColor);
-    // Draw inner enemy body
-    DrawCircleV(position, hitboxRadius - 2, YELLOW);
+    Texture2D frame = moveFrames[currentFrame];
+    float diameter = hitboxRadius * 2.0f;
+
+    Rectangle dest = {
+        position.x,
+        position.y,
+        diameter,
+        diameter
+    };
+
+    Vector2 origin = {
+        diameter / 2.0f,
+        diameter / 2.0f
+    };
+
+    float angleDeg = 0.0f;
+
+    // Default source rect (not flipped)
+    Rectangle source = {
+        0.0f, 0.0f,
+        (float)frame.width,
+        (float)frame.height
+    };
+
+    DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
 }
 
 void Flux::setShield(std::string newShield) {
@@ -973,7 +1037,6 @@ void Prime_Sludge::spawn() {
 }
 
 void Prime_Sludge::draw() const {
-    // DrawCircleV(position, hitboxRadius, DARKBROWN);
     Texture2D frame = moveFrames[currentFrame];
     float diameter = hitboxRadius * 2.0f;
 

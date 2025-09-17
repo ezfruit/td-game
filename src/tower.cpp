@@ -707,7 +707,6 @@ void Stormcaller::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& e
             shootingFrameTimer -= shootingFrameDuration;
             shootingIndex = (shootingIndex + 1) % 6;
             currentShootingFrame = frameIndex + shootingIndex;
-            //currentShootingFrame = (currentShootingFrame + 1) % 6;
         }
     } else {
         shootingFrameTimer += deltaTime;
@@ -715,7 +714,6 @@ void Stormcaller::update(float deltaTime, std::vector<std::shared_ptr<Enemy>>& e
             shootingFrameTimer -= shootingFrameDuration;
             idleIndex = (idleIndex + 1) % 4;
             currentIdleFrame = frameIndex + 6 + idleIndex;
-            //currentIdleFrame = ((currentIdleFrame + 1) % 4) + 6;
         }
     }
 
