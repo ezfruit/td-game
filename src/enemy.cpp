@@ -619,7 +619,10 @@ void Husk::draw() const {
     DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
 }
 
-Exoskeleton::Exoskeleton() : Enemy(500, 35.0f, 12.0f) {}
+Exoskeleton::Exoskeleton() : Enemy(500, 35.0f, 12.0f) {
+    frameSpeed = 0.5f;
+    moveFrames = ImageHandler::LoadAnimationFrames("exoskeleton", 2);
+}
 
 std::string Exoskeleton::getName() const {
     return "Exoskeleton";
@@ -642,7 +645,50 @@ void Exoskeleton::takeDamage(int amount, const std::string& type, const std::str
 }
 
 void Exoskeleton::draw() const {
-    DrawCircleV(position, hitboxRadius, LIGHTGRAY);
+    Texture2D frame = moveFrames[currentFrame];
+    float diameter = hitboxRadius * 2.0f;
+
+    Rectangle dest = {
+        position.x,
+        position.y,
+        diameter,
+        diameter
+    };
+
+    Vector2 origin = {
+        diameter / 2.0f,
+        diameter / 2.0f
+    };
+
+    float angleDeg = 0.0f;
+
+    if (currentTarget < trackPoints.size()) {
+        Vector2 dir = Vector2Subtract(trackPoints[currentTarget], position);
+        float angleRad = atan2f(dir.y, dir.x);
+        angleDeg = angleRad * (180.0f / PI);
+
+        // Flip horizontally when moving left
+        if (angleDeg > 90.0f || angleDeg < -90.0f) {
+            angleDeg += 180.0f;
+            // Flip source rect too
+            Rectangle source = {
+                0.0f, 0.0f,
+                (float)-frame.width, // flip horizontally
+                (float)frame.height
+            };
+            DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
+            return;
+        }
+    }
+
+    // Default source rect (not flipped)
+    Rectangle source = {
+        0.0f, 0.0f,
+        (float)frame.width,
+        (float)frame.height
+    };
+
+    DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
 }
 
 Goliath::Goliath() : Enemy(1200, 20.0f, 20.0f) {}
