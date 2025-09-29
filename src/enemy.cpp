@@ -1221,6 +1221,7 @@ void Prime_Sludge::draw() const {
 }
 
 Big_Slime::Big_Slime() : Enemy(50000, 25.0f, 40.0f) {
+    frameSpeed = 0.5f;
     moveFrames = ImageHandler::LoadAnimationFrames("slime", 8);
 }
 
