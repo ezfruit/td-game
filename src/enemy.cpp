@@ -187,7 +187,10 @@ void Slime::draw() const {
     DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
 }
 
-Knight::Knight() : Enemy(10, 40.0f, 10.0f) {}
+Knight::Knight() : Enemy(10, 40.0f, 10.0f) {
+    frameSpeed = 0.33f;
+    moveFrames = ImageHandler::LoadAnimationFrames("knight", 4);
+}
 
 std::string Knight::getName() const {
     return "Knight";
@@ -208,7 +211,50 @@ void Knight::takeDamage(int amount, const std::string& type, const std::string& 
 }
 
 void Knight::draw() const {
-    DrawCircleV(position, hitboxRadius, GRAY);
+    Texture2D frame = moveFrames[currentFrame];
+    float diameter = hitboxRadius * 2.0f;
+
+    Rectangle dest = {
+        position.x,
+        position.y,
+        diameter,
+        diameter
+    };
+
+    Vector2 origin = {
+        diameter / 2.0f,
+        diameter / 2.0f
+    };
+
+    float angleDeg = 0.0f;
+
+    if (currentTarget < trackPoints.size()) {
+        Vector2 dir = Vector2Subtract(trackPoints[currentTarget], position);
+        float angleRad = atan2f(dir.y, dir.x);
+        angleDeg = angleRad * (180.0f / PI);
+
+        // Flip horizontally when moving left
+        if (angleDeg > 90.0f || angleDeg < -90.0f) {
+            angleDeg += 180.0f;
+            // Flip source rect too
+            Rectangle source = {
+                0.0f, 0.0f,
+                (float)-frame.width, // flip horizontally
+                (float)frame.height
+            };
+            DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
+            return;
+        }
+    }
+
+    // Default source rect (not flipped)
+    Rectangle source = {
+        0.0f, 0.0f,
+        (float)frame.width,
+        (float)frame.height
+    };
+
+    DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
 }
 
 Fire_Imp::Fire_Imp() : Enemy(25, 100.0f, 15.0f) {
