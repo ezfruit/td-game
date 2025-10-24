@@ -346,8 +346,6 @@ void Brute::takeDamage(int amount, const std::string& type, const std::string& t
 }
 
 void Brute::draw() const {
-    // DrawCircleV(position, hitboxRadius, BROWN);
-
     Texture2D frame = moveFrames[currentFrame];
     float diameter = hitboxRadius * 2.0f;
 
@@ -423,7 +421,10 @@ void SpawnableEnemy::update(float deltaTime, const std::vector<Vector2>& track) 
     }
 }
 
-Spider_Queen::Spider_Queen() : SpawnableEnemy(300, 25.0f, 20.0f, 1.0f, 8.0f, 3) {}
+Spider_Queen::Spider_Queen() : SpawnableEnemy(300, 25.0f, 20.0f, 1.0f, 8.0f, 3) {
+    frameSpeed = 0.25f;
+    moveFrames = ImageHandler::LoadAnimationFrames("spider_queen", 3);
+}
 
 void Spider_Queen::spawn() {
     Vector2 spawnPos = getPosition();
@@ -451,10 +452,56 @@ void Spider_Queen::takeDamage(int amount, const std::string& type, const std::st
 }
 
 void Spider_Queen::draw() const {
-    DrawCircleV(position, hitboxRadius, BLACK);
+    Texture2D frame = moveFrames[currentFrame];
+    float diameter = hitboxRadius * 2.0f;
+
+    Rectangle dest = {
+        position.x,
+        position.y,
+        diameter,
+        diameter
+    };
+
+    Vector2 origin = {
+        diameter / 2.0f,
+        diameter / 2.0f
+    };
+
+    float angleDeg = 0.0f;
+
+    if (currentTarget < trackPoints.size()) {
+        Vector2 dir = Vector2Subtract(trackPoints[currentTarget], position);
+        float angleRad = atan2f(dir.y, dir.x);
+        angleDeg = angleRad * (180.0f / PI);
+
+        // Flip horizontally when moving left
+        if (angleDeg > 90.0f || angleDeg < -90.0f) {
+            angleDeg += 180.0f;
+            // Flip source rect too
+            Rectangle source = {
+                0.0f, 0.0f,
+                (float)-frame.width, // flip horizontally
+                (float)frame.height
+            };
+            DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
+            return;
+        }
+    }
+
+    // Default source rect (not flipped)
+    Rectangle source = {
+        0.0f, 0.0f,
+        (float)frame.width,
+        (float)frame.height
+    };
+
+    DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
 }
 
-Spiderling::Spiderling() : Enemy(10, 80.0f, 5.0f) {}
+Spiderling::Spiderling() : Enemy(10, 80.0f, 5.0f) {
+    frameSpeed = 0.125f;
+    moveFrames = ImageHandler::LoadAnimationFrames("spiderling", 3);
+}
 
 std::string Spiderling::getName() const {
     return "Spiderling";
@@ -474,7 +521,50 @@ void Spiderling::takeDamage(int amount, const std::string& type, const std::stri
 }
 
 void Spiderling::draw() const {
-    DrawCircleV(position, hitboxRadius, BLACK);
+    Texture2D frame = moveFrames[currentFrame];
+    float diameter = hitboxRadius * 2.0f;
+
+    Rectangle dest = {
+        position.x,
+        position.y,
+        diameter,
+        diameter
+    };
+
+    Vector2 origin = {
+        diameter / 2.0f,
+        diameter / 2.0f
+    };
+
+    float angleDeg = 0.0f;
+
+    if (currentTarget < trackPoints.size()) {
+        Vector2 dir = Vector2Subtract(trackPoints[currentTarget], position);
+        float angleRad = atan2f(dir.y, dir.x);
+        angleDeg = angleRad * (180.0f / PI);
+
+        // Flip horizontally when moving left
+        if (angleDeg > 90.0f || angleDeg < -90.0f) {
+            angleDeg += 180.0f;
+            // Flip source rect too
+            Rectangle source = {
+                0.0f, 0.0f,
+                (float)-frame.width, // flip horizontally
+                (float)frame.height
+            };
+            DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
+            return;
+        }
+    }
+
+    // Default source rect (not flipped)
+    Rectangle source = {
+        0.0f, 0.0f,
+        (float)frame.width,
+        (float)frame.height
+    };
+
+    DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
 }
 
 Arcane_Shell::Arcane_Shell() : Enemy(100, 60.0f, 15.0f) {
