@@ -1330,7 +1330,54 @@ void Arcane_Warden::draw() const {
     DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
 }
 
-Null_Imp::Null_Imp() : Enemy(4000, 65.0f, 15.0f) {}
+Null_Imp::Null_Imp() : Enemy(4000, 65.0f, 15.0f) {
+    frameSpeed = 0.15f;
+    moveFrames = ImageHandler::LoadAnimationFrames("null_imp", 12);
+}
+
+void Null_Imp::update(float deltaTime, const std::vector<Vector2>& track) {
+    
+    if (currentTarget >= track.size()) return;
+
+    if (deltaTime > 0.05f) deltaTime = 0.05f;
+
+    float currentTime = GetTime();
+
+    animationTimer += deltaTime;
+
+    if (!moveFrames.empty()) {
+        if (animationTimer >= frameSpeed) {
+            animationTimer = 0.0f;
+            int currentFrameIndex = (currentFrame + 1) % 2;
+            currentFrame = crackIndex + currentFrameIndex;
+        }
+    }
+
+    if (burning) {
+        if (currentTime >= burnEndTime) {
+            burning = false;
+            revertSpeed();
+        } else if (currentTime >= nextBurnTick) {
+            int prevHealth = getHealth();
+            takeDamage(burnDamage, "Fire", "Single");
+            int curHealth = getHealth();
+            int damageDealt = prevHealth - curHealth;
+            if (auto tower = burnSource.lock()) {
+                tower->setTotalDamageDealt(damageDealt);
+            }
+            playerMoney += damageDealt;
+            nextBurnTick += burnDelay;
+        }
+    }
+
+    Vector2 target = track[currentTarget];
+    Vector2 direction = Vector2Normalize(Vector2Subtract(target, position));
+    position = Vector2Add(position, Vector2Scale(direction, speed * deltaTime));
+
+    if (Vector2Distance(position, target) < 1.0f) {
+        currentTarget++;
+    }
+}
 
 std::string Null_Imp::getName() const {
     return "Null Imp";
@@ -1342,6 +1389,15 @@ void Null_Imp::takeDamage(int amount, const std::string& type, const std::string
     } else {
         health -= amount;
     }
+
+    if (crackIndex == 0 && health < maxHealth / 1.5) {
+        crackIndex += 4;
+    }
+
+    if (crackIndex == 4 && health < maxHealth / 4) {
+        crackIndex += 4;
+    }
+
     if (health <= 0) {
         alive = false;
         health = 0;
@@ -1349,7 +1405,50 @@ void Null_Imp::takeDamage(int amount, const std::string& type, const std::string
 }
 
 void Null_Imp::draw() const {
-    DrawCircleV(position, hitboxRadius, LIGHTGRAY);
+    Texture2D frame = moveFrames[currentFrame];
+    float diameter = hitboxRadius * 2.0f;
+
+    Rectangle dest = {
+        position.x,
+        position.y,
+        diameter,
+        diameter
+    };
+
+    Vector2 origin = {
+        diameter / 2.0f,
+        diameter / 2.0f
+    };
+
+    float angleDeg = 0.0f;
+
+    if (currentTarget < trackPoints.size()) {
+        Vector2 dir = Vector2Subtract(trackPoints[currentTarget], position);
+        float angleRad = atan2f(dir.y, dir.x);
+        angleDeg = angleRad * (180.0f / PI);
+
+        // Flip horizontally when moving left
+        if (angleDeg > 90.0f || angleDeg < -90.0f) {
+            angleDeg += 180.0f;
+            // Flip source rect too
+            Rectangle source = {
+                0.0f, 0.0f,
+                (float)-frame.width, // flip horizontally
+                (float)frame.height
+            };
+            DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
+            return;
+        }
+    }
+
+    // Default source rect (not flipped)
+    Rectangle source = {
+        0.0f, 0.0f,
+        (float)frame.width,
+        (float)frame.height
+    };
+
+    DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
 }
 
 The_Host::The_Host() : SpawnableEnemy(12000, 40.0f, 30.0f, 1.0f, 4.0f, 3) {}

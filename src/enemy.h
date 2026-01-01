@@ -294,8 +294,12 @@ class Arcane_Warden : public SpawnableEnemy {
 };
 
 class Null_Imp : public Enemy {
+    private:
+        int crackIndex = 0;
     public:
         Null_Imp();
+
+        void update(float deltaTime, const std::vector<Vector2>& track);
 
         std::string getName() const override;
 
