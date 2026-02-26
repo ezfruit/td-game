@@ -1584,7 +1584,10 @@ void The_Host::draw() const {
     DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
 }
 
-Bulwark::Bulwark() : Enemy(10000, 30.0f, 25.0f) {}
+Bulwark::Bulwark() : Enemy(10000, 30.0f, 25.0f) {
+    frameSpeed = 0.125f;
+    moveFrames = ImageHandler::LoadAnimationFrames("bulwark", 10);
+}
 
 std::string Bulwark::getName() const {
     return "Bulwark";
@@ -1604,7 +1607,50 @@ void Bulwark::takeDamage(int amount, const std::string& type, const std::string&
 }
 
 void Bulwark::draw() const {
-    DrawCircleV(position, hitboxRadius, WHITE);
+    Texture2D frame = moveFrames[currentFrame];
+    float diameter = hitboxRadius * 2.0f;
+
+    Rectangle dest = {
+        position.x,
+        position.y,
+        diameter,
+        diameter
+    };
+
+    Vector2 origin = {
+        diameter / 2.0f,
+        diameter / 2.0f
+    };
+
+    float angleDeg = 0.0f;
+
+    if (currentTarget < trackPoints.size()) {
+        Vector2 dir = Vector2Subtract(trackPoints[currentTarget], position);
+        float angleRad = atan2f(dir.y, dir.x);
+        angleDeg = angleRad * (180.0f / PI);
+
+        // Flip horizontally when moving left
+        if (angleDeg > 90.0f || angleDeg < -90.0f) {
+            angleDeg += 180.0f;
+            // Flip source rect too
+            Rectangle source = {
+                0.0f, 0.0f,
+                (float)-frame.width, // flip horizontally
+                (float)frame.height
+            };
+            DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
+            return;
+        }
+    }
+
+    // Default source rect (not flipped)
+    Rectangle source = {
+        0.0f, 0.0f,
+        (float)frame.width,
+        (float)frame.height
+    };
+
+    DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
 }
 
 Prime_Sludge::Prime_Sludge() : Enemy(6000, 100.0f, 20.0f) {
