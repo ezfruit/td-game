@@ -368,6 +368,8 @@ class Fractured_King : public Enemy {
         float stunTimer = 0.0f;
         float stunDuration = 5.0f;
         bool stunned = false;
+        int baseFrame = 0;
+        int finalFrame = 0;
     public:
         Fractured_King();
 

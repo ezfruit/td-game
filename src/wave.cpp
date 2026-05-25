@@ -4,7 +4,7 @@ std::vector<GameWave> waveDefinitions = {
     // Wave 1
     {
         {
-            { "Slime", 1.0f },
+            { "Fractured King", 1.0f },
             { "Slime", 1.0f },
             { "Slime", 1.0f },
             { "Slime", 1.0f },

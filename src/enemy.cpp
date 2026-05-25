@@ -1797,21 +1797,86 @@ void Big_Slime::draw() const {
     DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
 }
 
-Fractured_King::Fractured_King() : Enemy(600000, 20.0f, 30.0f) {}
+Fractured_King::Fractured_King() : Enemy(600000, 20.0f, 30.0f) {
+    frameSpeed = 0.33f;
+    moveFrames = ImageHandler::LoadAnimationFrames("fractured_king", 26);
+}
 
 void Fractured_King::update(float deltaTime, const std::vector<Vector2>& track) {
     
     shieldChangeTimer += GetFrameTime();
 
     if (!stunned) {
-        Enemy::update(deltaTime, track); // Might have to change this to ensure enemy still gets burned when stunned
+
+        if (currentTarget >= track.size()) return;
+
+        if (deltaTime > 0.05f) deltaTime = 0.05f;
+
+        float currentTime = GetTime();
+
+        animationTimer += deltaTime;
+
+        if (!moveFrames.empty()) {
+            if (animationTimer >= frameSpeed) {
+                animationTimer = 0.0f;
+                finalFrame = (baseFrame + ((finalFrame + 1) % 5));
+            }
+        }
+
+        if (burning) {
+            if (currentTime >= burnEndTime) {
+                burning = false;
+                revertSpeed();
+            } else if (currentTime >= nextBurnTick) {
+                int prevHealth = getHealth();
+                takeDamage(burnDamage, "Fire", "Single");
+                int curHealth = getHealth();
+                int damageDealt = prevHealth - curHealth;
+                if (auto tower = burnSource.lock()) {
+                    tower->setTotalDamageDealt(damageDealt);
+                }
+                playerMoney += damageDealt;
+                nextBurnTick += burnDelay;
+            }
+        }
+
+        Vector2 target = track[currentTarget];
+        Vector2 direction = Vector2Normalize(Vector2Subtract(target, position));
+        position = Vector2Add(position, Vector2Scale(direction, speed * deltaTime));
+
+        if (Vector2Distance(position, target) < 1.0f) {
+            currentTarget++;
+        }
+
     } else if (stunned) {
+        baseFrame = 0;
+        finalFrame = 25;
         stunTimer += deltaTime;
         if (stunTimer >= stunDuration) {
             stunned = false;
             stunTimer = 0.0f;
             shieldChangeTimer = 0.0f;
         }
+
+        float currentTime = GetTime();
+
+        if (burning) {
+            if (currentTime >= burnEndTime) {
+                burning = false;
+                revertSpeed();
+            } else if (currentTime >= nextBurnTick) {
+                int prevHealth = getHealth();
+                takeDamage(burnDamage, "Fire", "Single");
+                int curHealth = getHealth();
+                int damageDealt = prevHealth - curHealth;
+                if (auto tower = burnSource.lock()) {
+                    tower->setTotalDamageDealt(damageDealt);
+                }
+                playerMoney += damageDealt;
+                nextBurnTick += burnDelay;
+            }
+        }
+
         return;
     }
 
@@ -1821,18 +1886,22 @@ void Fractured_King::update(float deltaTime, const std::vector<Vector2>& track) 
             case 1:
                 shield = "Physical";
                 shieldColor = GRAY;
+                baseFrame = 5;
                 break;
             case 2:
                 shield = "Magic";
                 shieldColor = PINK;
+                baseFrame = 10;
                 break;
             case 3:
                 shield = "Fire";
                 shieldColor = ORANGE;
+                baseFrame = 15;
                 break;
             case 4:
                 shield = "Air";
                 shieldColor = WHITE;
+                baseFrame = 20;
                 break;
         }
         shieldChangeTimer = 0.0f;
@@ -1843,6 +1912,7 @@ void Fractured_King::update(float deltaTime, const std::vector<Vector2>& track) 
         shield = "None";
         shieldChangeTimer = 0.0f;
         speed += 5;
+        baseFrame = 0;
     }
 
 }
@@ -1876,10 +1946,50 @@ void Fractured_King::takeDamage(int amount, const std::string& type, const std::
 }
 
 void Fractured_King::draw() const {
-    DrawCircleV(position, hitboxRadius, RED);
-    if (shield != "None") {
-        DrawCircleLinesV(position, hitboxRadius, shieldColor);
+    Texture2D frame = moveFrames[finalFrame];
+    float diameter = hitboxRadius * 2.0f;
+
+    Rectangle dest = {
+        position.x,
+        position.y,
+        diameter,
+        diameter
+    };
+
+    Vector2 origin = {
+        diameter / 2.0f,
+        diameter / 2.0f
+    };
+
+    float angleDeg = 0.0f;
+
+    if (currentTarget < trackPoints.size()) {
+        Vector2 dir = Vector2Subtract(trackPoints[currentTarget], position);
+        float angleRad = atan2f(dir.y, dir.x);
+        angleDeg = angleRad * (180.0f / PI);
+
+        // Flip horizontally when moving left
+        if (angleDeg > 90.0f || angleDeg < -90.0f) {
+            angleDeg += 180.0f;
+            // Flip source rect too
+            Rectangle source = {
+                0.0f, 0.0f,
+                (float)-frame.width, // flip horizontally
+                (float)frame.height
+            };
+            DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
+            return;
+        }
     }
+
+    // Default source rect (not flipped)
+    Rectangle source = {
+        0.0f, 0.0f,
+        (float)frame.width,
+        (float)frame.height
+    };
+
+    DrawTexturePro(frame, source, dest, origin, angleDeg, WHITE);
 }
 
 std::string Fractured_King::getShield() const {
