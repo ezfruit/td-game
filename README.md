@@ -12,7 +12,6 @@ Welcome to Rampart Defenders! A fully functional Tower Defense game built in C++
 ## Visuals
 
 All visuals are hand-drawn using [Piskel](https://www.piskelapp.com/).  
-Note: Not all enemy visuals are finalized.
 
 ## Sound Effects
 
@@ -21,3 +20,7 @@ All sound effects are sourced from [freesound](https://freesound.org/) with a Cr
 ## Miscellaneous
 
 This was my first ever solo game project built for my personal portfolio.
+
+## Download
+
+The game is officially available on itch.io! [Rampart Defenders](https://fruittybot.itch.io/rampart-defenders)
