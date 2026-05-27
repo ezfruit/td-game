@@ -1,15 +1,12 @@
 cmake_minimum_required(VERSION 3.15)
 
-set(CMAKE_TOOLCHAIN_FILE "C:/Users/saint/Downloads/vcpkg/scripts/buildsystems/vcpkg.cmake" 
-    CACHE STRING "Vcpkg toolchain file")
-
-project(TowerDefense)
+project(RampartDefenders)
 
 set(CMAKE_CXX_STANDARD 17)
 
 find_package(raylib CONFIG REQUIRED)
 
-add_executable(TowerDefense
+add_executable(RampartDefenders
     src/main.cpp
     src/options.cpp
     src/tower.cpp
@@ -22,5 +19,11 @@ add_executable(TowerDefense
     src/messages.cpp
 )
 
-target_include_directories(TowerDefense PRIVATE include)
-target_link_libraries(TowerDefense PRIVATE raylib)
+target_include_directories(RampartDefenders PRIVATE include)
+target_link_libraries(RampartDefenders PRIVATE raylib)
+
+add_custom_command(TARGET RampartDefenders POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/assets
+    $<TARGET_FILE_DIR:RampartDefenders>/assets
+)

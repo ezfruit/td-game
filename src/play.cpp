@@ -199,7 +199,7 @@ void ResetGame() {
 
     messageManager.clear(); // Clears all the messages in the queue as well as any currently displayed message
 
-    waveScript.loadFromFile("src/wavescript.json");
+    waveScript.loadFromFile("assets/wavescript.json");
 }
 
 int getIncomeForWave(int waveNumber) {
